@@ -6,6 +6,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import restapi.ChallengeActionsService;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +24,6 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> fut) {
-
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
         router.post("/api/register").blockingHandler(this::register);
@@ -33,6 +33,10 @@ public class MainVerticle extends AbstractVerticle {
                     .putHeader("content-type", "text/html")
                     .end("Register verticle");
         });
+
+
+        new ChallengeActionsService().registerRoutes(router);
+
         try {
             System.out.println(new File("").getCanonicalPath());
         } catch (IOException e) {
