@@ -16,7 +16,7 @@ var userFirstList = [
         icon: "add",
         difficulty: 0,
         actionName: "Learn one feature of React framework",
-        actionType: "Every Week",
+        actionType: "Weekly",
         actionStatus: "Done"
     },
     {id: 2, icon: "swap_calls",  difficulty: 1, actionName: "Read scientific article", actionType: "Adhoc", actionStatus: "Pending"}
@@ -25,8 +25,8 @@ var userFirstTable = {no: 0, authorized: true, userName: "Kami", date: "2016-08-
 
 
 var userSecondList = [
-    {id: 3, icon: "fa-book",  difficulty: 0, actionName: "Example task 1", actionType: "Every Week", actionStatus: "Done"},
-    {id: 4, icon: "fa-car",  difficulty: 2, actionName: "Fix car", actionType: "Adhoc", actionStatus: "Pending"},
+    {id: 3, icon: "fa-book",  difficulty: 0, actionName: "Example task 1", actionType: "Monthly", actionStatus: "Done"},
+    {id: 4, icon: "fa-car",  difficulty: 2, actionName: "Fix car", actionType: "Daily", actionStatus: "Pending"},
     {
         id: 5,
         icon: "fa-mobile",

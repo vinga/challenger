@@ -47,3 +47,41 @@ main {
 
 
 }
+
+.daysBadge1 {
+    font-weight: 300;
+    font-size: 0.8rem;
+    color: #fff;
+    background-color: #ffe0b2;
+    border-radius: 2px;
+
+    min-width: 3rem;
+    padding: 0 6px;
+    text-align: center;
+
+    line-height: inherit;
+    color: #757575;
+    position: relative;
+    left:5px;
+    /* right: 15px; */
+    box-sizing: border-box;
+}
+
+.daysBadge2 {
+    font-weight: 300;
+    font-size: 0.8rem;
+    color: #fff;
+    background-color: #b2ebf2;
+    border-radius: 2px;
+
+    min-width: 3rem;
+    padding: 0 6px;
+    text-align: center;
+
+    line-height: inherit;
+    color: #757575;
+    position: relative;
+    left:5px;
+    /* right: 15px; */
+    box-sizing: border-box;
+}

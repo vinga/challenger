@@ -95,6 +95,9 @@ export default class SecondUserAuthorizePopover extends React.Component {
 }
 
 
+
+
+
 export default class ChallengeActionTable extends React.Component {
     constructor(props) {
         super(props);
@@ -132,6 +135,8 @@ export default class ChallengeActionTable extends React.Component {
     }
 
     onChallengeActionStateChanged = (ev, complete, id) => {
+
+
         // onChallengeActionStateChanged(complete, id) {
         var result = grepOne(this.state.userTableDTO.actionsList, function (e) {
             return e.id == id;
@@ -228,20 +233,22 @@ export default class ChallengeActionTable extends React.Component {
         for (var i = 0; i < this.state.userTableDTO.actionsList.length; i++) {
             var action = this.state.userTableDTO.actionsList[i];
 
-//<TableRowColumn style={{width: '30px', padding: '5px'}}><ChallengeIcon
-            //icon={action.icon}/></TableRowColumn>
 
+//<span className="daysBadge2">1</span>
             mCommentNodes.push(
                 <TableRow key={action.id}>
 
                     <TableRowColumn style={{width: '40px', padding: '0px'}}>{this.prepareDifficultyIcon(action, action.icon)}</TableRowColumn>
-                    <TableRowColumn style={{width: '290px', padding: '5px'}}>{action.actionName}</TableRowColumn>
-                    <TableRowColumn style={{padding: '5px'}}>{action.actionType}</TableRowColumn>
-                    <TableRowColumn style={{padding: '10px'}}>{this.prepareCheckbox(action)}</TableRowColumn>
+                    <TableRowColumn style={{padding: '5px'}}>
+
+                        {action.actionName}
+                    </TableRowColumn>
+                    <TableRowColumn style={{width: '40px',padding: '0px', color: 'grey',fontSize:'11px'}}>{action.actionType}</TableRowColumn>
+                    <TableRowColumn style={{width: '40px',padding: '5px'}}>{this.prepareCheckbox(action)}</TableRowColumn>
                 </TableRow>);
         }
 
-// <TableHeaderColumn style={{width: '30px', padding: '5px'}}></TableHeaderColumn>
+
         return (
             <div>
                 <h5 className="center">
@@ -256,10 +263,10 @@ export default class ChallengeActionTable extends React.Component {
                         <TableRow  >
 
                             <TableHeaderColumn style={{width: '40px', padding: '0px'}}></TableHeaderColumn>
-                            <TableHeaderColumn style={{width: '290px', padding: '5px'}}>Name</TableHeaderColumn>
-                            <TableHeaderColumn style={{padding: '5px'}}>Type</TableHeaderColumn>
+                            <TableHeaderColumn style={{ padding: '5px'}}>Name</TableHeaderColumn>
+                            <TableHeaderColumn style={{width: '40px',padding: '0px'}}></TableHeaderColumn>
 
-                            <TableHeaderColumn style={{padding: '10px'}}>Done</TableHeaderColumn>
+                            <TableHeaderColumn style={{width: '40px',padding: '5px'}}>Done</TableHeaderColumn>
                         </TableRow>
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>
