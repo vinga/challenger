@@ -1,15 +1,29 @@
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTOptions;
+import io.vertx.ext.auth.jwt.impl.JWT;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import kaleidoscope.ShapesGenerator1;
+import kaleidoscope.SvgGenerator;
 import restapi.ChallengeActionsService;
+import util.CertUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.*;
+import java.security.cert.X509Certificate;
 
 /**
  * Created by kmyczkowska on 2016-08-03.
@@ -34,8 +48,62 @@ public class MainVerticle extends AbstractVerticle {
                     .end("Register verticle");
         });
 
+        router.get("/api/newAvatar").handler((rc)-> {
+            SvgGenerator gen=new SvgGenerator();
+            String str=gen.toSvgString(new ShapesGenerator1());
+            rc.response()
+              .putHeader("content-type", "text/html; charset=utf-8")
+              .putHeader("Access-Control-Allow-Origin", "*")
+              .end(str);
 
-        new ChallengeActionsService().registerRoutes(router);
+        });
+        router.get("/api/newAvatar/:id").handler((rc)-> {
+            SvgGenerator gen=new SvgGenerator();
+            String id = rc.request().getParam("id");
+            String str=gen.toSvgString(new ShapesGenerator1(Long.parseLong(id)));
+            rc.response()
+              .putHeader("content-type", "text/html; charset=utf-8")
+              .putHeader("Access-Control-Allow-Origin", "*")
+              .end(str);
+
+        });
+
+
+        try {
+
+
+            CertUtil.recreateKeystoreWithJWTKey("testSecret","keystore.jceks","HS256");
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        JWTAuth jwt = JWTAuth.create(vertx, new JsonObject()
+                .put("keyStore", new JsonObject()
+                        .put("type", "jceks")
+                        .put("path", "keystore.jceks")
+                        .put("password", "testSecret")));
+
+      //  router.route("/api/*").handler(JWTAuthHandler.create(jwt, "/api/newToken"));
+
+        ChallengeActionsService challengeActionsService = new ChallengeActionsService();
+        challengeActionsService.registerRoutes(router);
+
+        router.post("/api/newToken").handler((rc)-> {
+
+            String login = rc.request().getParam("login");
+            String pass = rc.request().getParam("pass");
+            long userId=challengeActionsService.getUserIdFromLogin(login);
+            String token = jwt.generateToken(new JsonObject().put("userId", userId),  new JWTOptions().setAlgorithm("HS256").setExpiresInSeconds(600L));
+            System.out.println("GENERATED TOKEN "+token);
+            rc.response().putHeader("Access-Control-Allow-Origin", "*").end(token);
+
+
+
+
+        });
+
+
 
         try {
             System.out.println(new File("").getCanonicalPath());
@@ -76,4 +144,16 @@ public class MainVerticle extends AbstractVerticle {
 
     }
 
+    public static void main(String[] args) throws Exception {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA","SUN");
+        SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        keyGen.initialize(1024, random);
+
+
+        KeyPair pair = keyGen.generateKeyPair();
+        PrivateKey priv = pair.getPrivate();
+        PublicKey pub = pair.getPublic();
+
+
+    }
 }
