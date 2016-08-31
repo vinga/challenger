@@ -1,6 +1,3 @@
-/**
- * Created by evizone on 2016-08-18.
- */
 import React from "react";
 import Dialog from "material-ui/Dialog";
 import Divider from "material-ui/Divider";
