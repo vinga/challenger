@@ -1,7 +1,7 @@
 package com.kameo.challenger.utils.odb;
 
 
-import com.challenger.eviauth.odb.api.IIdentity;
+import com.kameo.challenger.odb.api.IIdentity;
 
 import java.util.Comparator;
 

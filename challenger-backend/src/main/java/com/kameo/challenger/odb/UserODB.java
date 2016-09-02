@@ -1,25 +1,36 @@
 package com.kameo.challenger.odb;
 
-import com.challenger.eviauth.odb.api.IIdentity;
+import com.kameo.challenger.odb.api.IIdentity;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
-/**
- * Created by kmyczkowska on 2016-08-30.
- */
 @Entity
-public @Data class UserODB implements IIdentity {
+@Data
+@ToString(of=IIdentity.id_column)
+@NoArgsConstructor
+public class UserODB implements IIdentity {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     long id;
-    String firstName;
-    String lastName;
     String login;
-    String passwordHash;
-    String salt;
+    @NotNull
+    String email;
+
+
+    @ManyToMany
+    List<ChallengeContractODB> contracts;
+
+
+    public UserODB(long id) {
+        this.id=id;
+    }
+
+
 }

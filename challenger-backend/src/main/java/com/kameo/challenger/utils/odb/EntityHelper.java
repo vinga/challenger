@@ -1,15 +1,16 @@
 package com.kameo.challenger.utils.odb;
 
-import com.challenger.eviauth.odb.api.IIdentity;
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.kameo.challenger.odb.api.IIdentity;
 import org.hibernate.Hibernate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.SingularAttribute;
 import java.lang.reflect.Array;

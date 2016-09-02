@@ -1,7 +1,8 @@
 package com.kameo.challenger.utils.odb;
 
-import com.challenger.eviauth.odb.api.IIdentity;
+import com.kameo.challenger.odb.api.IIdentity;
 
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.SingularAttribute;
 import java.util.*;
 

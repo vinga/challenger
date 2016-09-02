@@ -1,6 +1,6 @@
 package com.kameo.challenger.utils.odb;
 
-import com.challenger.eviauth.odb.api.IIdentity;
+import com.kameo.challenger.odb.api.IIdentity;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -14,6 +14,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.ListAttribute;
 import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
@@ -952,6 +953,15 @@ public class AnyDAO {
 
 	public <E> E getOnlyOne(Class<E> clz, JinqStream.Where<E,?> where) {
 		return streams.streamAll(em, clz).where(where).getOnlyValue();
+	}
+
+	public <E> E getOnlyOne(Class<E> clz,  JinqStream.Where<E,?> ww, JinqStream.Where<E,?> ... where) {
+		JPAJinqStream<E> ws = streams.streamAll(em, clz);
+		ws=ws.where(ww);
+		for (JinqStream.Where w: where) {
+			ws=ws.where(w);
+		}
+		return ws.getOnlyValue();
 	}
 	public <E> Optional<E> getOne(Class<E> clz, JinqStream.Where<E,?> where) {
 		return streams.streamAll(em, clz).where(where).findOne();
