@@ -5,22 +5,18 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
-import com.kameo.challenger.odb.*;
 import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.logic.FakeDataLogic;
+import com.kameo.challenger.odb.*;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.inject.Inject;
-import java.lang.invoke.MethodHandles;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,14 +24,10 @@ import java.util.stream.Collectors;
 @AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class ChallengerActionsTest implements En {
-    private Log log = LogFactory.getLog(MethodHandles.lookup().lookupClass());
-
     @Inject
     private AnyDAO anyDao;
     @Inject
     private ChallengerLogic challengerService;
-    @Inject
-    private FakeDataLogic cmd;
     @Inject
     private TestHelper testHelper;
 
@@ -92,20 +84,17 @@ public class ChallengerActionsTest implements En {
         When("^I accept all actions before due date$", () -> {
             ChallengeContractODB cc = testHelper
                     .getActiveContactBetween(testHelper.myself(), testHelper.myFriend());
-
-            List<ChallengeActionODB> actions = challengerService
-                    .getPendingChallengeActionsForConctract(testHelper.myself().getId(), cc.getId());
-
+            Assert.assertNotNull(cc);
             List<ChallengeActionODB> collect = anyDao.streamAll(ChallengeActionODB.class).collect(Collectors.toList());
-            testHelper.acceptAllChallengeActions(testHelper.myself().getId(),collect);
+            testHelper.acceptAllChallengeActions(testHelper.myself().getId(), collect);
 
         });
 
         Then("^I should see (\\d+) actions on daily-todo-list$", (Integer arg1) -> {
             ChallengeContractODB cc = testHelper
                     .getActiveContactBetween(testHelper.myself(), testHelper.myFriend());
-
-            List<ChallengeActionODB> actions=challengerService.getMyDailyTodoList(testHelper.myself().getId(), cc.getId());
+            List<ChallengeActionODB> actions = challengerService
+                    .getMyDailyTodoList(testHelper.myself().getId(), cc.getId());
             Assert.assertEquals(arg1.longValue(), actions.size());
         });
     }
@@ -113,14 +102,14 @@ public class ChallengerActionsTest implements En {
     private void seeingChallengerActionsDefinitions() {
 
         Given("^I have accepted challenge with my friend$", () -> {
-            cmd.createUsers("myself", "myFriend");
-
-            cmd.createAcceptedChallenge(Iterators.forArray(testHelper.myself(), testHelper.myFriend()));
+            testHelper.createUsers("myself", "myFriend");
+            testHelper.createAcceptedChallenge(Iterators.forArray(testHelper.myself(), testHelper.myFriend()));
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
             ChallengeContractODB cc = anyDao.streamAll(ChallengeContractODB.class)
                                             .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
                                             .getOnlyValue();
+            Assert.assertNotNull(cc);
         });
 
         When("my friend created new action for me$", () -> {

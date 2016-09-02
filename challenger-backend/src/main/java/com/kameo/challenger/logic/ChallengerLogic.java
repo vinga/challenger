@@ -31,12 +31,9 @@ public class ChallengerLogic {
     private Log log = LogFactory.getLog(MethodHandles.lookup().lookupClass());
 
     @Inject
-    private UserRepo userRepo;
-
-    @Inject
     private AnyDAO anyDao;
-
-
+    @Inject
+    private LoginLogic loginLogic;
 
     @Inject
     private ConfirmationLinkLogic confirmationLinkLogic;
@@ -53,47 +50,25 @@ public class ChallengerLogic {
         boolean confirmationByEmail = false;
         if (cb.getSecond().isNew()) {
             // lets check if such user exists
-
             if (cb.getSecond().getEmail() == null)
                 throw new IllegalArgumentException("Either second user id or second  user email must be provided");
-            UserODB first = anyDao.reload(cb.getFirst());
-            Optional<UserODB> userByEmail = findUserByEmail(cb.getSecond().getEmail());
-            Optional<UserODB> osecond = userByEmail;
-
-
+            Optional<UserODB> osecond = findUserByEmail(cb.getSecond().getEmail());
             confirmationByEmail = true;
-
             if (osecond.isPresent()) {
                 cb.setSecond(osecond.get());
             } else {
-                UserODB user = new UserODB();
-                user.setLogin("");
-                user.setEmail(cb.getSecond().getEmail());
-                user.setUserStatus(UserStatus.WAITING_FOR_EMAIL_CONFIRMATION);
-                anyDao.getEm().persist(user);
+                UserODB user = loginLogic.createPendingUserWithEmailOnly(cb);
                 cb.setSecond(user);
             }
         }
         cb.setChallengeContractStatus(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
         anyDao.getEm().persist(cb);
-
         if (confirmationByEmail) {
-            ConfirmationLinkODB ccl = new ConfirmationLinkODB();
-            ccl.setEmail(cb.getSecond().getEmail());
-            ccl.setChallengeContractId(cb.getId());
-            ccl.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION);
-            ccl.setUid(UUID.randomUUID().toString());
-            anyDao.getEm().persist(ccl);
-
-            confirmationLinkLogic.createAndSendChallengeConfirmationLink(cb, ccl);
+            confirmationLinkLogic.createAndSendChallengeConfirmationLink(cb);
         }
     }
 
 
-
-    private Optional<UserODB> findUserByEmail(String email) {
-        return anyDao.getOne(UserODB.class, u -> u.getEmail().equals(email));
-    }
 
     public List<ChallengeContractODB> getPendingChallenges(long userId) {
         return anyDao.streamAll(ChallengeContractODB.class)
@@ -105,8 +80,6 @@ public class ChallengerLogic {
     public void createNewChallengeAction(long userId, ChallengeActionODB ca) {
         ChallengeContractODB cc = ca.getChallengeContract();
         ChallengeContractODB ccDB = anyDao.reload(cc);
-
-
         if (ca.getIcon() == null)
             ca.setIcon("fa-car");
         if (ca.getUser() != null && ca.getUser().getId() != ccDB.getFirst().getId() && ca.getUser().getId() != ccDB
@@ -132,16 +105,10 @@ public class ChallengerLogic {
         ).map(u -> u.getLogin()).sorted().collect(Collectors.toList());
     }
 
-
-
-
-    private UserODB createUser(String loginName, String email) {
-        UserODB user = new UserODB();
-        user.setLogin(loginName);
-        user.setEmail(email);
-        anyDao.getEm().persist(user);
-        return user;
+    private Optional<UserODB> findUserByEmail(String email) {
+        return anyDao.getOne(UserODB.class, u -> u.getEmail().equals(email));
     }
+
 
     public List<ChallengeActionODB> getPendingChallengeActionsForConctract(long userId, long contractId) {
         return anyDao.streamAll(ChallengeActionODB.class)
@@ -167,78 +134,6 @@ public class ChallengerLogic {
                                      ca.getActionType() == ActionType.onetime &&
                                              new DateTime(ca.getDueDate()).isAfterNow())
                      .collect(Collectors.toList());
-    }
-
-
-    public long login(String login, String pass) throws AuthException {
-        if (Strings.isNullOrEmpty(pass)) {
-            throw new AuthException("No password");
-        }
-
-        Optional<UserODB> user = anyDao.streamAll(UserODB.class)
-                                       .where(u -> u.getLogin().equals(login))
-                                       .findAny();
-        if (user.isPresent()) {
-            UserODB u = user.get();
-
-            if (u.getUserStatus() == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION)
-                throw new AuthException("Please confirm your email first");
-            if (u.getPasswordHash().equals(PasswordUtil.getPasswordHash(pass, u.getSalt()))) {
-                if (u.getUserStatus() == UserStatus.SUSPENDED && new DateTime(u.getSuspendedDueDate()).isBeforeNow()) {
-                    // lest unblock it, but how we can know which status was previous?
-                    u.setUserStatus(UserStatus.ACTIVE);
-                    anyDao.getEm().merge(u);
-                }
-                if (u.getUserStatus() == UserStatus.SUSPENDED) {
-                    throw new AuthException("Your account is suspended till " + u.getSuspendedDueDate());
-                } else if (u.getUserStatus() != UserStatus.ACTIVE) {
-                    throw new AuthException("Your account is not active");
-                } else
-                    return u.getId();
-
-            } else {
-                u.setFailedLoginsNumber(u.getFailedLoginsNumber() + 1);
-
-                if (u.getFailedLoginsNumber() > 10) {
-                    u.setUserStatus(UserStatus.SUSPENDED);
-                    u.setSuspendedDueDate(DateUtils.addMinutes(new Date(), 20));
-                }
-                anyDao.getEm().merge(u);
-                throw new AuthException("Wrong credentials");
-            }
-        } else {
-            throw new AuthException("User with login '" + login + "' doesn't exist");
-        }
-    }
-
-    public boolean registerUser(String login, String password, String email) {
-        Optional<ChallengeContractODB> cco = anyDao.streamAll(ChallengeContractODB.class)
-                                                   .where(cc -> cc.getFirst().getEmail().equals(email) || cc
-                                                           .getSecond().getEmail().equals(email)).findAny();
-
-        if (!cco.isPresent()) {
-            UserODB user = new UserODB();
-            user.setLogin(login);
-            user.setEmail(email);
-            user.setUserStatus(UserStatus.ACTIVE);
-            user.setSalt(PasswordUtil.createSalt());
-            user.setPasswordHash(PasswordUtil.getPasswordHash(password, user.getSalt()));
-            anyDao.getEm().persist(user);
-            return true;
-        } else {
-
-            ChallengeContractODB cc = cco.get();
-            boolean firsst = cc.getFirst().getEmail().equals(email) && cc.getFirst()
-                                                                         .getUserStatus() == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION;
-            boolean sec = cc.getSecond().getEmail().equals(email) && cc.getSecond()
-                                                                       .getUserStatus() == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION;
-            if (firsst || sec) {
-                confirmationLinkLogic.createAndSendEmailConfirmationLink(login, password, email);
-                return true;
-            }
-
-            return false;
-        }
     }
 
 

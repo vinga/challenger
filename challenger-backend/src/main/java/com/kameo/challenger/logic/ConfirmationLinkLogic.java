@@ -109,7 +109,17 @@ public class ConfirmationLinkLogic {
         anyDao.getEm().merge(cclDB);
     }
 
-    public void createAndSendChallengeConfirmationLink(ChallengeContractODB cb, ConfirmationLinkODB ccl) {
+
+
+    public void createAndSendChallengeConfirmationLink(ChallengeContractODB cb) {
+        ConfirmationLinkODB ccl = new ConfirmationLinkODB();
+        ccl.setEmail(cb.getSecond().getEmail());
+        ccl.setChallengeContractId(cb.getId());
+        ccl.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION);
+        ccl.setUid(UUID.randomUUID().toString());
+        anyDao.getEm().persist(ccl);
+
+
         String login = "you";
         if (cb.getSecond().getUserStatus() != UserStatus.WAITING_FOR_EMAIL_CONFIRMATION)
             login = cb.getSecond().getLogin();

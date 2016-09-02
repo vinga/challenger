@@ -4,41 +4,33 @@ package com.kameo.challenger;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.logic.ConfirmationLinkLogic;
+import com.kameo.challenger.logic.LoginLogic;
 import com.kameo.challenger.odb.*;
-import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.logic.FakeDataLogic;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.inject.Inject;
-import java.lang.invoke.MethodHandles;
 import java.util.Date;
 import java.util.Optional;
 
 @AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class LoginTest implements En {
-    private Log log = LogFactory.getLog(MethodHandles.lookup().lookupClass());
-
     @Inject
     private AnyDAO anyDao;
-    @Inject
-    private ChallengerLogic challengerService;
-    @Inject
-    private FakeDataLogic cmd;
     @Inject
     private TestHelper testHelper;
     @Inject
     private ConfirmationLinkLogic confirmationLinkLogic;
+    @Inject
+    private LoginLogic loginLogic;
 
     @Before
     public void recreateSchema() {
@@ -46,16 +38,16 @@ public class LoginTest implements En {
     }
 
 
-    boolean invalidCredentials;
-    int noOfBadLoginTimes;
-    boolean registerResult;
+    private boolean invalidCredentials;
+    private int noOfBadLoginTimes;
+    private boolean registerResult;
 
     public LoginTest() {
 
         When("^I login with wrong password$", () -> {
 
             try {
-                challengerService.login(testHelper.myself().getLogin(), "otherpass");
+                loginLogic.login(testHelper.myself().getLogin(), "otherpass");
                 invalidCredentials = false;
                 Assert.fail("Cannot login with wrong password");
             } catch (AbstractAuthFilter.AuthException ex) {
@@ -64,9 +56,9 @@ public class LoginTest implements En {
             }
         });
 
-        Then("^I got information that my credentials are invalid$", () -> {
-            Assert.assertTrue(invalidCredentials);
-        });
+        Then("^I got information that my credentials are invalid$", () ->
+                Assert.assertTrue(invalidCredentials)
+        );
 
 
         When("^I login with wrong password (\\d+) times$", (Integer arg1) -> {
@@ -74,7 +66,7 @@ public class LoginTest implements En {
             noOfBadLoginTimes = arg1;
             for (int i = 0; i < arg1; i++) {
                 try {
-                    challengerService.login(testHelper.myself().getLogin(), "otherpass");
+                    loginLogic.login(testHelper.myself().getLogin(), "otherpass");
                     Assert.fail("Cannot login with wrong password");
                 } catch (AbstractAuthFilter.AuthException ex) {
                     invalidCredentials = true;
@@ -107,9 +99,9 @@ public class LoginTest implements En {
             Assert.assertTrue(!cco.isPresent());
         });
 
-        When("^I register with that email$", () -> {
-            registerResult = challengerService.registerUser("myself", "myselfpass", "myself@email.em");
-        });
+        When("^I register with that email$", () ->
+                registerResult = loginLogic.registerUser("myself", "myselfpass", "myself@email.em")
+        );
 
         Then("^I don't have to confirm my email before I can login succesfully$", () -> {
             Assert.assertEquals(UserStatus.ACTIVE, testHelper.myself().getUserStatus());
@@ -118,28 +110,29 @@ public class LoginTest implements En {
 
         });
 
-        Given("^I not confirmed it yet$", () -> {
-            Assert.assertEquals(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE,anyDao.streamAll(ChallengeContractODB.class).getOnlyValue().getChallengeContractStatus());
-        });
+        Given("^I not confirmed it yet$", () ->
+                Assert.assertEquals(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE, anyDao
+                        .streamAll(ChallengeContractODB.class).getOnlyValue().getChallengeContractStatus())
+        );
 
         Then("^I have to confirm my email before I can login succesfully$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
                                                   .where(c -> c.getEmail().equals("myself@email.em") && c
                                                           .getConfirmationLinkType() == ConfirmationLinkType.EMAIL_CONFIRMATION)
                                                   .getOnlyValue();
-           Assert.assertTrue(!testHelper.getSentMessagesList().isEmpty());
+            Assert.assertTrue(!testHelper.getSentMessagesList().isEmpty());
             testHelper.getSentMessagesList().clear();
 
             try {
-                challengerService.login("myself","myselfpass");
+                loginLogic.login("myself", "myselfpass");
                 Assert.fail();
             } catch (AbstractAuthFilter.AuthException e) {
-
+                //ignore
             }
             confirmationLinkLogic.confirmLinkByUid(onlyValue.getUid());
 
             try {
-                challengerService.login("myself","myselfpass");
+                loginLogic.login("myself", "myselfpass");
 
             } catch (AbstractAuthFilter.AuthException e) {
                 Assert.fail();

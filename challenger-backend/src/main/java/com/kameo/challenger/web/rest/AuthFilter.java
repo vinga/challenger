@@ -1,6 +1,8 @@
 package com.kameo.challenger.web.rest;
 
+import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.logic.ChallengerLogic;
+import com.kameo.challenger.logic.LoginLogic;
 import com.kameo.challenger.utils.ReflectionUtils;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
@@ -15,9 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 
-/**
- * Created by kmyczkowska on 2016-08-31.
- */
 @Component
 public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
@@ -28,8 +27,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        boolean crossDOmain = true;
-        if (crossDOmain) {
+        if (ServerConfig.isCrossDomain()) {
             HttpServletResponse resp = (HttpServletResponse) res;
             resp.addHeader("Access-Control-Allow-Origin", "http://localhost:3000");
             resp.addHeader("Access-Control-Allow-Credentials", "true");
@@ -50,9 +48,12 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     @Inject
     ChallengerLogic challengerService;
 
+    @Inject
+    LoginLogic loginLogic;
+
     @Override
     protected JWTServiceConfig getJWTServiceConfig(FilterConfig fc) {
-        return new JWTServiceConfig("signingkeytemporaryherebutwillbemovedtoouterfile"
+        return new JWTServiceConfig<>("signingkeytemporaryherebutwillbemovedtoouterfile"
                 .getBytes(), "Kameo", "ChallengerUsers", ChallengerSess.class);
     }
 
@@ -60,7 +61,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     protected ChallengerSess createNewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
         String login = req.getParameter("login");
         String pass = req.getParameter("pass");
-        long userId=challengerService.login(login,pass);
+        long userId=loginLogic.login(login,pass);
         ChallengerSess td = new ChallengerSess();
         td.setUserId(userId);
         td.setExpires(new DateTime(DateUtils.addMinutes(new Date(), 15)));
