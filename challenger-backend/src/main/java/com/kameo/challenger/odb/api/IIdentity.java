@@ -8,4 +8,8 @@ import java.io.Serializable;
 public interface IIdentity extends Serializable {
     public static final String id_column="id";
     long getId();
+
+    default boolean isNew() {
+        return getId()<0;
+    }
 }

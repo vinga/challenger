@@ -1,7 +1,9 @@
 package com.kameo.challenger.util;
 
 
+import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.*;
+import com.kameo.challenger.utils.MailService;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.jinq.orm.stream.JinqStream;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +15,10 @@ import java.util.Optional;
 public class TestHelper {
     public static final String QUOTED_STR = "\"([^\"]*)\"";
     public static final String DIGIT = "(\\d+)";
+    private final List<MailService.Message> messages= Lists.newArrayList();
 
     @Inject
-    AnyDAO anyDao;
+    private AnyDAO anyDao;
 
     public UserODB myFriend() {
         return anyDao.streamAll(UserODB.class).where(u -> u.getLogin().equals("myFriend")).getOnlyValue();
@@ -46,6 +49,7 @@ public class TestHelper {
     public void clearSchema() {
         anyDao.getEm().createNativeQuery("TRUNCATE SCHEMA public AND COMMIT").executeUpdate();
         anyDao.getEm().clear();
+        getSentMessagesList().clear();
     }
 
     @Transactional
@@ -56,5 +60,7 @@ public class TestHelper {
         }
     }
 
-
+    public List<MailService.Message> getSentMessagesList() {
+        return messages;
+    }
 }

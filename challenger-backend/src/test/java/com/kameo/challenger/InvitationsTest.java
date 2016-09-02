@@ -3,11 +3,12 @@ package com.kameo.challenger;
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.logic.ConfirmationLinkLogic;
 import com.kameo.challenger.odb.ChallengeContractODB;
 import com.kameo.challenger.odb.ChallengeContractStatus;
 import com.kameo.challenger.odb.UserODB;
-import com.kameo.challenger.services.ChallengerService;
-import com.kameo.challenger.services.FakeDataService;
+import com.kameo.challenger.logic.ChallengerLogic;
+import com.kameo.challenger.logic.FakeDataLogic;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.MailService;
 import com.kameo.challenger.utils.StringHelper;
@@ -23,7 +24,6 @@ import org.springframework.test.context.ContextConfiguration;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
-import java.util.Optional;
 
 @AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
@@ -33,11 +33,13 @@ public class InvitationsTest implements En {
     @Inject
     private AnyDAO anyDao;
     @Inject
-    ChallengerService challengerService;
+    ChallengerLogic challengerService;
     @Inject
-    FakeDataService cmd;
+    FakeDataLogic cmd;
     @Inject
     TestHelper testHelper;
+    @Inject
+    private ConfirmationLinkLogic confirmationLinkLogic;
 
     @Before
     public void recreateSchema() {
@@ -100,7 +102,7 @@ public class InvitationsTest implements En {
             ChallengeContractODB cb = new ChallengeContractODB();
             cb.setLabel("Default challenge");
             cb.setFirst(myself);
-            cb.setSecondEmail(friendEmail);
+            cb.setSecond(UserODB.ofEmail(friendEmail));
 
             challengerService.createNewChallenge(myself.getId(), cb);
         });
@@ -113,14 +115,14 @@ public class InvitationsTest implements En {
             ChallengeContractODB cb = new ChallengeContractODB();
             cb.setLabel("Default challenge");
             cb.setFirst(myself);
-            cb.setSecondEmail(friendEmail);
+            cb.setSecond(UserODB.ofEmail(friendEmail));
 
             challengerService.createNewChallenge(myself.getId(), cb);
         });
 
         Then("^He gets email notification$", () -> {
-            Assert.assertEquals(1, MailService.messages.size());
-            MailService.messages.clear();
+            Assert.assertEquals(1, testHelper.getSentMessagesList().size());
+            testHelper.getSentMessagesList().clear();
         });
     }
 
@@ -135,21 +137,22 @@ public class InvitationsTest implements En {
             ChallengeContractODB cb = new ChallengeContractODB();
             cb.setLabel("Default challenge");
             cb.setFirst(myFriend);
-            cb.setSecondEmail("myself@email.em");
+            cb.setSecond(UserODB.ofEmail("myself@email.em"));
             challengerService.createNewChallenge(myFriend.getId(), cb);
         });
 
         When("^I accept email link$", () -> {
-            Assert.assertEquals(1, MailService.messages.size());
-            MailService.Message mm = MailService.messages.get(0);
-
+            Assert.assertEquals(1, testHelper.getSentMessagesList().size());
+            MailService.Message mm = testHelper.getSentMessagesList().get(0);
+            testHelper.getSentMessagesList().clear();
             String actionUrl = StringHelper.getFirstHrefValue(mm.getContent());
-            System.out.println(actionUrl);
-
             int i = actionUrl.lastIndexOf("/");
             String uid = actionUrl.substring(i + 1);
-            challengerService.acceptChallengeForExistingUser(uid, Optional.of("myself"));
-            MailService.messages.clear();
+            if (confirmationLinkLogic.isConfirmationLinkRequireParams(uid)) {
+                confirmationLinkLogic.fillLoginAndPasswordToConfirmationLink(uid,"myself","myselfpass");
+            }
+            confirmationLinkLogic.confirmLinkByUid(uid);
+
         });
 
         Then("^my account will be created$", () -> {

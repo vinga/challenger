@@ -1,4 +1,4 @@
-package com.kameo.challenger.services;
+package com.kameo.challenger.logic;
 
 
 import com.kameo.challenger.odb.UserODB;

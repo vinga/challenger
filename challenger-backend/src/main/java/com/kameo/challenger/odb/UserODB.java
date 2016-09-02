@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -20,9 +21,18 @@ public class UserODB implements IIdentity {
     @GeneratedValue(strategy= GenerationType.AUTO)
     long id;
     String login;
+    String passwordHash;
+    String salt;
+
     @NotNull
     String email;
 
+    @Enumerated
+    UserStatus userStatus=UserStatus.ACTIVE;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    Date suspendedDueDate;
+    int failedLoginsNumber;
 
     @ManyToMany
     List<ChallengeContractODB> contracts;
@@ -33,4 +43,10 @@ public class UserODB implements IIdentity {
     }
 
 
+    public static UserODB ofEmail(String email) {
+        UserODB u=new UserODB();
+        u.setId(-1);
+        u.setEmail(email);
+        return u;
+    }
 }

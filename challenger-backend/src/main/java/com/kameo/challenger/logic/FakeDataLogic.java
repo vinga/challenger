@@ -1,8 +1,9 @@
-package com.kameo.challenger.services;
+package com.kameo.challenger.logic;
 
 
 import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.*;
+import com.kameo.challenger.utils.PasswordUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @Component
 @Transactional
-public class FakeDataService implements CommandLineRunner {
+public class FakeDataLogic implements CommandLineRunner {
 
     public static Data data = new Data();
     @Inject
@@ -55,18 +56,24 @@ public class FakeDataService implements CommandLineRunner {
         UserODB u = new UserODB();
         u.setLogin("jack");
         u.setEmail("jack@email.em");
+        u.setSalt(PasswordUtil.createSalt());
+        u.setPasswordHash(PasswordUtil.getPasswordHash("jackpass",u.getSalt()));
         anyDao.getEm().persist(u);
         data.userJack = u;
 
         u = new UserODB();
         u.setLogin("kami");
         u.setEmail("kami@email.em");
+        u.setSalt(PasswordUtil.createSalt());
+        u.setPasswordHash(PasswordUtil.getPasswordHash("kamipass",u.getSalt()));
         data.userKami = u;
         anyDao.getEm().persist(u);
 
         u = new UserODB();
         u.setLogin("milena");
         u.setEmail("milena@email.em");
+        u.setSalt(PasswordUtil.createSalt());
+        u.setPasswordHash(PasswordUtil.getPasswordHash("milenapass",u.getSalt()));
         data.userMilena = u;
         anyDao.getEm().persist(u);
     }
@@ -83,6 +90,8 @@ public class FakeDataService implements CommandLineRunner {
             UserODB u = new UserODB();
             u.setLogin(login);
             u.setEmail(login + "@email.em");
+            u.setSalt(PasswordUtil.createSalt());
+            u.setPasswordHash(PasswordUtil.getPasswordHash(login+"pass",u.getSalt()));
             anyDao.getEm().persist(u);
             res.add(u);
         }
@@ -94,10 +103,6 @@ public class FakeDataService implements CommandLineRunner {
         createPendingChallenge(users);
     }
 
-    /*    public void createUsersWithAcceptedChallenge(String u1, String u2) {
-            Iterator<UserODB> users = createUsers(u1, u2).iterator();
-            createAcceptedChallenge(users);
-        }*/
     public ChallengeContractODB createPendingChallenge(Iterator<UserODB> users) {
         return createChallenge(users, ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
     }

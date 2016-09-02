@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.ActionStatus;
 import com.kameo.challenger.odb.ActionType;
 import com.kameo.challenger.odb.UserODB;
-import com.kameo.challenger.services.UserRepo;
+import com.kameo.challenger.logic.UserRepo;
 import com.kameo.challenger.utils.ReflectionUtils;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import com.kameo.challenger.web.rest.api.ITestService;

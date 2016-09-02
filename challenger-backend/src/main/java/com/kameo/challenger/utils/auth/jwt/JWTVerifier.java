@@ -62,7 +62,7 @@ public class JWTVerifier<E extends TokenInfo> {
      * @throws SignatureException
      * @throws InvalidKeyException
      */
-    public TokenInfo verifyToken(String token) {
+    public E verifyToken(String token) {
 
         JsonTokenParser parser = new JsonTokenParser(locators,
                 checker);
