@@ -1,0 +1,76 @@
+package com.kameo.challenger.web.rest;
+
+import com.kameo.challenger.logic.ChallengerLogic;
+import com.kameo.challenger.utils.ReflectionUtils;
+import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
+import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
+import org.apache.commons.lang.time.DateUtils;
+import org.joda.time.DateTime;
+import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
+
+/**
+ * Created by kmyczkowska on 2016-08-31.
+ */
+@Component
+public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
+
+    @Override
+    protected boolean isResourceANewTokenGenerator(HttpServletRequest req) {
+        return req.getPathInfo().equals("/api/newToken");
+    }
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+        boolean crossDOmain = true;
+        if (crossDOmain) {
+            HttpServletResponse resp = (HttpServletResponse) res;
+            resp.addHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+            resp.addHeader("Access-Control-Allow-Credentials", "true");
+            if (((HttpServletRequest) req).getMethod().equals("OPTIONS")) {
+                resp.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                resp.addHeader("Access-Control-Allow-Headers", "Authorization");
+                return;
+            }
+        }
+
+
+        super.doFilter(req, res, chain);
+    }
+
+    @Inject
+    ChallengerSess myTokenInfo;
+
+    @Inject
+    ChallengerLogic challengerService;
+
+    @Override
+    protected JWTServiceConfig getJWTServiceConfig(FilterConfig fc) {
+        return new JWTServiceConfig("signingkeytemporaryherebutwillbemovedtoouterfile"
+                .getBytes(), "Kameo", "ChallengerUsers", ChallengerSess.class);
+    }
+
+    @Override
+    protected ChallengerSess createNewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
+        String login = req.getParameter("login");
+        String pass = req.getParameter("pass");
+        long userId=challengerService.login(login,pass);
+        ChallengerSess td = new ChallengerSess();
+        td.setUserId(userId);
+        td.setExpires(new DateTime(DateUtils.addMinutes(new Date(), 15)));
+        return td;
+    }
+
+    @Override
+    protected void setRequestScopeVariable(ChallengerSess ti) {
+        ReflectionUtils.copy(ti, this.myTokenInfo);
+    }
+
+
+}
