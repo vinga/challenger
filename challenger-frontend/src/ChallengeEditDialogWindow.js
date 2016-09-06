@@ -6,7 +6,7 @@ import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
 import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "./Constants";
 import DatePicker from "material-ui/DatePicker";
-
+import ajaxWrapper from "./presenters/AjaxWrapper"
 
 /**
  * A modal dialog can only be closed by selecting one of the actions.
@@ -32,7 +32,8 @@ export default class ChallengeEditDialogWindow extends React.Component {
 
         this.state = {
             task: task,
-            open: false
+            open: false,
+            submitDisabled: false
         };
 
 
@@ -44,10 +45,16 @@ export default class ChallengeEditDialogWindow extends React.Component {
 
     handleActionNameFieldChange = (event) => {
         this.state.task.actionName = event.target.value;
-        this.setState({task: this.state.task});
+        this.setState(this.state);
     }
 
     handleClose = () => {
+        this.setState({open: false});
+    };
+
+    handleSubmit = () => {
+        console.log("udpate challenge")
+        ajaxWrapper.updateChallengeAction(this.state.task, data=> console.log(data));
         this.setState({open: false});
     };
 
@@ -79,18 +86,6 @@ export default class ChallengeEditDialogWindow extends React.Component {
     };
 
 
-    updateChallenge = () => {
-        $.ajax({
-            url: this.props.ctx.baseUrl+ "/updateChallenge",
-            headers: {
-                "Authorization": "Bearer " + this.props.ctx.webToken
-            }
-        }).then(function(data) {
-            this.state.userTableDTO.actionsList=data;
-
-            this.setState({userTableDTO: this.state.userTableDTO});
-        }.bind(this));
-    }
 
     render() {
         const actions = [
@@ -102,8 +97,8 @@ export default class ChallengeEditDialogWindow extends React.Component {
             <FlatButton
                 label={this.handleSubmitButtonTitle()}
                 primary={true}
-                disabled={true}
-                onTouchTap={this.handleClose}
+                disabled={this.state.submitDisabled}
+                onTouchTap={this.handleSubmit}
             />,
         ];
 

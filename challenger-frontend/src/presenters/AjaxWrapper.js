@@ -29,6 +29,19 @@ $(function() {
 
 class AjaxWrapper {
 
+    login(login, pass, okCallbackData, errorCallbackjqXHRException) {
+        $.ajax({
+            url: this.baseUrl + "/newToken",
+            type: 'POST',
+            data: {
+                'login': login,
+                'pass': pass
+            },
+        }).then(
+            (data)=>okCallbackData(data),
+            (jqXHR, exception) => errorCallbackjqXHRException(jqXHR, exception)
+        );
+    }
 
     loadVisibleChallenges(callback) {
         $.ajax({
@@ -50,20 +63,21 @@ class AjaxWrapper {
         }).then((data)=>callback(data));
     }
 
-    login(login, pass, okCallbackData, errorCallbackjqXHRException) {
-        $.ajax({
-            url: this.baseUrl + "/newToken",
-            type: 'POST',
-            data: {
-                'login': login,
-                'pass': pass
-            },
-        }).then(
-            (data)=>okCallbackData(data),
-            (jqXHR, exception) => errorCallbackjqXHRException(jqXHR, exception)
-        );
-    }
 
+    updateChallengeAction(challengeAction, callback) {
+        $.ajax({
+            url: this.baseUrl+ "/updateChallenge",
+            data: JSON.stringify(challengeAction),
+            contentType: "application/json",
+            processData: false,
+            type: "POST",
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        }).then(function (data) {
+            callback(data);
+        });
+    }
 
 }
 const ajaxWrapper=new AjaxWrapper();
