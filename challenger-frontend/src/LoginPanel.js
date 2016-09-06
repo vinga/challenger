@@ -1,9 +1,9 @@
 import React, {Component} from "react";
 import RaisedButton from "material-ui/RaisedButton";
 import TextFieldExt from "./common-components/TextFieldExt";
-import CircularProgress from "material-ui/CircularProgress";
-import FontIcon from 'material-ui/FontIcon';
-import LinearProgress from 'material-ui/LinearProgress';
+import LinearProgress from "material-ui/LinearProgress";
+import ajaxWrapper from "./presenters/AjaxWrapper";
+
 
 export default class LoginPanel extends React.Component {
     constructor(props) {
@@ -19,22 +19,13 @@ export default class LoginPanel extends React.Component {
         var login = this.refs.loginField.state.fieldValue;
         var pass = this.refs.passwordField.state.fieldValue;
         this.state.inProgress = true;
-        this.setState({state: this.state});
-        $.ajax({
-            url: this.props.ctx.baseUrl + "/newToken",
-            type: 'POST',
-            data: {
-                'login': login,
-                'pass': pass
+        this.setState(this.state);
+
+        ajaxWrapper.login(login, pass,
+            (data)=> {
+                this.props.onLoggedJWT(login, data)
             },
-
-        }).then(
-            function (data) {
-                console.log(data);
-
-                this.props.onLoggedJWT(login, data);
-            }.bind(this),
-            function (jqXHR, exception) {
+            (jqXHR, exception) => {
                 this.state.inProgress = false;
                 this.state.errordDescription = jqXHR.responseText;
                 this.setState({state: this.state});
@@ -45,7 +36,7 @@ export default class LoginPanel extends React.Component {
                         errorDescription: "Connection refused"
                     });
                     // alert('Not connect.\n Verify Network.');
-                } else if (jqXHR.status==401) {
+                } else if (jqXHR.status == 401) {
                     this.setState({
                         loginFailed: true,
                         errorDescription: jqXHR.responseText
@@ -57,29 +48,27 @@ export default class LoginPanel extends React.Component {
                         errorDescription: "Unexpected problem"
                     });
                 }
-            }.bind(this)
+            }
         );
-
-
     }
 
 
     render() {
         return (
-            <div id="main" className="container" >
+            <div id="main" className="container">
                 <div className="section">
 
                     {!this.state.inProgress && this.state.loginFailed ?
-                    <div className="row" style={{height:'100px'}}>
-                        <div className="col s3 offset-s4">
-                            <p className="grey-text">
-                                There is problem with logging:<br/>
-                                <b className="red-text text-darken-3">{this.state.errorDescription}</b>
-                            </p>
-                        </div>
+                        <div className="row" style={{height: '100px'}}>
+                            <div className="col s3 offset-s4">
+                                <p className="grey-text">
+                                    There is problem with logging:<br/>
+                                    <b className="red-text text-darken-3">{this.state.errorDescription}</b>
+                                </p>
+                            </div>
 
-                    </div>
-					:  <div className="row" style={{height:'100px'}}></div>
+                        </div>
+                        : <div className="row" style={{height: '100px'}}></div>
                     }
 
                     <div className="row">
@@ -101,11 +90,10 @@ export default class LoginPanel extends React.Component {
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col s1 offset-s3" >
-                          
-                            </div>
-                        <div className="col s3 " style={{paddingRight: '50px'}}>
+                        <div className="col s1 offset-s3">
 
+                        </div>
+                        <div className="col s3 " style={{paddingRight: '50px'}}>
 
 
                             <RaisedButton
@@ -114,7 +102,7 @@ export default class LoginPanel extends React.Component {
                                 fullWidth={true}
                                 primary={true}
                                 className="right" onClick={this.onLogin}/>
-   {this.state.inProgress && <LinearProgress mode="indeterminate" /> }
+                            {this.state.inProgress && <LinearProgress mode="indeterminate"/> }
 
                         </div>
                     </div>

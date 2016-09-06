@@ -26,7 +26,9 @@ export default class Header extends React.Component {
                     </div>
                     <Toolbar className="cyan lighten-1">
                         <ToolbarGroup firstChild={true}>
-
+                            <img src="img/shield.svg"
+                                 style={{marginLeft: '30px', marginTop: '10px', height: '40px', fill: '#ffffff'}}/> {/*#b2ebf2*/}
+                            <span style={{fontSize: '30px', marginLeft: '10px'}}>Challenger</span>
 
                         </ToolbarGroup>
 

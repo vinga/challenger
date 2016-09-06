@@ -4,10 +4,10 @@ import MenuItem from "material-ui/MenuItem";
 import IconButton from "material-ui/IconButton/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import {ChallengeStatus} from "./Constants";
-import Divider from 'material-ui/Divider';
+import Divider from "material-ui/Divider";
+import ajaxWrapper from "./presenters/AjaxWrapper";
 
-
-const menuIconStyle = {fontSize:'15px',   textAlign: 'center',    lineHeight: '24px'};
+const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px'};
 
 export default class ChallengeContractsNaviBar extends React.Component {
     constructor(props) {
@@ -23,35 +23,28 @@ export default class ChallengeContractsNaviBar extends React.Component {
     }
 
     loadChallengesFromServer = () => {
-
-        $.ajax({
-            url: this.props.ctx.baseUrl + "/visibleChallenges",
-            headers: {
-                "Authorization": "Bearer " + this.props.ctx.webToken
-            }
-        }).then(function (data) {
-            this.state.visibleContractsDTO = data;
-
-            this.setState(this.state);
-            this.onContractSelected(this.state.visibleContractsDTO.selectedContractId);
-        }.bind(this));
-
+        ajaxWrapper.loadVisibleChallenges(
+             (data) => {
+                this.state.visibleContractsDTO = data;
+                this.setState(this.state);
+                this.onContractSelected(this.state.visibleContractsDTO.selectedContractId);
+            });
     }
 
     calculateChallengeStatusIcon(challengeContractDTO) {
         var iconText;
         switch (challengeContractDTO.challengeContractStatus) {
             case ChallengeStatus.ACTIVE:
-                iconText=null;
+                iconText = null;
                 break;
             case ChallengeStatus.WAITING_FOR_ACCEPTANCE:
-                if (challengeContractDTO.firstUserId==challengeContractDTO.myId)
-                    iconText= "fa-hourglass";
+                if (challengeContractDTO.firstUserId == challengeContractDTO.myId)
+                    iconText = "fa-hourglass";
                 else
-                    iconText= "fa-question";
+                    iconText = "fa-question";
                 break;
             case ChallengeStatus.REFUSED:
-                iconText= "fa-cancel";
+                iconText = "fa-cancel";
                 break;
             case ChallengeStatus.INACIVE:
                 throw "Not supported here";
@@ -59,14 +52,13 @@ export default class ChallengeContractsNaviBar extends React.Component {
         }
 
 
-        if (iconText!=undefined)
+        if (iconText != undefined)
             return <FontIcon
-            style={menuIconStyle}
-            className={"fa "+iconText+" cyan-text"}/>
+                style={menuIconStyle}
+                className={"fa " + iconText + " cyan-text"}/>
         else return null;
 
     }
-
 
 
     calculateTitle(contractId) {
@@ -117,15 +109,15 @@ export default class ChallengeContractsNaviBar extends React.Component {
                                       onTouchTap={()=>this.onContractSelected(ch.id)}
                                       primaryText={ch.label}/>)
                 }
-                {this.state.visibleContractsDTO.visibleChallenges.length>0 &&
-                    <Divider />
+                {this.state.visibleContractsDTO.visibleChallenges.length > 0 &&
+                <Divider />
                 }
                 <MenuItem
-                          leftIcon={<FontIcon
-                              style={menuIconStyle}
-                              className={"fa fa-plus-circle cyan-text"}/>}
+                    leftIcon={<FontIcon
+                        style={menuIconStyle}
+                        className={"fa fa-plus-circle cyan-text"}/>}
 
-                          primaryText="Create new challenge"/>
+                    primaryText="Create new challenge"/>
             </IconMenu></div>);
     }
 
