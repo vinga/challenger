@@ -67,7 +67,7 @@ public class ChallengerRestService implements ITestService {
     @POST
     @Path("updateChallenge")
     public void updateChallenge(ChallengeActionDTO challengeActionDTO) {
-        System.out.println("updatechallenge.........");
+        System.out.println("updatechallenge... ......");
         System.out.println("UPDATDE challenge "+new Gson().toJson(challengeActionDTO));
         ChallengeActionODB challengeActionODB = new ChallengeActionODB();
         challengeActionODB.setActionStatus(challengeActionDTO.getActionStatus());
