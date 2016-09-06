@@ -66,7 +66,7 @@ public class JWTVerifier<E extends TokenInfo> {
                     checker);
             JsonToken jt;
             try {
-                System.out.println("TOKEN TO VERIFY " + token + " " + new Date());
+               // System.out.println("TOKEN TO VERIFY " + token + " " + new Date());
                 jt = parser.verifyAndDeserialize(token);
 
             } catch (SignatureException e) {
@@ -82,7 +82,7 @@ public class JWTVerifier<E extends TokenInfo> {
                 e.setIssued(new DateTime(payload.getAsJsonPrimitive("iat").getAsLong() * 1000));
                 e.setExpires(new DateTime(payload.getAsJsonPrimitive("exp").getAsLong() * 1000));
 
-                System.out.println("issued " + e.getIssued() + ", expires " + e.getExpires());
+                //System.out.println("issued " + e.getIssued() + ", expires " + e.getExpires());
                 return e;
             } else {
                 return null;

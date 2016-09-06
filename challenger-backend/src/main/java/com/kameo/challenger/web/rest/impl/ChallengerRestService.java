@@ -2,6 +2,7 @@ package com.kameo.challenger.web.rest.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.gson.Gson;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.ReflectionUtils;
@@ -66,6 +67,8 @@ public class ChallengerRestService implements ITestService {
     @POST
     @Path("updateChallenge")
     public void updateChallenge(ChallengeActionDTO challengeActionDTO) {
+        System.out.println("updatechallenge.........");
+        System.out.println("UPDATDE challenge "+new Gson().toJson(challengeActionDTO));
         ChallengeActionODB challengeActionODB = new ChallengeActionODB();
         challengeActionODB.setActionStatus(challengeActionDTO.getActionStatus());
         challengeActionODB.setActionType(challengeActionDTO.getActionType());
