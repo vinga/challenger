@@ -130,7 +130,22 @@ public class ChallengerRestService implements ITestService {
         long callerId = session.getUserId();
         List<ChallengeActionODB> actions = challengerLogic.getChallengeActionsAssignedToOther(callerId, contractId);
         List<ChallengeActionDTO> ua = ReflectionUtils.copyList(actions, ChallengeActionDTO.class);
-        return ua;
+       // return ua;
+
+        List<ChallengeActionDTO> res=Lists.newArrayList();
+        for (int i=0; i<2; i++) {
+            ChallengeActionDTO r = new ChallengeActionDTO();
+            r.id = i;
+            r.icon = "fa-car";
+            r.difficulty = i%3;
+            r.label = "Example task "+i+" " + contractId;
+            r.actionType = ActionType.monthly;
+            r.actionStatus = ActionStatus.done;
+            res.add(r);
+        }
+
+
+        return res;
     }
 
 
