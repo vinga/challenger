@@ -79,6 +79,19 @@ export default class ChallengeEditDialogWindow extends React.Component {
     };
 
 
+    updateChallenge = () => {
+        $.ajax({
+            url: this.props.ctx.baseUrl+ "/updateChallenge",
+            headers: {
+                "Authorization": "Bearer " + this.props.ctx.webToken
+            }
+        }).then(function(data) {
+            this.state.userTableDTO.actionsList=data;
+
+            this.setState({userTableDTO: this.state.userTableDTO});
+        }.bind(this));
+    }
+
     render() {
         const actions = [
             <FlatButton

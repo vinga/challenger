@@ -46,6 +46,14 @@ const DiffMediumIcon = (props) => {
 }
 
 
+const ChallengeStatus = {
+    INACIVE : "INACIVE",
+    ACTIVE: "ACTIVE",
+    WAITING_FOR_ACCEPTANCE: "WAITING_FOR_ACCEPTANCE",
+    REFUSED:"REFUSED"
+};
+
 export { DiffHardIcon as DiffHardIcon,
  DiffMediumIcon as DiffMediumIcon,
- DiffSimpleIcon as DiffSimpleIcon}
+ DiffSimpleIcon as DiffSimpleIcon,
+ChallengeStatus as ChallengeStatus}
