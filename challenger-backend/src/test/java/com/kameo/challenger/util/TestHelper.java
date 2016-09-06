@@ -37,7 +37,15 @@ public class TestHelper {
     }
 
     public ChallengeContractODB createAcceptedChallenge(Iterator<UserODB> users) {
-        return fakeDataLogic.createAcceptedChallenge(users);
+        return fakeDataLogic.createChallenge(users, ChallengeContractStatus.ACTIVE);
+    }
+
+    public ChallengeContractODB createPendingChallenge(Iterator<UserODB> users) {
+        return fakeDataLogic.createChallenge(users, ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
+    }
+
+    public ChallengeContractODB createRejectedChallenge(Iterator<UserODB> users) {
+        return fakeDataLogic.createChallenge(users, ChallengeContractStatus.REFUSED);
     }
 
     public UserODB myFriend() {
@@ -84,4 +92,5 @@ public class TestHelper {
     public List<MailService.Message> getSentMessagesList() {
         return messages;
     }
+
 }

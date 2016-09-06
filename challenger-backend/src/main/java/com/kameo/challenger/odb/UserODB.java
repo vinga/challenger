@@ -37,6 +37,7 @@ public class UserODB implements IIdentity {
     @ManyToMany
     List<ChallengeContractODB> contracts;
 
+    Long defaultChallengeContract;
 
     public UserODB(long id) {
         this.id=id;

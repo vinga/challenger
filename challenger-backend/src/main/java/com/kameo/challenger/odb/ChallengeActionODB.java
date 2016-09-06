@@ -20,7 +20,7 @@ public class ChallengeActionODB implements IIdentity {
     private ActionType actionType;
     private String icon;
     private int difficulty;
-    private String actionName;
+    private String label;
     @Enumerated
     @NotNull
     private ActionStatus actionStatus;

@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.auth.jwt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -15,43 +14,25 @@ import org.joda.time.DateTime;
 
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.Date;
 import java.util.List;
 
 /**
  * Created by kmyczkowska on 2016-09-01.
  */
 public class JWTVerifier<E extends TokenInfo> {
-    final net.oauth.jsontoken.Checker checker;
-    final VerifierProviders locators;
+
     final String issuer;
     final Class<E> clzE;
-    final Gson gson= new Gson();
+
+    JWTServiceConfig sc;
 
     public JWTVerifier(JWTServiceConfig sc, Class e) {
         this.issuer = sc.getIssuer();
         this.clzE = e;
+        this.sc = sc;
 
 
-        try {
-            Verifier hmacVerifier = new HmacSHA256Verifier(sc.getSigningKey());
-            VerifierProvider hmacLocator = new VerifierProvider() {
-                @Override
-                public List<Verifier> findVerifier(String id, String key) {
-                    return Lists.newArrayList(hmacVerifier);
-                }
-            };
-            locators = new VerifierProviders();
-            locators.setVerifierProvider(SignatureAlgorithm.HS256, hmacLocator);
-            checker = new net.oauth.jsontoken.Checker() {
-                @Override
-                public void check(JsonObject payload) throws SignatureException {
-                    // don't throw - allow anything
-                }
-
-            };
-        } catch (InvalidKeyException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     /**
@@ -63,27 +44,51 @@ public class JWTVerifier<E extends TokenInfo> {
      * @throws InvalidKeyException
      */
     public E verifyToken(String token) {
-
-        JsonTokenParser parser = new JsonTokenParser(locators,
-                checker);
-        JsonToken jt;
         try {
-            jt = parser.verifyAndDeserialize(token);
-        } catch (SignatureException e) {
-            throw new RuntimeException(e);
-        }
-        JsonObject payload = jt.getPayloadAsJsonObject();
-        String issuer = payload.getAsJsonPrimitive("iss").getAsString();
-        JsonObject info = payload.getAsJsonObject("info");
+            Verifier hmacVerifier = new HmacSHA256Verifier(sc.getSigningKey());
+            VerifierProvider hmacLocator = new VerifierProvider() {
+                @Override
+                public List<Verifier> findVerifier(String id, String key) {
+                    return Lists.newArrayList(hmacVerifier);
+                }
+            };
+            VerifierProviders locators = new VerifierProviders();
+            locators.setVerifierProvider(SignatureAlgorithm.HS256, hmacLocator);
+            net.oauth.jsontoken.Checker checker = new net.oauth.jsontoken.Checker() {
+                @Override
+                public void check(JsonObject payload) throws SignatureException {
+                    // don't throw - allow anything
+                }
 
-        if (this.issuer.equals(issuer)) {
-            JsonObject request = new JsonObject();
-            E e = gson.fromJson(info, clzE);
-            e.setIssued(new DateTime(payload.getAsJsonPrimitive("iat").getAsLong() * 1000));
-            e.setExpires(new DateTime(payload.getAsJsonPrimitive("exp").getAsLong() * 1000));
-            return e;
-        } else {
-            return null;
+            };
+            final Gson gson = new Gson();
+            JsonTokenParser parser = new JsonTokenParser(locators,
+                    checker);
+            JsonToken jt;
+            try {
+                System.out.println("TOKEN TO VERIFY " + token + " " + new Date());
+                jt = parser.verifyAndDeserialize(token);
+
+            } catch (SignatureException e) {
+                throw new RuntimeException(e);
+            }
+            JsonObject payload = jt.getPayloadAsJsonObject();
+            String issuer = payload.getAsJsonPrimitive("iss").getAsString();
+            JsonObject info = payload.getAsJsonObject("info");
+
+            if (this.issuer.equals(issuer)) {
+                JsonObject request = new JsonObject();
+                E e = gson.fromJson(info, clzE);
+                e.setIssued(new DateTime(payload.getAsJsonPrimitive("iat").getAsLong() * 1000));
+                e.setExpires(new DateTime(payload.getAsJsonPrimitive("exp").getAsLong() * 1000));
+
+                System.out.println("issued " + e.getIssued() + ", expires " + e.getExpires());
+                return e;
+            } else {
+                return null;
+            }
+        } catch (InvalidKeyException ex) {
+            throw new RuntimeException(ex);
         }
     }
 

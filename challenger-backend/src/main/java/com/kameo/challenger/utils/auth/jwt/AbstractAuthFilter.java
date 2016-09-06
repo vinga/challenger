@@ -2,7 +2,6 @@ package com.kameo.challenger.utils.auth.jwt;
 
 import com.google.common.base.Strings;
 
-
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,13 +30,9 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
             try {
                 E tokenInfo = createNewToken(httpReq, httpRes);
 
-                String newToken = signer
-                        .createJsonWebToken(tokenInfo, tokenInfo.getExpires().toDate());
-                httpRes.addHeader("Content-Type", "text/html; charset=utf-8");
-                httpRes.getWriter().print(newToken);
-                httpRes.getWriter().flush();
+                printTokenToResponse(httpRes, tokenInfo);
 
-                onNotAuthorized(httpReq, httpRes, chain);
+
             } catch (AuthException ex) {
                 onAuthException(ex, httpReq, httpRes, chain);
             }
@@ -63,6 +58,14 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 unauthorized(httpRes);
             }
         }
+    }
+
+    private void printTokenToResponse(HttpServletResponse httpRes, E tokenInfo) throws IOException {
+        String newToken = signer
+                .createJsonWebToken(tokenInfo, tokenInfo.getExpires().toDate());
+        httpRes.addHeader("Content-Type", "text/html; charset=utf-8");
+        httpRes.getWriter().print(newToken);
+        httpRes.getWriter().flush();
     }
 
     /**
@@ -132,11 +135,14 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     protected abstract JWTServiceConfig getJWTServiceConfig(FilterConfig fc);
 
     public static class AuthException extends Exception {
+
+
         public AuthException(String message) {
             super(message);
         }
 
     }
+
 
 
 }

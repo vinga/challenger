@@ -101,16 +101,6 @@ public class ChallengerActionsTest implements En {
 
     private void seeingChallengerActionsDefinitions() {
 
-        Given("^I have accepted challenge with my friend$", () -> {
-            testHelper.createUsers("myself", "myFriend");
-            testHelper.createAcceptedChallenge(Iterators.forArray(testHelper.myself(), testHelper.myFriend()));
-            UserODB myself = testHelper.myself();
-            UserODB myFriend = testHelper.myFriend();
-            ChallengeContractODB cc = anyDao.streamAll(ChallengeContractODB.class)
-                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
-                                            .getOnlyValue();
-            Assert.assertNotNull(cc);
-        });
 
         When("my friend created new action for me$", () -> {
             UserODB myself = testHelper.myself();
@@ -122,7 +112,7 @@ public class ChallengerActionsTest implements En {
             ChallengeActionODB ca = new ChallengeActionODB();
             ca.setActionType(ActionType.daily);
             ca.setIcon("fa-car");
-            ca.setActionName("Test");
+            ca.setLabel("Test");
             ca.setActionStatus(ActionStatus.pending);
             ca.setChallengeContract(cc);
             ca.setUser(myself);
@@ -130,15 +120,42 @@ public class ChallengerActionsTest implements En {
         });
 
 
-        Then("^I should see it$", () -> {
+        Then("^I should see mine actions$", () -> {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
             ChallengeContractODB cc = anyDao.streamAll(ChallengeContractODB.class)
                                             .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
                                             .getOnlyValue();
 
-            List<ChallengeActionODB> actions = challengerService.getChallengeActions(myself.getId(), cc.getId());
+            List<ChallengeActionODB> actions = challengerService.getChallengeActionsAssignedToPerson(myself.getId(), myself.getId(), cc.getId());
             Assert.assertFalse(actions.isEmpty());
+        });
+        Then("^I should see my friend's actions$", () -> {
+            UserODB myself = testHelper.myself();
+            UserODB myFriend = testHelper.myFriend();
+            ChallengeContractODB cc = anyDao.streamAll(ChallengeContractODB.class)
+                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
+                                            .getOnlyValue();
+
+            List<ChallengeActionODB> actions = challengerService.getChallengeActionsAssignedToPerson(myself.getId(), myFriend.getId(), cc.getId());
+            Assert.assertFalse(actions.isEmpty());
+        });
+
+        When("^my friend created new action for him$", () -> {
+            UserODB myself = testHelper.myself();
+            UserODB myFriend = testHelper.myFriend();
+            ChallengeContractODB cc = anyDao.streamAll(ChallengeContractODB.class)
+                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
+                                            .getOnlyValue();
+
+            ChallengeActionODB ca = new ChallengeActionODB();
+            ca.setActionType(ActionType.daily);
+            ca.setIcon("fa-car");
+            ca.setLabel("Test");
+            ca.setActionStatus(ActionStatus.pending);
+            ca.setChallengeContract(cc);
+            ca.setUser(myFriend);
+            challengerService.createNewChallengeAction(myFriend.getId(), ca);
         });
 
 

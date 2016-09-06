@@ -47,7 +47,6 @@ public class InvitationsTest implements En {
             UserODB myFriend = testHelper.myFriend();
 
             ChallengeContractODB cb = new ChallengeContractODB();
-            cb.setLabel("Default challenge");
             cb.setFirst(myself);
             cb.setSecond(myFriend);
 
@@ -87,7 +86,6 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
 
             ChallengeContractODB cb = new ChallengeContractODB();
-            cb.setLabel("Default challenge");
             cb.setFirst(myself);
             cb.setSecond(UserODB.ofEmail(friendEmail));
 
@@ -100,7 +98,6 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
 
             ChallengeContractODB cb = new ChallengeContractODB();
-            cb.setLabel("Default challenge");
             cb.setFirst(myself);
             cb.setSecond(UserODB.ofEmail(friendEmail));
 
@@ -122,7 +119,6 @@ public class InvitationsTest implements En {
             testHelper.createUsers("myFriend");
             UserODB myFriend = anyDao.getOnlyOne(UserODB.class, u -> u.getLogin().equals("myFriend"));
             ChallengeContractODB cb = new ChallengeContractODB();
-            cb.setLabel("Default challenge");
             cb.setFirst(myFriend);
             cb.setSecond(UserODB.ofEmail("myself@email.em"));
             challengerService.createNewChallenge(myFriend.getId(), cb);

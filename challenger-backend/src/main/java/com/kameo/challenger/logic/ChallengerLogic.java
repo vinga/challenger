@@ -2,16 +2,20 @@ package com.kameo.challenger.logic;
 
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.MailService;
 import com.kameo.challenger.utils.PasswordUtil;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter.AuthException;
 import com.kameo.challenger.utils.odb.AnyDAO;
+import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jinq.jpa.JPQL;
+import org.jinq.orm.stream.JinqStream;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -38,10 +43,20 @@ public class ChallengerLogic {
     @Inject
     private ConfirmationLinkLogic confirmationLinkLogic;
 
-    public List<ChallengeActionODB> getChallengeActions(long userId, long challengeContractId) {
+    public List<ChallengeActionODB> getChallengeActionsAssignedToPerson(long callerId, long userId, long challengeContractId) {
         return anyDao.streamAll(ChallengeActionODB.class)
                      .where(ca -> ca.getChallengeContract().getId() == challengeContractId &&
-                             ca.getUser().getId() == userId)
+                             (ca.getChallengeContract().getFirst().getId() == callerId || ca.getChallengeContract().getSecond().getId()==callerId) &&
+                              ca.getUser().getId() == userId &&
+                             ca.getChallengeContract().getFirst().getId()==ca.getUser().getId())
+                     .collect(Collectors.toList());
+    }
+    public List<ChallengeActionODB> getChallengeActionsAssignedToOther(long callerId, long challengeContractId) {
+        return anyDao.streamAll(ChallengeActionODB.class)
+                     .where(ca -> ca.getChallengeContract().getId() == challengeContractId &&
+                             (ca.getChallengeContract().getFirst().getId() == callerId || ca.getChallengeContract().getSecond().getId()==callerId) &&
+                             ca.getUser().getId() != callerId &&
+                             ca.getChallengeContract().getFirst().getId()==ca.getUser().getId())
                      .collect(Collectors.toList());
     }
 
@@ -60,6 +75,14 @@ public class ChallengerLogic {
                 UserODB user = loginLogic.createPendingUserWithEmailOnly(cb);
                 cb.setSecond(user);
             }
+        }
+        if (Strings.isNullOrEmpty(cb.getLabel())) {
+            String first=cb.getFirst().getLogin();
+            String second=cb.getSecond().getLogin();
+
+            if (Strings.isNullOrEmpty(second))
+                second=cb.getSecond().getEmail();
+            cb.setLabel((first+" vs "+second).toLowerCase());
         }
         cb.setChallengeContractStatus(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
         anyDao.getEm().persist(cb);
@@ -138,5 +161,29 @@ public class ChallengerLogic {
 
 
 
+    public static class ChallengeContractInfoDTO {
+        @Getter
+        Long defaultChallengeId;
+        @Getter
+        List<ChallengeContractODB> visibleChallenges= Lists.newArrayList();
+    }
+    public ChallengeContractInfoDTO getVisibleChallengeContracts(long callerId) {
+        ChallengeContractInfoDTO res=new ChallengeContractInfoDTO();
+        res.visibleChallenges = anyDao.streamAll(ChallengeContractODB.class)
+                                                   .where(c -> c.getFirst().getId() == callerId || c.getSecond()
+                                                                                                    .getId() == callerId)
+                                                   .where(c -> c
+                                                           .getChallengeContractStatus() == ChallengeContractStatus.ACTIVE ||
+                                                           c.getChallengeContractStatus() == ChallengeContractStatus.WAITING_FOR_ACCEPTANCE)
+                                                   .collect(Collectors.toList());
+        UserODB user = anyDao.get(UserODB.class, callerId);
+        res.defaultChallengeId=user.getDefaultChallengeContract();
 
+        if (res.defaultChallengeId==null && !res.visibleChallenges.isEmpty())
+            res.defaultChallengeId=res.visibleChallenges.stream()
+                                                        .filter(c->c.getChallengeContractStatus()==ChallengeContractStatus.ACTIVE)
+                                                        .findAny()
+                                                        .orElse(res.visibleChallenges.get(0)).getId();
+        return res;
+    }
 }
