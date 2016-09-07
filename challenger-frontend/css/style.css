@@ -97,42 +97,27 @@ nav .loginTopInfo {
 
 /*@media only screen and (min-width: 601px)*/
 nav, nav .nav-wrapper i, nav a.button-collapse, nav a.button-collapse i {
-    height: 64px !important;
-    line-height:64px!important;
+    height: 54px !important;
+    line-height:54px!important;
     /* line-height: 64px; */
 }
+
+
+.centered{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%)
+}
+
 
 
 html {
     color: #666;
 }
 
-.rotating{
-    border:1px solid red !important;
-    animation-name: ckw;
-    animation-duration: 15.5s;
-    /* Things added */
-    animation-iteration-count: infinite;
-    transform-origin: 50% 50%;
-    display: inline-block;
-    /* <--- */
-}
-@keyframes ckw {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-.spinnerInButton {
-    margin-top:-7px !important; /*use with size 0.3*/
 
-}
 html {
     font-size: 16px;
 }
 
-img {
- vertical-Align: middle;
-}

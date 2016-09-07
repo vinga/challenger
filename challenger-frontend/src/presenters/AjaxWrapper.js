@@ -66,16 +66,17 @@ class AjaxWrapper {
 
     updateChallengeAction(challengeAction, callback) {
         $.ajax({
-            url: this.baseUrl+ "/updateChallenge",
+            url: this.baseUrl+ "/updateChallengeAction",
             data: JSON.stringify(challengeAction),
-            contentType: "application/json",
-            processData: false,
+
+            contentType:  "application/json; charset=utf-8",
+            dataType: "json",
             type: "POST",
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
-        }).then(function (data) {
-            callback(data);
+        }).then(function (updatedChallenge) {
+            callback(updatedChallenge);
         });
     }
 

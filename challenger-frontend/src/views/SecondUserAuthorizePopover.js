@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import Popover from "material-ui/Popover";
 import TextField from "material-ui/TextField";
-import ChallengeIcon from "./common-components/ChallengeIcon";
+import ChallengeIcon from "../common-components/ChallengeIcon";
 import FlatButton from "material-ui/FlatButton";
 
 export default class SecondUserAuthorizePopover extends React.Component {

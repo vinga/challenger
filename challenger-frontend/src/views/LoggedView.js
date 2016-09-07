@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import ChallengeActionTable from "./views/ChallengeActionTable";
+import ChallengeActionTable from "./actionTable/ChallengeActionTable";
 
 
 

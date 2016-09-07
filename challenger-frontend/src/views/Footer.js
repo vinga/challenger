@@ -1,8 +1,5 @@
 import React, {Component} from "react";
-import IconButton from "material-ui/IconButton";
-import ChallengeContractsNaviBar from "./ChallengeContractsNaviBar";
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from "material-ui/Toolbar";
-import FontIcon from "material-ui/FontIcon";
 
 
 export default class Footer extends React.Component {

@@ -5,9 +5,9 @@ import IconButton from "material-ui/IconButton/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import {ChallengeStatus} from "./Constants";
 import Divider from "material-ui/Divider";
-import ajaxWrapper from "./presenters/AjaxWrapper";
+import ajaxWrapper from "../presenters/AjaxWrapper";
 
-const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px'};
+const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 
 export default class ChallengeContractsNaviBar extends React.Component {
     constructor(props) {

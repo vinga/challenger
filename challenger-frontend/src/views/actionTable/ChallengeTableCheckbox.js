@@ -1,5 +1,6 @@
 import React, {Component} from "react";
 import Checkbox from "material-ui/Checkbox";
+import {ChallengeActionStatus} from "../Constants"
 
 export default class ChallengeTableCheckbox extends React.Component {
     constructor(props) {
@@ -19,9 +20,9 @@ export default class ChallengeTableCheckbox extends React.Component {
                 if (!this.props.showAuthorizePanel(event.currentTarget, isInputChecked)) {
                     console.log("are we here");
                     if (isInputChecked)
-                        this.state.action.actionStatus = 'Done';
+                        this.state.action.actionStatus = ChallengeActionStatus.done;
                     else
-                        this.state.action.actionStatus = 'Pending';
+                        this.state.action.actionStatus = ChallengeActionStatus.pending;
                     this.setState(this.state);
                     this.props.onActionCheckedStateChanged();
                 }
@@ -36,7 +37,7 @@ export default class ChallengeTableCheckbox extends React.Component {
 
             checkbox = <Checkbox
                 key="statusCb"
-                checked={this.props.action.actionStatus === 'Done'}
+                checked={this.props.action.actionStatus === ChallengeActionStatus.done}
                 onCheck={onCheck(this.props.action.id)}
                 iconStyle={iconCheckStyle}
                 style={{display: 'inline-block', width: '30px'}}/>;

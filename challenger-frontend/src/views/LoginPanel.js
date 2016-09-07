@@ -1,8 +1,8 @@
 import React, {Component} from "react";
 import RaisedButton from "material-ui/RaisedButton";
-import TextFieldExt from "./common-components/TextFieldExt";
+import TextFieldExt from "../common-components/TextFieldExt";
 import LinearProgress from "material-ui/LinearProgress";
-import ajaxWrapper from "./presenters/AjaxWrapper";
+import ajaxWrapper from "../presenters/AjaxWrapper";
 
 
 export default class LoginPanel extends React.Component {
@@ -54,12 +54,14 @@ export default class LoginPanel extends React.Component {
 
 
     render() {
+        var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200) + "px";
+
         return (
-            <div id="main" className="container">
-                <div className="section">
+            <div id="main" className="container " >
+                <div className="section ">
 
                     {!this.state.inProgress && this.state.loginFailed ?
-                        <div className="row" style={{height: '100px'}}>
+                        <div className="row valign" style={{height: '100px'}}>
                             <div className="col s3 offset-s4">
                                 <p className="grey-text">
                                     There is problem with logging:<br/>

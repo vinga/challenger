@@ -1,12 +1,12 @@
 import React from "react";
 import Dialog from "material-ui/Dialog";
-import Divider from "material-ui/Divider";
 import FlatButton from "material-ui/FlatButton";
 import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
-import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "./Constants";
+import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon, ChallengeActionStatus, ChallengeActionType} from "./Constants";
 import DatePicker from "material-ui/DatePicker";
-import ajaxWrapper from "./presenters/AjaxWrapper"
+import ajaxWrapper from "../presenters/AjaxWrapper";
+import IconChooserButton from "./IconChooserButton";
 
 /**
  * A modal dialog can only be closed by selecting one of the actions.
@@ -20,42 +20,48 @@ export default class ChallengeEditDialogWindow extends React.Component {
             task = {
                 icon: "fa-book",
                 difficulty: 0,
-                actionName: "Example task 1",
-                actionType: "onetime",
-                actionStatus: "Done",
-                dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7)
+                label: "Example task 1",
+                actionType: ChallengeActionType.onetime,
+                actionStatus: ChallengeActionStatus.pending,
+                dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
+                userId: this.props.userId,
+                contractId: this.props.contractId
             }
 
-
-        } else
-            task = this.props.task;
+        } else {
+            var taskCopy = jQuery.extend({}, this.props.task)
+            task = taskCopy;
+        }
 
         this.state = {
             task: task,
-            open: false,
+            open: this.props.open,
             submitDisabled: false
         };
 
 
     }
 
+
     handleOpen = () => {
         this.setState({open: true});
     };
 
     handleActionNameFieldChange = (event) => {
-        this.state.task.actionName = event.target.value;
+        this.state.task.label = event.target.value;
         this.setState(this.state);
     }
 
     handleClose = () => {
         this.setState({open: false});
+        this.props.onClose();
     };
 
     handleSubmit = () => {
-        console.log("udpate challenge")
-        ajaxWrapper.updateChallengeAction(this.state.task, data=> console.log(data));
+        //console.log(this.state.task);
+        ajaxWrapper.updateChallengeAction(this.state.task, (updatedChallengeAction)=>this.props.onChallengeActionSuccessfullyUpdated(updatedChallengeAction));
         this.setState({open: false});
+        this.props.onClose();
     };
 
     resolveWindowTitle = () => {
@@ -63,17 +69,17 @@ export default class ChallengeEditDialogWindow extends React.Component {
         if (this.props.task === undefined)
             title = "New task";
         else
-            title = "Edit task " + this.props.task.actionName;
+            title = "Edit task " + this.props.task.label;
         return title;
     }
     handleDueDateChange = (event, date) => {
         this.state.task.dueDate = date;
-        this.setState({task: this.state.task});
+        this.setState(this.state);
     };
 
     handleActionTypeChange = (event) => {
         this.state.task.actionType = event.target.value;
-        this.setState({task: this.state.task});
+        this.setState(this.state);
     };
 
     handleSubmitButtonTitle = () => {
@@ -84,38 +90,41 @@ export default class ChallengeEditDialogWindow extends React.Component {
             title = "Save";
         return title;
     };
-
+    handleIconChange = (icon) => {
+        this.state.task.icon = icon;
+        this.setState(this.state);
+    }
 
 
     render() {
+
         const actions = [
-            <FlatButton
-                label="Cancel"
-                primary={true}
-                onTouchTap={this.handleClose}
-            />,
             <FlatButton
                 label={this.handleSubmitButtonTitle()}
                 primary={true}
                 disabled={this.state.submitDisabled}
                 onTouchTap={this.handleSubmit}
             />,
+            <FlatButton
+                label="Cancel"
+                primary={false}
+                onTouchTap={this.handleClose}
+            />,
         ];
 
 
         var datePicker = undefined;
-
-        if (this.state.task.actionType === "onetime") {
+        if (this.state.task.actionType === ChallengeActionType.onetime) {
             datePicker = <div style={{display: "block", float: "left"}}>
                 <DatePicker
                     textFieldStyle={{width: '100px'}}
-                hintText="Challenge due date"
-                value={this.state.task.dueDate}
-                onChange={this.handleDueDateChange}
-                floatingLabelText="Due date"
-                container="inline"
+                    hintText="Challenge due date"
+                    value={new Date(this.state.task.dueDate)}
+                    onChange={this.handleDueDateChange}
+                    floatingLabelText="Due date"
+                    container="inline"
 
-            /></div>;
+                /></div>;
         }
 
         return (
@@ -129,39 +138,46 @@ export default class ChallengeEditDialogWindow extends React.Component {
                     style={{height: "400px", overflow: "none", display: "block"}}
                 >
 
-                    <div style={{display: "block", marginBottom:'30px'}}>
-                        <TextField
 
+                    <div style={{display: "table", marginBottom: '30px'}}>
+                        <div style={{display: "inline-block"}}>
+                            <IconChooserButton
+                                icon={this.state.task.icon}
+                                onClick={this.handleIconChange}/>
+                        </div>
+                        <div style={{display: "inline-block",  marginLeft:'10px'}}>
+                        </div>
+                        <TextField
+                            floatingLabelText="Name"
                             hintText="Name"
+                            defaultValue={this.state.task.label}
                             ref="actionName"
                             onChange={this.handleActionNameFieldChange}
 
                         />
 
+
                     </div>
-                    <div style={{display: "block", float: "left", width: "200px"}}>
-                        <RadioButtonGroup name="difficulty" defaultSelected="easy">
+
+                    <div style={{display: "block", float: "left", marginLeft:'20px',width: "200px"}}>
+                        <RadioButtonGroup name="difficulty" defaultSelected={this.state.task.difficulty}>
 
                             <RadioButton
-                                value="easy"
+                                value={0}
                                 label="Easy"
-                                checkedIcon={<DiffSimpleIcon/>
-                                }
+                                checkedIcon={<DiffSimpleIcon/>}
 
-                                style={{display: 'block', float: 'left'}}
                             />
 
-
                             <RadioButton
-                                value="medium"
+                                value={1}
                                 label="Medium"
                                 checkedIcon={<DiffMediumIcon />}
                                 style={{display: 'block', float: 'left'}}
                             />
 
-
                             <RadioButton
-                                value="hard"
+                                value={2}
                                 label="Hard"
                                 checkedIcon={<DiffHardIcon />}
                                 style={{display: 'block', float: 'left'}}
@@ -170,27 +186,24 @@ export default class ChallengeEditDialogWindow extends React.Component {
                         </RadioButtonGroup>
                     </div>
                     <div style={{display: "block", float: "left", width: "200px"}}>
-                        <RadioButtonGroup name="actiontype" defaultSelected={this.state.task.actionType}
+                        <RadioButtonGroup name="actiontype"
+                                          defaultSelected={this.state.task.actionType}
                                           onChange={this.handleActionTypeChange}>
                             <RadioButton
-                                value="onetime"
+                                value={ChallengeActionType.onetime}
                                 label="Onetime"
-
                             />
                             <RadioButton
-                                value="daily"
+                                value={ChallengeActionType.daily}
                                 label="Daily"
-
                             />
                             <RadioButton
-                                value="weekly"
+                                value={ChallengeActionType.weekly}
                                 label="Weekly"
-
                             />
                             <RadioButton
-                                value="monthly"
+                                value={ChallengeActionType.monthly}
                                 label="Monthly"
-
                             />
                         </RadioButtonGroup>
                     </div>
