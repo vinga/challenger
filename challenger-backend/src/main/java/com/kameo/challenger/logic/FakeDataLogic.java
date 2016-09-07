@@ -5,12 +5,14 @@ import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.PasswordUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
+import org.apache.commons.lang.time.DateUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +54,56 @@ public class FakeDataLogic implements CommandLineRunner {
         ac1.setIcon("fa-car");
         ac1.setActionType(ActionType.daily);
         em.persist(ac1);
+
+
+        ChallengeActionODB ac2 = new ChallengeActionODB();
+        ac2.setUser(data.userJack);
+        ac2.setCreatedByUser(data.userKami);
+        ac2.setChallengeContract(contract1);
+        ac2.setLabel("Play with puzzle");
+        ac2.setActionStatus(ActionStatus.pending);
+        ac2.setDifficulty(0);
+        ac2.setIcon("fa-puzzle-piece");
+        ac2.setActionType(ActionType.monthly);
+        em.persist(ac2);
+
+        ChallengeActionODB ac3 = new ChallengeActionODB();
+        ac3.setUser(data.userJack);
+        ac3.setCreatedByUser(data.userKami);
+        ac3.setChallengeContract(contract1);
+        ac3.setLabel("Ride a bike");
+        ac3.setActionStatus(ActionStatus.waiting_for_acceptance);
+        ac3.setDifficulty(1);
+        ac3.setIcon("fa-bicycle");
+        ac3.setActionType(ActionType.weekly);
+        em.persist(ac3);
+
+
+
+        ChallengeActionODB ac4 = new ChallengeActionODB();
+        ac4.setUser(data.userKami);
+        ac4.setCreatedByUser(data.userJack);
+        ac4.setChallengeContract(contract1);
+        ac4.setLabel("Ride a bike");
+        ac4.setActionStatus(ActionStatus.done);
+        ac4.setDifficulty(1);
+        ac4.setIcon("fa-bicycle");
+        ac4.setActionType(ActionType.daily);
+        em.persist(ac4);
+
+
+        ChallengeActionODB ac5 = new ChallengeActionODB();
+        ac5.setUser(data.userKami);
+        ac5.setCreatedByUser(data.userJack);
+        ac5.setChallengeContract(contract1);
+        ac5.setLabel("Buy a present");
+        ac5.setActionStatus(ActionStatus.pending);
+        ac5.setDifficulty(2);
+        ac5.setIcon("fa-shopping-basket");
+        ac5.setActionType(ActionType.onetime);
+        ac5.setDueDate(DateUtils.addDays(new Date(),10));
+        em.persist(ac5);
+
 
 
         ChallengeContractODB contract2 = new ChallengeContractODB();

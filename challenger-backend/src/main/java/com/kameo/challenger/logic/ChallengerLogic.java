@@ -44,19 +44,20 @@ public class ChallengerLogic {
     private ConfirmationLinkLogic confirmationLinkLogic;
 
     public List<ChallengeActionODB> getChallengeActionsAssignedToPerson(long callerId, long userId, long challengeContractId) {
+        JinqStream.Where<ChallengeActionODB,?> permissionToViewContract = ca ->ca.getChallengeContract().getFirst().getId() == callerId || ca.getChallengeContract().getSecond().getId()==callerId;
+
         return anyDao.streamAll(ChallengeActionODB.class)
+                     .where(permissionToViewContract)
                      .where(ca -> ca.getChallengeContract().getId() == challengeContractId &&
-                             (ca.getChallengeContract().getFirst().getId() == callerId || ca.getChallengeContract().getSecond().getId()==callerId) &&
-                              ca.getUser().getId() == userId &&
-                             ca.getChallengeContract().getFirst().getId()==ca.getUser().getId())
+                              ca.getUser().getId() == userId )
                      .collect(Collectors.toList());
     }
     public List<ChallengeActionODB> getChallengeActionsAssignedToOther(long callerId, long challengeContractId) {
+        JinqStream.Where<ChallengeActionODB,?> permissionToViewContract = ca ->ca.getChallengeContract().getFirst().getId() == callerId || ca.getChallengeContract().getSecond().getId()==callerId;
         return anyDao.streamAll(ChallengeActionODB.class)
+                     .where(permissionToViewContract)
                      .where(ca -> ca.getChallengeContract().getId() == challengeContractId &&
-                             (ca.getChallengeContract().getFirst().getId() == callerId || ca.getChallengeContract().getSecond().getId()==callerId) &&
-                             ca.getUser().getId() != callerId &&
-                             ca.getChallengeContract().getFirst().getId()==ca.getUser().getId())
+                             ca.getUser().getId() != callerId )
                      .collect(Collectors.toList());
     }
 
@@ -159,6 +160,30 @@ public class ChallengerLogic {
                      .collect(Collectors.toList());
     }
 
+    public ChallengeActionODB updateChallengeAction(long callerId, ChallengeActionODB challengeActionODB) {
+        if (challengeActionODB.getId()>0) {
+            ChallengeActionODB caDB = anyDao.get(ChallengeActionODB.class, challengeActionODB.getId());
+            if (caDB.getUser().getId()!=callerId && caDB.getCreatedByUser().getId()!=callerId)
+                throw new IllegalArgumentException();
+            caDB.setDueDate(challengeActionODB.getDueDate());
+            caDB.setIcon(challengeActionODB.getIcon());
+            caDB.setLabel(challengeActionODB.getLabel());
+            caDB.setActionStatus(challengeActionODB.getActionStatus());
+            caDB.setDifficulty(challengeActionODB.getDifficulty());
+            caDB.setActionType(challengeActionODB.getActionType());
+            anyDao.getEm().merge(caDB);
+            return caDB;
+        } else {
+            ChallengeContractODB cc = anyDao.get(ChallengeContractODB.class, challengeActionODB.getChallengeContract().getId());
+            if (cc.getFirst().getId()!=callerId && cc.getSecond().getId()!=callerId)
+                throw new IllegalArgumentException();
+            if (challengeActionODB.getUser().getId()!=cc.getFirst().getId() && challengeActionODB.getUser().getId()!=cc.getSecond().getId())
+                throw new IllegalArgumentException();
+            challengeActionODB.setCreatedByUser(new UserODB(callerId));
+            anyDao.getEm().persist(challengeActionODB);
+            return challengeActionODB;
+        }
+    }
 
 
     public static class ChallengeContractInfoDTO {

@@ -33,7 +33,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
             resp.addHeader("Access-Control-Allow-Credentials", "true");
             if (((HttpServletRequest) req).getMethod().equals("OPTIONS")) {
                 resp.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-                resp.addHeader("Access-Control-Allow-Headers", "Authorization");
+                resp.addHeader("Access-Control-Allow-Headers", "Authorization, Content-type");
                 return;
             }
         }
