@@ -2,7 +2,7 @@ import React, {Component} from "react";
 import RaisedButton from "material-ui/RaisedButton";
 import TextFieldExt from "../common-components/TextFieldExt";
 import LinearProgress from "material-ui/LinearProgress";
-import ajaxWrapper from "../presenters/AjaxWrapper";
+import ajaxWrapper from "../logic/AjaxWrapper";
 
 
 export default class LoginPanel extends React.Component {

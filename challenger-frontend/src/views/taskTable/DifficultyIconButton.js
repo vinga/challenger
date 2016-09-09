@@ -12,7 +12,6 @@ export default class DifficultyIconButton extends React.Component {
     }
 
     onEditTask = () => {
-        console.log("on edit");
         this.setState({
             showNewWindow: true
         })
@@ -29,18 +28,18 @@ export default class DifficultyIconButton extends React.Component {
         if (this.props.no == 0)
             styleName = {fill: "#ffcc80", width: '40px', height: '40px'};
 
-        if (this.props.difficulty == 0)
+        if (this.props.taskDTO.difficulty == 0)
             background = <DiffSimpleIcon className="centered fa-stack-2xz" style={styleName}/>;
-        else if (this.props.difficulty == 1)
+        else if (this.props.taskDTO.difficulty == 1)
             background = <DiffMediumIcon className="centered fa-stack-2xz" style={styleName}/>;
         else
             background = <DiffHardIcon className="centered fa-stack-2xz" style={styleName}/>;
         var icon;
-        if (this.props.icon.startsWith("fa-")) {
-            icon = <i className={'fa ' + this.props.icon + ' centered'}
+        if (this.props.taskDTO.icon.startsWith("fa-")) {
+            icon = <i className={'fa ' + this.props.taskDTO.icon + ' centered'}
                       style={{fontSize: '15px', textAlign: 'center'}}></i>;
         } else icon = <i className="material-icons centered"
-                         style={{paddingLeft: '8px', fontSize: '15px'}}>{icon}</i>;
+                         style={{paddingLeft: '8px', fontSize: '15px'}}>{this.props.taskDTO.icon}</i>;
         return <IconButton className="center"
                            style={{width: '50px', height: '50px', padding: '0px', marginTop: '4px'}}
                            onClick={this.onEditTask}
@@ -49,7 +48,7 @@ export default class DifficultyIconButton extends React.Component {
                 {background}{icon}
             </div>
             {this.state.showNewWindow &&
-            <ChallengeEditDialogWindow open={this.state.showNewWindow} task={this.props.action}
+            <ChallengeEditDialogWindow open={this.state.showNewWindow} taskDTO={this.props.taskDTO}
                                        onClose={this.handleEditWindowClose}
                                        onChallengeActionSuccessfullyUpdated={this.props.onChallengeActionSuccessfullyUpdated}
             />
@@ -59,3 +58,9 @@ export default class DifficultyIconButton extends React.Component {
     }
 
 };
+
+DifficultyIconButton.propTypes = {
+    taskDTO: React.PropTypes.object.isRequired,
+    //showAuthorizePanelFunc: React.PropTypes.func.isRequired,
+    onTaskSuccessfullyUpdatedFunc: React.PropTypes.func.isRequired,
+}

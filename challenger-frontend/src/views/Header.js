@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import IconButton from "material-ui/IconButton";
-import ChallengeContractsNaviBar from "./ChallengeContractsNaviBar";
+import ChallengeMenuNaviBar from "./ChallengeMenuNaviBar";
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from "material-ui/Toolbar";
 import FontIcon from "material-ui/FontIcon";
 
@@ -9,9 +9,6 @@ export default class Header extends React.Component {
 
 
     render() {
-
-
-
 
 
         if (true) {
@@ -27,7 +24,12 @@ export default class Header extends React.Component {
                     <Toolbar className="cyan lighten-1">
                         <ToolbarGroup firstChild={true}>
                             <img src="img/shield.svg"
-                                 style={{marginLeft: '30px', marginTop: '10px', height: '40px', fill: '#ffffff'}}/> {/*#b2ebf2*/}
+                                 style={{
+                                     marginLeft: '30px',
+                                     marginTop: '10px',
+                                     height: '40px',
+                                     fill: '#ffffff'
+                                 }}/> {/*#b2ebf2*/}
                             <span style={{fontSize: '30px', marginLeft: '10px'}}>Challenger</span>
 
                         </ToolbarGroup>
@@ -35,10 +37,11 @@ export default class Header extends React.Component {
 
                         {this.props.logged &&
                         <ToolbarGroup>
-                            <ChallengeContractsNaviBar style={{color: 'white'}} className="right"
-                                                       ctx={this.props.ctx}
-                                                       onSelectedContractChanged={this.props.onSelectedContractChanged}
-                                                      />
+                            <ChallengeMenuNaviBar style={{color: 'white'}}
+                                                  className="right"
+                                                  ctx={this.props.ctx}
+                                                  onSelectedChallengeChanged={this.props.onSelectedChallengeChanged}
+                            />
 
 
                             <ToolbarSeparator />
@@ -59,7 +62,8 @@ export default class Header extends React.Component {
                     </Toolbar>
                 </nav>
             );
-        };
+        }
+        ;
 
     }
 

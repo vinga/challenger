@@ -59,13 +59,13 @@ const ChallengeStatus = {
     REFUSED: "REFUSED"
 };
 
-const ChallengeActionStatus = {
-    done: "done",
+const TaskStatus = {
     waiting_for_acceptance: "waiting_for_acceptance",
-    pending: "pending"
+    accepted: "accepted",
+    rejected: "rejected"
 };
 
-const ChallengeActionType = {
+const TaskType = {
     onetime: "onetime",
     daily: "daily",
     weekly: "weekly",
@@ -77,6 +77,6 @@ export {
     DiffMediumIcon as DiffMediumIcon,
     DiffSimpleIcon as DiffSimpleIcon,
     ChallengeStatus as ChallengeStatus,
-    ChallengeActionStatus as ChallengeActionStatus,
-    ChallengeActionType as ChallengeActionType
+    TaskStatus as TaskStatus,
+    TaskType as TaskType
 }

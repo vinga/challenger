@@ -5,17 +5,17 @@ import IconButton from "material-ui/IconButton/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import {ChallengeStatus} from "./Constants";
 import Divider from "material-ui/Divider";
-import ajaxWrapper from "../presenters/AjaxWrapper";
+import ajaxWrapper from "../logic/AjaxWrapper";
 
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 
-export default class ChallengeContractsNaviBar extends React.Component {
+export default class ChallengeMenuNaviBar extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            title: "",//this.calculateTitle(this.props.selectedContractId),
-            visibleContractsDTO: {
-                selectedContractId: -1,
+            title: "",//this.calculateTitle(this.props.selectedChallengeId),
+            visibleChallengesDTO: {
+                selectedChallengeId: -1,
                 visibleChallenges: []
             }
         };
@@ -25,20 +25,20 @@ export default class ChallengeContractsNaviBar extends React.Component {
     loadChallengesFromServer = () => {
         ajaxWrapper.loadVisibleChallenges(
              (data) => {
-                this.state.visibleContractsDTO = data;
+                this.state.visibleChallengesDTO = data;
                 this.setState(this.state);
-                this.onContractSelected(this.state.visibleContractsDTO.selectedContractId);
+                this.onChallengeSelected(this.state.visibleChallengesDTO.selectedChallengeId);
             });
     }
 
-    calculateChallengeStatusIcon(challengeContractDTO) {
+    calculateChallengeStatusIcon(challengeDTO) {
         var iconText;
-        switch (challengeContractDTO.challengeContractStatus) {
+        switch (challengeDTO.challengeStatus) {
             case ChallengeStatus.ACTIVE:
                 iconText = null;
                 break;
             case ChallengeStatus.WAITING_FOR_ACCEPTANCE:
-                if (challengeContractDTO.firstUserId == challengeContractDTO.myId)
+                if (challengeDTO.firstUserId == challengeDTO.myId)
                     iconText = "fa-hourglass";
                 else
                     iconText = "fa-question";
@@ -61,28 +61,19 @@ export default class ChallengeContractsNaviBar extends React.Component {
     }
 
 
-    calculateTitle(contractId) {
-        for (var i = 0; i < this.state.visibleContractsDTO.visibleChallenges.length; i++) {
-            if (this.state.visibleContractsDTO.visibleChallenges[i].id == contractId) {
-                return this.state.visibleContractsDTO.visibleChallenges[i].label;
-            }
-        }
-        return "<not set>";
+    calculateTitle(challengeId) {
+       var rres =this.state.visibleChallengesDTO.visibleChallenges.find(ch=>ch.id==challengeId);
+       return rres!=undefined? rres.label: "<not set>";
     }
 
-    onContractSelected = (contractId) => {
-        var changed = true;//this.state.visibleContractsDTO.selectedContractId!=contractId;
-        this.state.visibleContractsDTO.selectedContractId = contractId;
+    onChallengeSelected = (challengeId) => {
+        var changed = true;//this.state.visibleChallengesDTO.selectedChallengeId!=challengeId;
+        this.state.visibleChallengesDTO.selectedChallengeId = challengeId;
         this.setState(this.state);
         if (changed) {
-            var selectedContract;
-            for (var i = 0; i < this.state.visibleContractsDTO.visibleChallenges.length; i++) {
-                if (this.state.visibleContractsDTO.visibleChallenges[i].id == contractId) {
-                    selectedContract = this.state.visibleContractsDTO.visibleChallenges[i];
-                    break;
-                }
-            }
-            this.props.onSelectedContractChanged(selectedContract);
+            var selectedChallenge=this.state.visibleChallengesDTO.visibleChallenges.find(ch=>ch.id==challengeId);
+            if (selectedChallenge !== undefined)
+                this.props.onSelectedChallengeChanged(selectedChallenge);
         }
     }
 
@@ -91,7 +82,7 @@ export default class ChallengeContractsNaviBar extends React.Component {
         var rows = [];
 
 
-        return ( <div>{this.calculateTitle(this.state.visibleContractsDTO.selectedContractId)}
+        return ( <div>{this.calculateTitle(this.state.visibleChallengesDTO.selectedChallengeId)}
 
             <IconMenu style={this.props.style}
 
@@ -102,14 +93,14 @@ export default class ChallengeContractsNaviBar extends React.Component {
             >
 
                 {
-                    this.state.visibleContractsDTO.visibleChallenges.map(
+                    this.state.visibleChallengesDTO.visibleChallenges.map(
                         ch =>
                             <MenuItem key={ch.id}
                                       rightIcon={this.calculateChallengeStatusIcon(ch)}
-                                      onTouchTap={()=>this.onContractSelected(ch.id)}
+                                      onTouchTap={()=>this.onChallengeSelected(ch.id)}
                                       primaryText={ch.label}/>)
                 }
-                {this.state.visibleContractsDTO.visibleChallenges.length > 0 &&
+                {this.state.visibleChallengesDTO.visibleChallenges.length > 0 &&
                 <Divider />
                 }
                 <MenuItem

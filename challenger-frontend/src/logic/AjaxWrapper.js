@@ -43,20 +43,29 @@ class AjaxWrapper {
         );
     }
 
-    loadVisibleChallenges(callback) {
+    loadVisibleChallenges(callbackData) {
         $.ajax({
             url: this.baseUrl + "/visibleChallenges",
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
-        }).then(function (data) {
-            callback(data);
+        }).then(data=>callbackData(data));
+    }
+
+    //not used
+    loadIconFromServer(iconId, callbackData) {
+        $.ajax({
+            url: this.baseUrl + "/newAvatar/" + iconId,
+            cache: false,
+            success:
+                (data)=>callbackData(data)
+
         });
     }
 
-    loadChallengeActionsFromServer(contractId, userNo, callback) {
+    loadTasksFromServer(challengeId, userNo, callback) {
         $.ajax({
-            url: this.baseUrl+ ((userNo==0)?"/challengeActionsForMe" : "/challengeActionsForOther")+"/"+contractId,
+            url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId,
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
@@ -64,10 +73,10 @@ class AjaxWrapper {
     }
 
 
-    updateChallengeAction(challengeAction, callback) {
+    updateTask(task, callback) {
         $.ajax({
-            url: this.baseUrl+ "/updateChallengeAction",
-            data: JSON.stringify(challengeAction),
+            url: this.baseUrl+ "/updateTask",
+            data: JSON.stringify(task),
 
             contentType:  "application/json; charset=utf-8",
             dataType: "json",
@@ -75,8 +84,8 @@ class AjaxWrapper {
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
-        }).then(function (updatedChallenge) {
-            callback(updatedChallenge);
+        }).then(function (updatedTask) {
+            callback(updatedTask);
         });
     }
 

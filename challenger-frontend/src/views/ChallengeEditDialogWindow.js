@@ -3,9 +3,9 @@ import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
 import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
-import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon, ChallengeActionStatus, ChallengeActionType} from "./Constants";
+import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon, TaskType} from "./Constants";
 import DatePicker from "material-ui/DatePicker";
-import ajaxWrapper from "../presenters/AjaxWrapper";
+import ajaxWrapper from "../logic/AjaxWrapper";
 import IconChooserButton from "./IconChooserButton";
 
 /**
@@ -14,62 +14,32 @@ import IconChooserButton from "./IconChooserButton";
 export default class ChallengeEditDialogWindow extends React.Component {
     constructor(props) {
         super(props);
-        var task;
-        if (this.props.task === undefined) {
-            var today = new Date();
-            task = {
-                icon: "fa-book",
-                difficulty: 0,
-                label: "Example task 1",
-                actionType: ChallengeActionType.onetime,
-                actionStatus: ChallengeActionStatus.pending,
-                dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
-                userId: this.props.userId,
-                contractId: this.props.contractId
-            }
-
-        } else {
-            var taskCopy = jQuery.extend({}, this.props.task)
-            task = taskCopy;
-        }
-
+        var task = jQuery.extend({}, this.props.task)
         this.state = {
             task: task,
-            open: this.props.open,
             submitDisabled: false
         };
-
-
     }
 
-
-    handleOpen = () => {
-        this.setState({open: true});
-    };
 
     handleActionNameFieldChange = (event) => {
         this.state.task.label = event.target.value;
         this.setState(this.state);
     }
 
-    handleClose = () => {
-        this.setState({open: false});
-        this.props.onClose();
-    };
 
     handleSubmit = () => {
-        //console.log(this.state.task);
-        ajaxWrapper.updateChallengeAction(this.state.task, (updatedChallengeAction)=>this.props.onChallengeActionSuccessfullyUpdated(updatedChallengeAction));
-        this.setState({open: false});
+        ajaxWrapper.updateTask(this.state.task, (updatedTask)=>this.props.onTaskSuccessfullyUpdatedFunc(updatedTask));
         this.props.onClose();
     };
 
+    //   title={this.resolveWindowTitle()}
     resolveWindowTitle = () => {
         var title;
-        if (this.props.task === undefined)
+        if (this.props.taskDTO === undefined)
             title = "New task";
         else
-            title = "Edit task " + this.props.task.label;
+            title = "Edit task " + this.props.taskDTO.label;
         return title;
     }
     handleDueDateChange = (event, date) => {
@@ -77,14 +47,18 @@ export default class ChallengeEditDialogWindow extends React.Component {
         this.setState(this.state);
     };
 
-    handleActionTypeChange = (event) => {
-        this.state.task.actionType = event.target.value;
+    handleTaskTypeChange = (event) => {
+        this.state.task.taskType = event.target.value;
+        if (this.state.task.taskType == TaskType.onetime && this.state.task.dueDate == null) {
+            var today = new Date();
+            this.state.task.dueDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime();
+        }
         this.setState(this.state);
     };
 
     handleSubmitButtonTitle = () => {
         var title;
-        if (this.props.task === undefined)
+        if (this.props.taskDTO === undefined)
             title = "Create";
         else
             title = "Save";
@@ -108,17 +82,17 @@ export default class ChallengeEditDialogWindow extends React.Component {
             <FlatButton
                 label="Cancel"
                 primary={false}
-                onTouchTap={this.handleClose}
+                onTouchTap={this.props.onCloseFunc}
             />,
         ];
 
 
         var datePicker = undefined;
-        if (this.state.task.actionType === ChallengeActionType.onetime) {
+        if (this.state.task.taskType === TaskType.onetime) {
             datePicker = <div style={{display: "block", float: "left"}}>
                 <DatePicker
                     textFieldStyle={{width: '100px'}}
-                    hintText="Challenge due date"
+                    hintText="Task due date"
                     value={new Date(this.state.task.dueDate)}
                     onChange={this.handleDueDateChange}
                     floatingLabelText="Due date"
@@ -131,10 +105,10 @@ export default class ChallengeEditDialogWindow extends React.Component {
             <div>
 
                 <Dialog
-                    title={this.resolveWindowTitle()}
+
                     actions={actions}
                     modal={true}
-                    open={this.state.open}
+                    open={this.props.open}
                     style={{height: "400px", overflow: "none", display: "block"}}
                 >
 
@@ -145,7 +119,7 @@ export default class ChallengeEditDialogWindow extends React.Component {
                                 icon={this.state.task.icon}
                                 onClick={this.handleIconChange}/>
                         </div>
-                        <div style={{display: "inline-block",  marginLeft:'10px'}}>
+                        <div style={{display: "inline-block", marginLeft: '10px'}}>
                         </div>
                         <TextField
                             floatingLabelText="Name"
@@ -159,25 +133,26 @@ export default class ChallengeEditDialogWindow extends React.Component {
 
                     </div>
 
-                    <div style={{display: "block", float: "left", marginLeft:'20px',width: "200px"}}>
-                        <RadioButtonGroup name="difficulty" defaultSelected={this.state.task.difficulty}>
+                    <div style={{display: "block", float: "left", marginLeft: '20px', width: "200px"}}>
+                        <RadioButtonGroup name="difficulty"
+                                          defaultSelected={"" + this.state.task.difficulty}>
 
                             <RadioButton
-                                value={0}
+                                value="0"
                                 label="Easy"
                                 checkedIcon={<DiffSimpleIcon/>}
 
                             />
 
                             <RadioButton
-                                value={1}
+                                value="1"
                                 label="Medium"
                                 checkedIcon={<DiffMediumIcon />}
                                 style={{display: 'block', float: 'left'}}
                             />
 
                             <RadioButton
-                                value={2}
+                                value="2"
                                 label="Hard"
                                 checkedIcon={<DiffHardIcon />}
                                 style={{display: 'block', float: 'left'}}
@@ -187,22 +162,22 @@ export default class ChallengeEditDialogWindow extends React.Component {
                     </div>
                     <div style={{display: "block", float: "left", width: "200px"}}>
                         <RadioButtonGroup name="actiontype"
-                                          defaultSelected={this.state.task.actionType}
-                                          onChange={this.handleActionTypeChange}>
+                                          defaultSelected={this.state.task.taskType}
+                                          onChange={this.handleTaskTypeChange}>
                             <RadioButton
-                                value={ChallengeActionType.onetime}
+                                value={TaskType.onetime}
                                 label="Onetime"
                             />
                             <RadioButton
-                                value={ChallengeActionType.daily}
+                                value={TaskType.daily}
                                 label="Daily"
                             />
                             <RadioButton
-                                value={ChallengeActionType.weekly}
+                                value={TaskType.weekly}
                                 label="Weekly"
                             />
                             <RadioButton
-                                value={ChallengeActionType.monthly}
+                                value={TaskType.monthly}
                                 label="Monthly"
                             />
                         </RadioButtonGroup>
@@ -212,4 +187,14 @@ export default class ChallengeEditDialogWindow extends React.Component {
             </div>
         );
     }
+
 }
+
+
+ChallengeEditDialogWindow.propTypes = {
+    taskDTO: React.PropTypes.object.isRequired,
+    open: React.PropTypes.bool.isRequired,
+    onCloseFunc: React.PropTypes.func.isRequired,
+    onTaskSuccessfullyUpdatedFunc: React.PropTypes.func.isRequired
+
+};

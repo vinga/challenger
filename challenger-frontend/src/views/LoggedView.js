@@ -1,34 +1,35 @@
 import React, {Component} from "react";
-import ChallengeActionTable from "./actionTable/ChallengeActionTable";
+import TaskTable from "./taskTable/TaskTable";
 
 
 
 export default class LoggedView extends React.Component {
     render() {
-        //console.log("render logged view "+this.props.ctx.selectedContract);
+        //console.log("render logged view "+this.props.ctx.selectedChallenge);
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
                 <div className="section">
                     <div className="row">
                         <div className="col s12 s12 l6">
-                            <ChallengeActionTable
-                                userName={this.props.ctx.myLabel}
-                                selectedContract={this.props.selectedContract}
+                            {this.props.selectedChallengeDTO &&
+                            <TaskTable
+                                userDTO={this.props.ctx.me}
+                                selectedChallengeDTO={this.props.selectedChallengeDTO}
                                 no={0}
                                 ctx={this.props.ctx}/>
+                            }
                         </div>
                        {/* <div className="col s2">
 
                         </div>*/}
                         <div className="col s12 s12 l6">
-                            <ChallengeActionTable
-
-                                userName={this.props.ctx.hisLabel}
+                            {this.props.selectedChallengeDTO &&
+                            <TaskTable
+                                userDTO={this.props.ctx.him}
                                 no={1}
-                                selectedContract={this.props.selectedContract}
-
+                                selectedChallengeDTO={this.props.selectedChallengeDTO}
                                 ctx={this.props.ctx}
-                            />
+                            />}
 
                         </div>
 
