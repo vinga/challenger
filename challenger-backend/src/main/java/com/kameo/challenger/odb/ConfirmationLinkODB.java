@@ -29,7 +29,7 @@ public class ConfirmationLinkODB implements IIdentity {
     String fieldPasswordHash;
     String fieldSalt;
     String email;
-    Long challengeContractId;
+    Long challengeId;
 
 
 }

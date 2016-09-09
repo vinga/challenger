@@ -11,19 +11,23 @@ import java.util.Date;
 @Data
 @ToString(of=IIdentity.id_column)
 @Entity
-public class ChallengeActionODB implements IIdentity {
+@Table(indexes = {
+     @Index(columnList = "user_id"),
+     @Index(columnList = "challenge_id"),
+})
+public class TaskODB implements IIdentity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     @Enumerated
     @NotNull
-    private ActionType actionType;
+    private TaskType taskType;
     private String icon;
     private int difficulty;
     private String label;
     @Enumerated
     @NotNull
-    private ActionStatus actionStatus;
+    private TaskStatus taskStatus;
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
     @ManyToOne
@@ -32,10 +36,12 @@ public class ChallengeActionODB implements IIdentity {
     @ManyToOne
     private UserODB createdByUser;
 
+    @Transient
+    boolean done;
 
 
     @ManyToOne
-    private ChallengeContractODB challengeContract;
+    private ChallengeODB challenge;
 
 
 }

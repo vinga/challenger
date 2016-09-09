@@ -1,7 +1,7 @@
 package com.kameo.challenger.logic;
 
 import com.google.common.base.Strings;
-import com.kameo.challenger.odb.ChallengeContractODB;
+import com.kameo.challenger.odb.ChallengeODB;
 import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.odb.UserStatus;
 import com.kameo.challenger.utils.PasswordUtil;
@@ -73,7 +73,7 @@ public class LoginLogic {
         }
     }
 
-    public UserODB createPendingUserWithEmailOnly(ChallengeContractODB cb) {
+    public UserODB createPendingUserWithEmailOnly(ChallengeODB cb) {
         UserODB user = new UserODB();
         user.setLogin("");
         user.setEmail(cb.getSecond().getEmail());
@@ -83,7 +83,7 @@ public class LoginLogic {
     }
 
     public boolean registerUser(String login, String password, String email) {
-        Optional<ChallengeContractODB> cco = anyDao.streamAll(ChallengeContractODB.class)
+        Optional<ChallengeODB> cco = anyDao.streamAll(ChallengeODB.class)
                                                    .where(cc -> cc.getFirst().getEmail().equals(email) || cc
                                                            .getSecond().getEmail().equals(email)).findAny();
 
@@ -98,7 +98,7 @@ public class LoginLogic {
             return true;
         } else {
 
-            ChallengeContractODB cc = cco.get();
+            ChallengeODB cc = cco.get();
             boolean firsst = cc.getFirst().getEmail().equals(email) && cc.getFirst()
                                                                          .getUserStatus() == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION;
             boolean sec = cc.getSecond().getEmail().equals(email) && cc.getSecond()

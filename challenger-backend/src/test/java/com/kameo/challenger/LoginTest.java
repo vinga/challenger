@@ -93,7 +93,7 @@ public class LoginTest implements En {
 
         Given("^I no invitation has been sent to me email$", () -> {
             String myEmail = "myself@email.em";
-            Optional<ChallengeContractODB> cco = anyDao.streamAll(ChallengeContractODB.class)
+            Optional<ChallengeODB> cco = anyDao.streamAll(ChallengeODB.class)
                                                        .where(cc -> cc.getFirst().getEmail().equals(myEmail) || cc
                                                                .getSecond().getEmail().equals(myEmail)).findAny();
             Assert.assertTrue(!cco.isPresent());
@@ -111,8 +111,8 @@ public class LoginTest implements En {
         });
 
         Given("^I not confirmed it yet$", () ->
-                Assert.assertEquals(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE, anyDao
-                        .streamAll(ChallengeContractODB.class).getOnlyValue().getChallengeContractStatus())
+                Assert.assertEquals(ChallengeStatus.WAITING_FOR_ACCEPTANCE, anyDao
+                        .streamAll(ChallengeODB.class).getOnlyValue().getChallengeStatus())
         );
 
         Then("^I have to confirm my email before I can login succesfully$", () -> {

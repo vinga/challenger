@@ -2,10 +2,10 @@ package com.kameo.challenger.web.rest.api;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.kameo.challenger.odb.ActionStatus;
-import com.kameo.challenger.odb.ActionType;
-import com.kameo.challenger.odb.ChallengeActionODB;
-import com.kameo.challenger.odb.ChallengeContractODB;
+import com.kameo.challenger.odb.ChallengeODB;
+import com.kameo.challenger.odb.TaskODB;
+import com.kameo.challenger.odb.TaskStatus;
+import com.kameo.challenger.odb.TaskType;
 import lombok.Data;
 
 import java.util.List;
@@ -18,66 +18,68 @@ public interface IChallengerService {
 
 
     @Data
-    public static class ChallengeActionDTO {
+    public static class TaskDTO {
         long id;
         String label;
         String icon;
         int difficulty; //0-2
-        long contractId;
+        long challengeId;
         Long dueDate;
         long userId;
-        ActionType actionType;
-        ActionStatus actionStatus;
+        TaskType taskType;
+        TaskStatus taskStatus;
+        boolean done;
 
-        public static ChallengeActionDTO fromOdb(ChallengeActionODB odb) {
-            ChallengeActionDTO ca = new ChallengeActionDTO();
+        public static TaskDTO fromOdb(TaskODB odb) {
+            TaskDTO ca = new TaskDTO();
             ca.id = odb.getId();
             ca.label = odb.getLabel();
             ca.icon = odb.getIcon();
             ca.difficulty = odb.getDifficulty();
-            ca.contractId = odb.getChallengeContract().getId();
-            ca.dueDate = Optional.ofNullable(odb.getDueDate()).map(d->d.getTime()).orElse(null);
-            ca.actionType = odb.getActionType();
-            ca.actionStatus = odb.getActionStatus();
-            ca.userId=odb.getUser().getId();
+            ca.challengeId = odb.getChallenge().getId();
+            ca.dueDate = Optional.ofNullable(odb.getDueDate()).map(d -> d.getTime()).orElse(null);
+            ca.taskType = odb.getTaskType();
+            ca.taskStatus = odb.getTaskStatus();
+            ca.userId = odb.getUser().getId();
+            ca.done=odb.isDone();
             return ca;
         }
 
     }
 
     @Data
-    public static class VisibleContractsDTO {
+    public static class VisibleChallengesDTO {
 
-        Long selectedContractId;
+        Long selectedChallengeId;
 
-        List<ChallengeContractDTO> visibleChallenges = Lists.newArrayList();
+        List<ChallengeDTO> visibleChallenges = Lists.newArrayList();
 
         @Data
-        public static class ChallengeContractDTO {
+        public static class ChallengeDTO {
             long id;
             String label;
-            String challengeContractStatus;
+            String challengeStatus;
             long firstUserId;
             long secondUserId;
             String firstUserLabel;
             String secondUserLabel;
             long myId;
 
-            public static ChallengeContractDTO fromODB(ChallengeContractODB c) {
-                ChallengeContractDTO co = new ChallengeContractDTO();
+            public static ChallengeDTO fromODB(ChallengeODB c) {
+                ChallengeDTO co = new ChallengeDTO();
                 co.label = c.getLabel();
                 co.id = c.getId();
-                co.challengeContractStatus = c.getChallengeContractStatus().name();
+                co.challengeStatus = c.getChallengeStatus().name();
                 co.firstUserId = c.getFirst().getId();
                 co.secondUserId = c.getSecond().getId();
-                co.firstUserLabel = Strings.isNullOrEmpty(c.getFirst().getLogin()) ? c.getFirst().getEmail() : c.getFirst()
-                                                                                                                .getLogin();
+                co.firstUserLabel = Strings.isNullOrEmpty(c.getFirst().getLogin()) ? c.getFirst().getEmail() : c
+                        .getFirst()
+                        .getLogin();
                 co.secondUserLabel = Strings.isNullOrEmpty(c.getSecond().getLogin()) ? c.getSecond().getEmail() : c
                         .getSecond().getLogin();
                 return co;
             }
         }
-
 
 
     }

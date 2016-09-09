@@ -7,10 +7,15 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 @Entity
 @NoArgsConstructor
-public @Data class ChallengeContractODB implements IIdentity {
+@Table(indexes = {
+        @Index(columnList = "first_id"),
+        @Index(columnList = "second_id"),
+})
+public @Data class ChallengeODB implements IIdentity {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     long id;
@@ -20,13 +25,18 @@ public @Data class ChallengeContractODB implements IIdentity {
     UserODB second;
     String label;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    Date lastSeenByFirst;
+    @Temporal(TemporalType.TIMESTAMP)
+    Date lastSeenBySecond;
+
 
     @NotNull
     @Enumerated
-    ChallengeContractStatus challengeContractStatus;
+    ChallengeStatus challengeStatus;
 
 
-    public ChallengeContractODB(long id) {
+    public ChallengeODB(long id) {
         this.id = id;
     }
 

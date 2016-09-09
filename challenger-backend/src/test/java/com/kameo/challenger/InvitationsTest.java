@@ -5,8 +5,8 @@ import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.logic.ConfirmationLinkLogic;
-import com.kameo.challenger.odb.ChallengeContractODB;
-import com.kameo.challenger.odb.ChallengeContractStatus;
+import com.kameo.challenger.odb.ChallengeODB;
+import com.kameo.challenger.odb.ChallengeStatus;
 import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.MailService;
@@ -46,7 +46,7 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
 
-            ChallengeContractODB cb = new ChallengeContractODB();
+            ChallengeODB cb = new ChallengeODB();
             cb.setFirst(myself);
             cb.setSecond(myFriend);
 
@@ -56,7 +56,7 @@ public class InvitationsTest implements En {
 
         Then("^my friend should see (\\d+) unanswered challenge invitation$", (Integer arg2) -> {
             UserODB myFriend = testHelper.myFriend();
-            List<ChallengeContractODB> pending = challengerService.getPendingChallenges(myFriend.getId());
+            List<ChallengeODB> pending = challengerService.getPendingChallenges(myFriend.getId());
             Assert.assertEquals(arg2.longValue(), pending.size());
         });
 
@@ -85,7 +85,7 @@ public class InvitationsTest implements En {
             String friendEmail = "myFriend@email.em";
             UserODB myself = testHelper.myself();
 
-            ChallengeContractODB cb = new ChallengeContractODB();
+            ChallengeODB cb = new ChallengeODB();
             cb.setFirst(myself);
             cb.setSecond(UserODB.ofEmail(friendEmail));
 
@@ -97,7 +97,7 @@ public class InvitationsTest implements En {
             String friendEmail = "myFriend@email.em";
             UserODB myself = testHelper.myself();
 
-            ChallengeContractODB cb = new ChallengeContractODB();
+            ChallengeODB cb = new ChallengeODB();
             cb.setFirst(myself);
             cb.setSecond(UserODB.ofEmail(friendEmail));
 
@@ -118,7 +118,7 @@ public class InvitationsTest implements En {
         Given("^I received email invitation from my friend$", () -> {
             testHelper.createUsers("myFriend");
             UserODB myFriend = anyDao.getOnlyOne(UserODB.class, u -> u.getLogin().equals("myFriend"));
-            ChallengeContractODB cb = new ChallengeContractODB();
+            ChallengeODB cb = new ChallengeODB();
             cb.setFirst(myFriend);
             cb.setSecond(UserODB.ofEmail("myself@email.em"));
             challengerService.createNewChallenge(myFriend.getId(), cb);
@@ -146,9 +146,9 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
 
-            anyDao.getOnlyOne(ChallengeContractODB.class, cc ->
+            anyDao.getOnlyOne(ChallengeODB.class, cc ->
                     cc.getFirst().equals(myFriend) && cc.getSecond().equals(myself)
-                            && cc.getChallengeContractStatus() == ChallengeContractStatus.ACTIVE
+                            && cc.getChallengeStatus() == ChallengeStatus.ACTIVE
             );
 
 

@@ -35,7 +35,7 @@ public class UserODB implements IIdentity {
     int failedLoginsNumber;
 
     @ManyToMany
-    List<ChallengeContractODB> contracts;
+    List<ChallengeODB> contracts;
 
     Long defaultChallengeContract;
 

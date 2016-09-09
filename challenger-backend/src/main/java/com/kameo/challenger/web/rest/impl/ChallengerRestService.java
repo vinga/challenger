@@ -1,13 +1,10 @@
 package com.kameo.challenger.web.rest.impl;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.odb.api.IIdentity;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import com.kameo.challenger.web.rest.api.IChallengerService;
-import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -15,7 +12,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -40,16 +36,16 @@ public class ChallengerRestService implements IChallengerService {
 
     @GET
     @Path("visibleChallenges")
-    public VisibleContractsDTO getVisibleChallengeContracts() {
+    public VisibleChallengesDTO getVisibleChallenges() {
         long callerId = session.getUserId();
-        ChallengerLogic.ChallengeContractInfoDTO cinfo = challengerLogic
-                .getVisibleChallengeContracts(callerId);
+        ChallengerLogic.ChallengeInfoDTO cinfo = challengerLogic
+                .getVisibleChallenges(callerId);
 
-        VisibleContractsDTO res = new VisibleContractsDTO();
-        res.setSelectedContractId(cinfo.getDefaultChallengeId());
+        VisibleChallengesDTO res = new VisibleChallengesDTO();
+        res.setSelectedChallengeId(cinfo.getDefaultChallengeId());
 
         res.setVisibleChallenges(cinfo.getVisibleChallenges().stream()
-             .map(VisibleContractsDTO.ChallengeContractDTO::fromODB)
+             .map(VisibleChallengesDTO.ChallengeDTO::fromODB)
              .map(c->{ c.setMyId(callerId); return c; })
              .collect(Collectors.toList()));
 
@@ -58,45 +54,47 @@ public class ChallengerRestService implements IChallengerService {
 
 
     @POST
-    @Path("updateChallengeAction")
-    public ChallengeActionDTO updateChallengeAction(ChallengeActionDTO challengeActionDTO) {
+    @Path("updateTask")
+    public TaskDTO updateTask(TaskDTO challengeTaskDTO) {
         long callerId = session.getUserId();
-        ChallengeActionODB challengeActionODB = new ChallengeActionODB();
-        challengeActionODB.setActionStatus(challengeActionDTO.getActionStatus());
-        challengeActionODB.setActionType(challengeActionDTO.getActionType());
-        challengeActionODB.setIcon(challengeActionDTO.getIcon());
-        challengeActionODB.setLabel(challengeActionDTO.getLabel());
-        challengeActionODB.setChallengeContract(new ChallengeContractODB(challengeActionDTO.getContractId()));
-        challengeActionODB.setUser(new UserODB(session.getUserId()));
-        challengeActionODB.setCreatedByUser(new UserODB(callerId));
-        challengeActionODB.setDifficulty(challengeActionDTO.getDifficulty());
-        if (challengeActionDTO.getDueDate() != null)
-            challengeActionODB.setDueDate(new Date(challengeActionDTO.getDueDate()));
-        if (challengeActionDTO.getId() > 0)
-            challengeActionODB.setId(challengeActionDTO.getId());
-        challengeActionODB = challengerLogic.updateChallengeAction(callerId, challengeActionODB);
-        challengeActionODB.setUser(new UserODB(challengeActionDTO.getUserId()));
-        return ChallengeActionDTO.fromOdb(challengeActionODB);
+        TaskODB challengeTaskODB = new TaskODB();
+        challengeTaskODB.setTaskStatus(challengeTaskDTO.getTaskStatus());
+        challengeTaskODB.setTaskType(challengeTaskDTO.getTaskType());
+        challengeTaskODB.setIcon(challengeTaskDTO.getIcon());
+        challengeTaskODB.setLabel(challengeTaskDTO.getLabel());
+        challengeTaskODB.setChallenge(new ChallengeODB(challengeTaskDTO.getChallengeId()));
+        challengeTaskODB.setUser(new UserODB(session.getUserId()));
+        challengeTaskODB.setCreatedByUser(new UserODB(callerId));
+        challengeTaskODB.setDifficulty(challengeTaskDTO.getDifficulty());
+        if (challengeTaskDTO.getDueDate() != null)
+            challengeTaskODB.setDueDate(new Date(challengeTaskDTO.getDueDate()));
+        if (challengeTaskDTO.getId() > 0)
+            challengeTaskODB.setId(challengeTaskDTO.getId());
+        challengeTaskODB = challengerLogic.updateTask(callerId, challengeTaskODB);
+        challengeTaskODB.setUser(new UserODB(challengeTaskDTO.getUserId()));
+        return TaskDTO.fromOdb(challengeTaskODB);
     }
 
 
 
 
     @GET
-    @Path("challengeActionsForMe/{contractId}")
-    public List<ChallengeActionDTO> getChallengeActionsForMe(@PathParam("contractId") long contractId) {
+    @Path("tasksForMe/{contractId}")
+    public List<TaskDTO> getChallengeTasksForMe(@PathParam("contractId") long contractId) {
         long callerId = session.getUserId();
-        List<ChallengeActionODB> actions = challengerLogic
-                .getChallengeActionsAssignedToPerson(callerId, callerId, contractId);
-        return actions.stream().sorted(IIdentity::compare).map(ChallengeActionDTO::fromOdb).collect(Collectors.toList());
+        List<TaskODB> Tasks = challengerLogic
+                .getTasksAssignedToPerson(callerId, callerId, contractId);
+
+
+        return Tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
     }
 
     @GET
-    @Path("challengeActionsForOther/{contractId}")
-    public List<ChallengeActionDTO> getChallengeActionsForOther(@PathParam("contractId") long contractId) {
+    @Path("tasksForOther/{contractId}")
+    public List<TaskDTO> getChallengeTasksForOther(@PathParam("contractId") long contractId) {
         long callerId = session.getUserId();
-        List<ChallengeActionODB> actions = challengerLogic.getChallengeActionsAssignedToOther(callerId, contractId);
-        return actions.stream().sorted(IIdentity::compare).map(ChallengeActionDTO::fromOdb).collect(Collectors.toList());
+        List<TaskODB> Tasks = challengerLogic.getTasksAssignedToOther(callerId, contractId);
+        return Tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
     }
 
 

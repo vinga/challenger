@@ -2,6 +2,7 @@ package com.kameo.challenger.util;
 
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.kameo.challenger.logic.FakeDataLogic;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.MailService;
@@ -13,9 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * cucumber matchers:
@@ -36,16 +36,21 @@ public class TestHelper {
         return fakeDataLogic.createUsers(logins);
     }
 
-    public ChallengeContractODB createAcceptedChallenge(Iterator<UserODB> users) {
-        return fakeDataLogic.createChallenge(users, ChallengeContractStatus.ACTIVE);
+    public ChallengeODB createAcceptedChallenge(Iterator<UserODB> users) {
+        return fakeDataLogic.createChallenge(users, ChallengeStatus.ACTIVE);
+    }
+    public ChallengeODB createAcceptedChallengeWithLabel(String label, Iterator<UserODB> users) {
+        return fakeDataLogic.createChallengeWithLabel(label, users, ChallengeStatus.ACTIVE);
     }
 
-    public ChallengeContractODB createPendingChallenge(Iterator<UserODB> users) {
-        return fakeDataLogic.createChallenge(users, ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
+
+
+    public ChallengeODB createPendingChallenge(Iterator<UserODB> users) {
+        return fakeDataLogic.createChallenge(users, ChallengeStatus.WAITING_FOR_ACCEPTANCE);
     }
 
-    public ChallengeContractODB createRejectedChallenge(Iterator<UserODB> users) {
-        return fakeDataLogic.createChallenge(users, ChallengeContractStatus.REFUSED);
+    public ChallengeODB createRejectedChallenge(Iterator<UserODB> users) {
+        return fakeDataLogic.createChallenge(users, ChallengeStatus.REFUSED);
     }
 
     public UserODB myFriend() {
@@ -60,14 +65,14 @@ public class TestHelper {
         return anyDao.streamAll(UserODB.class).where(u -> u.getLogin().equals("myself")).findAny();
     }
 
-    public ChallengeContractODB getActiveContactBetween(UserODB u1, UserODB u2) {
-        JinqStream.Where<ChallengeContractODB, ?> goodUser = c ->
+    public ChallengeODB getActiveChallengeBetween(UserODB u1, UserODB u2) {
+        JinqStream.Where<ChallengeODB, ?> goodUser = c ->
                 (c.getFirst().equals(u1) && c.getSecond().equals(u2)) ||
                         (c.getFirst().equals(u2) && c.getSecond().equals(u1));
 
-        return anyDao.getOnlyOne(ChallengeContractODB.class,
+        return anyDao.getOnlyOne(ChallengeODB.class,
                 goodUser,
-                c -> c.getChallengeContractStatus() == ChallengeContractStatus.ACTIVE
+                c -> c.getChallengeStatus() == ChallengeStatus.ACTIVE
         );
 
     }
@@ -80,11 +85,11 @@ public class TestHelper {
     }
 
     @Transactional
-    public void acceptAllChallengeActions(long userId, List<ChallengeActionODB> collect) {
-        for (ChallengeActionODB c : collect) {
+    public void acceptAllTasks(long userId, List<TaskODB> collect) {
+        for (TaskODB c : collect) {
             if (c.getUser().getId() != userId)
                 throw new IllegalArgumentException();
-            c.setActionStatus(ActionStatus.pending);
+            c.setTaskStatus(TaskStatus.accepted);
             anyDao.getEm().merge(c);
         }
     }
@@ -93,4 +98,56 @@ public class TestHelper {
         return messages;
     }
 
+    public UserODB resolveUserByLogin(String login) {
+        String res = resolveLogin(login);
+        try {
+
+            UserODB user = anyDao.getOnlyOne(UserODB.class, p -> p.getLogin().equals(res));
+            return user;
+        } catch (NoSuchElementException ex) {
+            throw new RuntimeException("More than one or zero users found with login '"+res+"'");
+        }
+    }
+
+    public String[] resolveLogins(String ... logins) {
+        return Arrays.stream(logins)
+                     .map(s->resolveLogin(s))
+                     .collect(Collectors.toList())
+                     .toArray(new String[0]);
+    }
+
+
+    private String resolveLogin(String login) {
+        login=login.trim();
+        String res;
+        if (Sets.newHashSet("me","mine","my","i","myself").contains(login.toLowerCase()))
+            res="myself";
+        else if (login.toLowerCase().equals("my friend"))
+            res="myFriend";
+        else res=login;
+        return res;
+    }
+
+    public ChallengeODB resolveChallenge(String challenge) {
+        return anyDao.getOnlyOne(ChallengeODB.class,cc->cc.getLabel().equals(challenge));
+    }
+
+    public TaskODB resolveTask(String arg1) {
+        return anyDao.getOnlyOne(TaskODB.class,cc->cc.getLabel().equals(arg1));
+    }
+
+
+    Exception exception;
+
+    public void pushException(Exception ex) {
+        if (exception!=null)
+            throw new IllegalArgumentException("More than one exception created and not checked");
+        this.exception=ex;
+    }
+
+    public void popException() {
+        if (exception==null)
+            throw new IllegalArgumentException("No exception found");
+        exception=null;
+    }
 }

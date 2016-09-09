@@ -31,9 +31,9 @@ public class ConfirmationLinkLogic {
         );
         switch (cclDB.getConfirmationLinkType()) {
             case CHALLENGE_CONTRACT_CONFIRMATION:
-                long challengeContractId=cclDB.getChallengeContractId();
+                long challengeId=cclDB.getChallengeId();
 
-                acceptChallengeForExistingUser(cclDB.getChallengeContractId());
+                acceptChallengeForExistingUser(cclDB.getChallengeId());
                 confirmEmail(cclDB);
 
                 break;
@@ -49,11 +49,11 @@ public class ConfirmationLinkLogic {
 
     private void acceptChallengeForExistingUser(long challengeContractId) {
 
-        ChallengeContractODB ccDB = anyDao.getOnlyOne(ChallengeContractODB.class,
+        ChallengeODB ccDB = anyDao.getOnlyOne(ChallengeODB.class,
                 cc -> cc.getId()==challengeContractId
-                        && cc.getChallengeContractStatus() == ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
+                        && cc.getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE);
 
-        ccDB.setChallengeContractStatus(ChallengeContractStatus.ACTIVE);
+        ccDB.setChallengeStatus(ChallengeStatus.ACTIVE);
         anyDao.getEm().merge(ccDB);
 
     }
@@ -88,9 +88,9 @@ public class ConfirmationLinkLogic {
                 cc -> cc.getUid().equals(uid)
         );
         if (cclDB.getConfirmationLinkType()==ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION) {
-            ChallengeContractODB cc = anyDao
-                    .get(ChallengeContractODB.class, cclDB.getChallengeContractId());
-            if (cc.getChallengeContractStatus()==ChallengeContractStatus.WAITING_FOR_ACCEPTANCE && cc.getSecond().getUserStatus()==UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
+            ChallengeODB cc = anyDao
+                    .get(ChallengeODB.class, cclDB.getChallengeId());
+            if (cc.getChallengeStatus()==ChallengeStatus.WAITING_FOR_ACCEPTANCE && cc.getSecond().getUserStatus()==UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
                 return true;
             }
 
@@ -111,10 +111,10 @@ public class ConfirmationLinkLogic {
 
 
 
-    public void createAndSendChallengeConfirmationLink(ChallengeContractODB cb) {
+    public void createAndSendChallengeConfirmationLink(ChallengeODB cb) {
         ConfirmationLinkODB ccl = new ConfirmationLinkODB();
         ccl.setEmail(cb.getSecond().getEmail());
-        ccl.setChallengeContractId(cb.getId());
+        ccl.setChallengeId(cb.getId());
         ccl.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION);
         ccl.setUid(UUID.randomUUID().toString());
         anyDao.getEm().persist(ccl);

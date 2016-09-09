@@ -3,6 +3,7 @@ package com.kameo.challenger.logic;
 
 import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.*;
+import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.PasswordUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.apache.commons.lang.time.DateUtils;
@@ -37,87 +38,104 @@ public class FakeDataLogic implements CommandLineRunner {
 
         EntityManager em = anyDao.getEm();
 
-        ChallengeContractODB contract1 = new ChallengeContractODB();
+        ChallengeODB contract1 = new ChallengeODB();
         contract1.setFirst(data.userKami);
         contract1.setSecond(data.userJack);
         contract1.setLabel("kami vs jack");
-        contract1.setChallengeContractStatus(ChallengeContractStatus.ACTIVE);
+        contract1.setChallengeStatus(ChallengeStatus.ACTIVE);
         em.persist(contract1);
 
-        ChallengeActionODB ac1 = new ChallengeActionODB();
+        TaskODB ac1 = new TaskODB();
         ac1.setUser(data.userJack);
         ac1.setCreatedByUser(data.userKami);
-        ac1.setChallengeContract(contract1);
+        ac1.setChallenge(contract1);
         ac1.setLabel("Test action");
-        ac1.setActionStatus(ActionStatus.pending);
+        ac1.setTaskStatus(TaskStatus.waiting_for_acceptance);
         ac1.setDifficulty(1);
         ac1.setIcon("fa-car");
-        ac1.setActionType(ActionType.daily);
+        ac1.setTaskType(TaskType.daily);
         em.persist(ac1);
 
 
-        ChallengeActionODB ac2 = new ChallengeActionODB();
+        TaskODB ac2 = new TaskODB();
         ac2.setUser(data.userJack);
         ac2.setCreatedByUser(data.userKami);
-        ac2.setChallengeContract(contract1);
+        ac2.setChallenge(contract1);
         ac2.setLabel("Play with puzzle");
-        ac2.setActionStatus(ActionStatus.pending);
+        ac2.setTaskStatus(TaskStatus.accepted);
         ac2.setDifficulty(0);
         ac2.setIcon("fa-puzzle-piece");
-        ac2.setActionType(ActionType.monthly);
+        ac2.setTaskType(TaskType.monthly);
         em.persist(ac2);
 
-        ChallengeActionODB ac3 = new ChallengeActionODB();
+        TaskODB ac3 = new TaskODB();
         ac3.setUser(data.userJack);
         ac3.setCreatedByUser(data.userKami);
-        ac3.setChallengeContract(contract1);
+        ac3.setChallenge(contract1);
         ac3.setLabel("Ride a bike");
-        ac3.setActionStatus(ActionStatus.waiting_for_acceptance);
+        ac3.setTaskStatus(TaskStatus.accepted);
         ac3.setDifficulty(1);
         ac3.setIcon("fa-bicycle");
-        ac3.setActionType(ActionType.weekly);
+        ac3.setTaskType(TaskType.weekly);
         em.persist(ac3);
 
 
 
-        ChallengeActionODB ac4 = new ChallengeActionODB();
+        TaskODB ac4 = new TaskODB();
         ac4.setUser(data.userKami);
         ac4.setCreatedByUser(data.userJack);
-        ac4.setChallengeContract(contract1);
+        ac4.setChallenge(contract1);
         ac4.setLabel("Ride a bike");
-        ac4.setActionStatus(ActionStatus.done);
+        ac4.setTaskStatus(TaskStatus.accepted);
         ac4.setDifficulty(1);
         ac4.setIcon("fa-bicycle");
-        ac4.setActionType(ActionType.daily);
+        ac4.setTaskType(TaskType.daily);
         em.persist(ac4);
 
+        TaskProgressODB tp=new TaskProgressODB();
+        tp.setDone(true);
+        tp.setProgressTime(DateUtil.getMidnight(new Date()));
+        tp.setTask(ac4);
+        em.persist(tp);
 
-        ChallengeActionODB ac5 = new ChallengeActionODB();
+
+        TaskODB ac5 = new TaskODB();
         ac5.setUser(data.userKami);
         ac5.setCreatedByUser(data.userJack);
-        ac5.setChallengeContract(contract1);
+        ac5.setChallenge(contract1);
         ac5.setLabel("Buy a present");
-        ac5.setActionStatus(ActionStatus.pending);
+        ac5.setTaskStatus(TaskStatus.accepted);
         ac5.setDifficulty(2);
         ac5.setIcon("fa-shopping-basket");
-        ac5.setActionType(ActionType.onetime);
+        ac5.setTaskType(TaskType.onetime);
         ac5.setDueDate(DateUtils.addDays(new Date(),10));
         em.persist(ac5);
 
 
+        TaskODB ac6 = new TaskODB();
+        ac6.setUser(data.userKami);
+        ac6.setCreatedByUser(data.userJack);
+        ac6.setChallenge(contract1);
+        ac6.setLabel("Pay bills");
+        ac6.setTaskStatus(TaskStatus.waiting_for_acceptance);
+        ac6.setDifficulty(2);
+        ac6.setIcon("fa-heart");
+        ac6.setTaskType(TaskType.monthly);
+        em.persist(ac6);
 
-        ChallengeContractODB contract2 = new ChallengeContractODB();
+
+        ChallengeODB contract2 = new ChallengeODB();
         contract2.setLabel("kami vs milena");
         contract2.setFirst(data.userKami);
         contract2.setSecond(data.userMilena);
-        contract2.setChallengeContractStatus(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
+        contract2.setChallengeStatus(ChallengeStatus.WAITING_FOR_ACCEPTANCE);
         em.persist(contract2);
 
-        ChallengeContractODB contract3 = new ChallengeContractODB();
+        ChallengeODB contract3 = new ChallengeODB();
         contract3.setLabel("kiwi vs kami");
         contract3.setFirst(data.userKiwi);
         contract3.setSecond(data.userKami);
-        contract3.setChallengeContractStatus(ChallengeContractStatus.WAITING_FOR_ACCEPTANCE);
+        contract3.setChallengeStatus(ChallengeStatus.WAITING_FOR_ACCEPTANCE);
         em.persist(contract3);
 
     }
@@ -186,16 +204,26 @@ public class FakeDataLogic implements CommandLineRunner {
 
     public void createUsersWithChallenge(String u1, String u2) {
         Iterator<UserODB> users = createUsers(u1, u2).iterator();
-        createChallenge(users, ChallengeContractStatus.ACTIVE);
+        createChallenge(users, ChallengeStatus.ACTIVE);
     }
 
 
 
-    public ChallengeContractODB createChallenge(Iterator<UserODB> users, ChallengeContractStatus status) {
-        ChallengeContractODB contract1 = new ChallengeContractODB();
+    public ChallengeODB createChallenge(Iterator<UserODB> users, ChallengeStatus status) {
+        ChallengeODB contract1 = new ChallengeODB();
         contract1.setFirst(users.next());
         contract1.setSecond(users.next());
-        contract1.setChallengeContractStatus(status);
+        contract1.setChallengeStatus(status);
+        anyDao.getEm().persist(contract1);
+        return contract1;
+    }
+
+    public ChallengeODB createChallengeWithLabel(String label, Iterator<UserODB> users, ChallengeStatus status) {
+        ChallengeODB contract1 = new ChallengeODB();
+        contract1.setLabel(label);
+        contract1.setFirst(users.next());
+        contract1.setSecond(users.next());
+        contract1.setChallengeStatus(status);
         anyDao.getEm().persist(contract1);
         return contract1;
     }
