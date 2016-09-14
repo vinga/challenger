@@ -93,7 +93,7 @@ public class TasksTest implements En {
             ChallengeODB cc = testHelper
                     .getActiveChallengeBetween(testHelper.myself(), testHelper.myFriend());
             List<TaskODB> actions = challengerService
-                    .getTasksAssignedToPerson(testHelper.myself().getId(), testHelper.myself().getId(), cc.getId());
+                    .getTasksAssignedToPerson(testHelper.myself().getId(), testHelper.myself().getId(), cc.getId(), new Date());
             Assert.assertEquals(arg1.longValue(), actions.size());
         });
     }
@@ -158,7 +158,7 @@ public class TasksTest implements En {
                                             .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
                                             .getOnlyValue();
 
-            List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myself.getId(), cc.getId());
+            List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myself.getId(), cc.getId(), new Date());
             Assert.assertFalse(actions.isEmpty());
         });
         Then("^I should see my friend's actions$", () -> {
@@ -168,7 +168,7 @@ public class TasksTest implements En {
                                             .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
                                             .getOnlyValue();
 
-            List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myFriend.getId(), cc.getId());
+            List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myFriend.getId(), cc.getId(), new Date());
             Assert.assertFalse(actions.isEmpty());
         });
 
@@ -216,7 +216,7 @@ public class TasksTest implements En {
         When("^\"([^\"]*)\" view todo list of challenge \"([^\"]*)\"$", (String arg1, String arg2) -> {
             UserODB user1 = testHelper.resolveUserByLogin(arg1);
             ChallengeODB challengeODB = testHelper.resolveChallenge(arg2);
-            challengerService.getTasksAssignedToPerson(user1.getId(),user1.getId(),challengeODB.getId());
+            challengerService.getTasksAssignedToPerson(user1.getId(),user1.getId(),challengeODB.getId(), new Date());
         });
 
         Then("^\"([^\"]*)\" last visible challenge is \"([^\"]*)\"$", (String arg1, String arg2) -> {

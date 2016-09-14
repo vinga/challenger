@@ -49,12 +49,24 @@ public class FakeDataLogic implements CommandLineRunner {
         ac1.setUser(data.userJack);
         ac1.setCreatedByUser(data.userKami);
         ac1.setChallenge(contract1);
-        ac1.setLabel("Test action");
+        ac1.setLabel("Test action - createdByKami");
         ac1.setTaskStatus(TaskStatus.waiting_for_acceptance);
         ac1.setDifficulty(1);
         ac1.setIcon("fa-car");
         ac1.setTaskType(TaskType.daily);
         em.persist(ac1);
+
+
+        TaskODB ac11 = new TaskODB();
+        ac11.setUser(data.userJack);
+        ac11.setCreatedByUser(data.userJack);
+        ac11.setChallenge(contract1);
+        ac11.setLabel("Test action - createdByJack");
+        ac11.setTaskStatus(TaskStatus.waiting_for_acceptance);
+        ac11.setDifficulty(1);
+        ac11.setIcon("fa-star");
+        ac11.setTaskType(TaskType.daily);
+        em.persist(ac11);
 
 
         TaskODB ac2 = new TaskODB();

@@ -44,13 +44,13 @@ public class ChallengerLogic {
         else throw new IllegalArgumentException();
 
     }
-    public List<TaskODB> getTasksAssignedToOther(long callerId, long challengeId) {
+    public List<TaskODB> getTasksAssignedToOther(long callerId, long challengeId, Date date) {
         long userId=getOtherChallengeUser(callerId,challengeId);
-        return getTasksAssignedToPerson(callerId,userId,challengeId);
+        return getTasksAssignedToPerson(callerId,userId,challengeId, date);
     }
 
-    public List<TaskODB> getTasksAssignedToPerson(long callerId, long userId, long challengeId) {
-        Date date = new Date();
+    public List<TaskODB> getTasksAssignedToPerson(long callerId, long userId, long challengeId, Date date) {
+
 
 
 
@@ -242,28 +242,30 @@ public class ChallengerLogic {
         }
     }
 
-    public void markTaskDone(long callerId, long taskId, Date day, boolean done) {
+    public TaskProgressODB markTaskDone(long callerId, long taskId, Date day, boolean done) {
         Date dayMidnight = DateUtil.getMidnight(day);
         TaskODB task = anyDao.get(TaskODB.class, taskId);
         if (task.getUser().getId() != callerId)
             throw new IllegalArgumentException();
-
+        System.out.println("MARK DONE "+done);
         Optional<TaskProgressODB> otp = anyDao.streamAll(TaskProgressODB.class)
-                                              .where(t -> t.getId() == taskId)
+                                              .where(t -> t.getTask().getId() == taskId)
                                               .where(t -> t.getProgressTime().equals(dayMidnight))
                                               .findAny();
 
         if (otp.isPresent()) {
             otp.get().setDone(done);
-            anyDao.getEm().merge(done);
+            anyDao.getEm().merge(otp.get());
+            return otp.get();
         } else {
             TaskProgressODB tp = new TaskProgressODB();
             tp.setTask(task);
             tp.setProgressTime(dayMidnight);
             tp.setDone(done);
             anyDao.getEm().merge(tp);
+            return tp;
         }
-        ;
+
 
 
     }

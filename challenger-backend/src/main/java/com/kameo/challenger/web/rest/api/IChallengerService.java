@@ -2,10 +2,7 @@ package com.kameo.challenger.web.rest.api;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.kameo.challenger.odb.ChallengeODB;
-import com.kameo.challenger.odb.TaskODB;
-import com.kameo.challenger.odb.TaskStatus;
-import com.kameo.challenger.odb.TaskType;
+import com.kameo.challenger.odb.*;
 import lombok.Data;
 
 import java.util.List;
@@ -15,7 +12,20 @@ import java.util.Optional;
  * Created by kmyczkowska on 2016-08-30.
  */
 public interface IChallengerService {
+    @Data
+    public static class TaskProgressDTO {
+        long taskId;
+        long progressTime;
+        boolean done;
+        public static TaskProgressDTO fromOdb(TaskProgressODB odb) {
+            TaskProgressDTO tp=new TaskProgressDTO();
+            tp.setProgressTime(odb.getProgressTime().getTime());
+            tp.setTaskId(odb.getTask().getId());
+            tp.setDone(odb.isDone());
+            return tp;
+        }
 
+    }
 
     @Data
     public static class TaskDTO {
@@ -26,6 +36,7 @@ public interface IChallengerService {
         long challengeId;
         Long dueDate;
         long userId;
+        long createdByUserId;
         TaskType taskType;
         TaskStatus taskStatus;
         boolean done;
@@ -42,6 +53,7 @@ public interface IChallengerService {
             ca.taskStatus = odb.getTaskStatus();
             ca.userId = odb.getUser().getId();
             ca.done=odb.isDone();
+            ca.createdByUserId=odb.getCreatedByUser().getId();
             return ca;
         }
 

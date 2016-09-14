@@ -5,6 +5,7 @@ import com.kameo.challenger.odb.*;
 import com.kameo.challenger.odb.api.IIdentity;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import com.kameo.challenger.web.rest.api.IChallengerService;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -74,26 +75,36 @@ public class ChallengerRestService implements IChallengerService {
         challengeTaskODB.setUser(new UserODB(challengeTaskDTO.getUserId()));
         return TaskDTO.fromOdb(challengeTaskODB);
     }
-
-
+    @POST
+    @Path("updateTaskProgress")
+    public TaskProgressDTO updateTaskProgress(TaskProgressDTO tp) {
+        long callerId = session.getUserId();
+        TaskProgressODB tpOdb = challengerLogic
+                .markTaskDone(callerId, tp.getTaskId(), new Date(tp.getProgressTime()), tp.isDone());
+        return TaskProgressDTO.fromOdb(tpOdb);
+    }
 
 
     @GET
-    @Path("tasksForMe/{contractId}")
-    public List<TaskDTO> getChallengeTasksForMe(@PathParam("contractId") long contractId) {
+    @Path("tasksForMe/{challengeId}/{date_yy-MM-dd}")
+    public List<TaskDTO> getChallengeTasksForMe(@PathParam("challengeId") long contractId, @PathParam("date_yy-MM-dd") String dateString) {
         long callerId = session.getUserId();
+        Date date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate();
+
         List<TaskODB> Tasks = challengerLogic
-                .getTasksAssignedToPerson(callerId, callerId, contractId);
+                .getTasksAssignedToPerson(callerId, callerId, contractId, date);
 
 
         return Tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
     }
 
     @GET
-    @Path("tasksForOther/{contractId}")
-    public List<TaskDTO> getChallengeTasksForOther(@PathParam("contractId") long contractId) {
+    @Path("tasksForOther/{contractId}/{date_yy-MM-dd}")
+    public List<TaskDTO> getChallengeTasksForOther(@PathParam("contractId") long contractId, @PathParam("date_yy-MM-dd") String dateString) {
         long callerId = session.getUserId();
-        List<TaskODB> Tasks = challengerLogic.getTasksAssignedToOther(callerId, contractId);
+        Date date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate();
+        System.out.println("Date" + dateString);
+        List<TaskODB> Tasks = challengerLogic.getTasksAssignedToOther(callerId, contractId, date);
         return Tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
     }
 

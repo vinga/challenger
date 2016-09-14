@@ -2,6 +2,7 @@ package com.kameo.challenger.odb;
 
 import com.kameo.challenger.odb.api.IIdentity;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
@@ -9,11 +10,12 @@ import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 @Data
-@ToString(of=IIdentity.id_column)
+@NoArgsConstructor
+@ToString(of = IIdentity.id_column)
 @Entity
 @Table(indexes = {
-     @Index(columnList = "user_id"),
-     @Index(columnList = "challenge_id"),
+        @Index(columnList = "user_id"),
+        @Index(columnList = "challenge_id"),
 })
 public class TaskODB implements IIdentity {
     @Id
@@ -43,5 +45,7 @@ public class TaskODB implements IIdentity {
     @ManyToOne
     private ChallengeODB challenge;
 
-
+    public TaskODB(long id) {
+        this.id = id;
+    }
 }
