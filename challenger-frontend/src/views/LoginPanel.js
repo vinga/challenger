@@ -3,9 +3,10 @@ import RaisedButton from "material-ui/RaisedButton";
 import TextFieldExt from "../common-components/TextFieldExt";
 import LinearProgress from "material-ui/LinearProgress";
 import ajaxWrapper from "../logic/AjaxWrapper";
+import {loginUserAction} from "../redux/actions/usersActions";
+import store from "../redux/store";
 
-
-export default class LoginPanel extends React.Component {
+class LoginPanel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -18,10 +19,17 @@ export default class LoginPanel extends React.Component {
     onLogin = () => {
         var login = this.refs.loginField.state.fieldValue;
         var pass = this.refs.passwordField.state.fieldValue;
+        this.props.onLoginFunc(login,pass);
+
+        if (true)
+            return;
+
         this.state.inProgress = true;
         this.setState(this.state);
 
-        ajaxWrapper.login(login, pass,
+        store.dispatch(loginUserAction(login,pass, true));
+
+        ajaxWrapper.login(login, pass).then(
             (data)=> {
                 this.props.onLoggedJWT(login, data)
             },
@@ -60,12 +68,12 @@ export default class LoginPanel extends React.Component {
             <div id="main" className="container " >
                 <div className="section ">
 
-                    {!this.state.inProgress && this.state.loginFailed ?
+                    {!this.props.inProgress && this.props.loginFailed ?
                         <div className="row valign" style={{height: '100px'}}>
                             <div className="col s3 offset-s4">
                                 <p className="grey-text">
                                     There is problem with logging:<br/>
-                                    <b className="red-text text-darken-3">{this.state.errorDescription}</b>
+                                    <b className="red-text text-darken-3">{this.props.errorDescription}</b>
                                 </p>
                             </div>
 
@@ -114,3 +122,38 @@ export default class LoginPanel extends React.Component {
             </div>);
     }
 }
+
+const mapStateToProps = (state) => {
+    console.log("changed.ST..");
+console.log(state);
+    var errorDescription=state.users.filter(u=>u.primary==true).map(u=>{
+        return u.errorDescription;
+    })
+    var inProgress=state.users.filter(u=>u.primary==true).map(u=>{
+        return u.inProgress;
+    })
+    var loginFailed=state.users.filter(u=>u.primary==true).map(u=>{
+        return u.jwtToken==null;
+    })
+
+
+    return {
+        errorDescription: errorDescription,
+        inProgress: inProgress
+
+    }
+}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onLoginFunc: (login, pass) => {
+            dispatch(loginUserAction(login, pass, true))
+        }
+    }
+}
+import { connect } from 'react-redux'
+const Ext = connect(
+        mapStateToProps,
+        mapDispatchToProps
+    )(LoginPanel)
+
+export default Ext;

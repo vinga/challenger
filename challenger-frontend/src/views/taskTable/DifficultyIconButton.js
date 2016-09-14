@@ -48,9 +48,10 @@ export default class DifficultyIconButton extends React.Component {
                 {background}{icon}
             </div>
             {this.state.showNewWindow &&
-            <ChallengeEditDialogWindow open={this.state.showNewWindow} taskDTO={this.props.taskDTO}
-                                       onClose={this.handleEditWindowClose}
-                                       onChallengeActionSuccessfullyUpdated={this.props.onChallengeActionSuccessfullyUpdated}
+            <ChallengeEditDialogWindow open={this.state.showNewWindow}
+                                       taskDTO={this.props.taskDTO}
+                                       onCloseFunc={this.handleEditWindowClose}
+                                       onTaskSuccessfullyUpdatedFunc={this.props.onTaskSuccessfullyUpdatedFunc}
             />
             }
         </IconButton>//;

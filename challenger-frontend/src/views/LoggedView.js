@@ -3,7 +3,7 @@ import TaskTable from "./taskTable/TaskTable";
 
 
 
-export default class LoggedView extends React.Component {
+class LoggedView extends React.Component {
     render() {
         //console.log("render logged view "+this.props.ctx.selectedChallenge);
         return (
@@ -13,9 +13,10 @@ export default class LoggedView extends React.Component {
                         <div className="col s12 s12 l6">
                             {this.props.selectedChallengeDTO &&
                             <TaskTable
-                                userDTO={this.props.ctx.me}
+                                userDTO={this.props.firstUserDTO}
                                 selectedChallengeDTO={this.props.selectedChallengeDTO}
                                 no={0}
+                                currentDate={this.props.currentDate}
                                 ctx={this.props.ctx}/>
                             }
                         </div>
@@ -25,9 +26,10 @@ export default class LoggedView extends React.Component {
                         <div className="col s12 s12 l6">
                             {this.props.selectedChallengeDTO &&
                             <TaskTable
-                                userDTO={this.props.ctx.him}
+                                userDTO={this.props.secondUserDTO}
                                 no={1}
                                 selectedChallengeDTO={this.props.selectedChallengeDTO}
+                                currentDate={this.props.currentDate}
                                 ctx={this.props.ctx}
                             />}
 
@@ -38,3 +40,15 @@ export default class LoggedView extends React.Component {
             </div>);
     }
 }
+
+const mapStateToProps = (state) => {
+    console.log(state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id==state.visibleChallengesDTO.selectedChallengeId).pop());
+    return {
+        selectedChallengeDTO: state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id==state.visibleChallengesDTO.selectedChallengeId).pop(),
+        currentDate: state.mainReducer.day
+    }
+}
+
+import { connect } from 'react-redux'
+let Ext = connect(mapStateToProps)(LoggedView)
+export default Ext;

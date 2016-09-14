@@ -2,9 +2,8 @@ import React, {Component} from "react";
 import TaskTableUserIcon from "./TaskTableUserIcon";
 import FlatButton from "material-ui/FlatButton";
 import ChallengeEditDialogWindow from "../ChallengeEditDialogWindow";
-import {TaskStatus} from "../Constants";
+import {TaskStatus, TaskType} from "../Constants";
 import colors from "../../logic/Colors";
-import {TaskType} from "../Constants";
 
 export default class TaskTableHeader extends React.Component {
     constructor(props) {
@@ -50,6 +49,8 @@ export default class TaskTableHeader extends React.Component {
         }
         return taskDTO;
     }
+
+
     // <span style={{marginLeft: 20 + 'px'}}>{this.calculateCheckedCount()}</span>  / <span>{this.calculateAllCount()}</span>
     render() {
 
@@ -57,11 +58,13 @@ export default class TaskTableHeader extends React.Component {
             <h5 >
                 <TaskTableUserIcon
                     userNo={this.props.no}
-                    counts={this.calculateCheckedCount()}
-                    userName={this.props.userName}
                 />
-            </h5>
 
+                <span className="left" style={{margin: '3px', lineHeight: '65px'}}>{this.props.userDTO.label}</span>
+
+            </h5>
+            <div style={{clear: 'both'}}></div>
+            <span className="left" style={{margin: '3px'}}>Points: {this.calculateCheckedCount()}</span>
             <div className="right" style={{display: "inline-block"}}>
                 <FlatButton
                     onClick={this.onAddNewTaskFunc}

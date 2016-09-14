@@ -6,30 +6,16 @@ import FontIcon from "material-ui/FontIcon";
 import {ChallengeStatus} from "./Constants";
 import Divider from "material-ui/Divider";
 import ajaxWrapper from "../logic/AjaxWrapper";
-
+import {changeChallenge, incrementDay} from "../redux/actions/actions";
+import store from "../redux/store";
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 
-export default class ChallengeMenuNaviBar extends React.Component {
+
+class ChallengeMenuNaviBar extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            title: "",//this.calculateTitle(this.props.selectedChallengeId),
-            visibleChallengesDTO: {
-                selectedChallengeId: -1,
-                visibleChallenges: []
-            }
-        };
-        this.loadChallengesFromServer();
     }
 
-    loadChallengesFromServer = () => {
-        ajaxWrapper.loadVisibleChallenges(
-             (data) => {
-                this.state.visibleChallengesDTO = data;
-                this.setState(this.state);
-                this.onChallengeSelected(this.state.visibleChallengesDTO.selectedChallengeId);
-            });
-    }
 
     calculateChallengeStatusIcon(challengeDTO) {
         var iconText;
@@ -50,8 +36,6 @@ export default class ChallengeMenuNaviBar extends React.Component {
                 throw "Not supported here";
                 break;
         }
-
-
         if (iconText != undefined)
             return <FontIcon
                 style={menuIconStyle}
@@ -62,19 +46,8 @@ export default class ChallengeMenuNaviBar extends React.Component {
 
 
     calculateTitle(challengeId) {
-       var rres =this.state.visibleChallengesDTO.visibleChallenges.find(ch=>ch.id==challengeId);
+       var rres =this.props.visibleChallengesDTO.visibleChallenges.find(ch=>ch.id==challengeId);
        return rres!=undefined? rres.label: "<not set>";
-    }
-
-    onChallengeSelected = (challengeId) => {
-        var changed = true;//this.state.visibleChallengesDTO.selectedChallengeId!=challengeId;
-        this.state.visibleChallengesDTO.selectedChallengeId = challengeId;
-        this.setState(this.state);
-        if (changed) {
-            var selectedChallenge=this.state.visibleChallengesDTO.visibleChallenges.find(ch=>ch.id==challengeId);
-            if (selectedChallenge !== undefined)
-                this.props.onSelectedChallengeChanged(selectedChallenge);
-        }
     }
 
 
@@ -82,7 +55,19 @@ export default class ChallengeMenuNaviBar extends React.Component {
         var rows = [];
 
 
-        return ( <div>{this.calculateTitle(this.state.visibleChallengesDTO.selectedChallengeId)}
+        return ( <div>
+
+            <IconButton  onClick={()=>this.props.onIncrementDayFunc(-1)}> <FontIcon
+                className="fa fa-caret-left white-text"
+
+            /></IconButton>
+            {""+this.props.day.toISOString().slice(0, 10)}
+            <IconButton  onClick={()=>this.props.onIncrementDayFunc(1)}> <FontIcon
+                className="fa fa-caret-right white-text"
+
+
+            /></IconButton>
+            {this.calculateTitle(this.props.visibleChallengesDTO.selectedChallengeId)}
 
             <IconMenu style={this.props.style}
 
@@ -93,14 +78,14 @@ export default class ChallengeMenuNaviBar extends React.Component {
             >
 
                 {
-                    this.state.visibleChallengesDTO.visibleChallenges.map(
+                    this.props.visibleChallengesDTO.visibleChallenges.map(
                         ch =>
                             <MenuItem key={ch.id}
                                       rightIcon={this.calculateChallengeStatusIcon(ch)}
-                                      onTouchTap={()=>this.onChallengeSelected(ch.id)}
+                                      onTouchTap={()=>this.props.onChangeChallenge(ch.id)}
                                       primaryText={ch.label}/>)
                 }
-                {this.state.visibleChallengesDTO.visibleChallenges.length > 0 &&
+                {this.props.visibleChallengesDTO.visibleChallenges.length > 0 &&
                 <Divider />
                 }
                 <MenuItem
@@ -112,5 +97,26 @@ export default class ChallengeMenuNaviBar extends React.Component {
             </IconMenu></div>);
     }
 
-
+// this.onChallengeSelected
 }
+
+const mapStateToProps = (state) => {
+    console.log("changed...");
+    return {
+        visibleChallengesDTO: state.visibleChallengesDTO,
+        day: state.mainReducer.day
+    }
+}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onChangeChallenge: (challengeId) => {
+            dispatch(changeChallenge(challengeId))
+        },
+        onIncrementDayFunc: (amount) => {
+            dispatch(incrementDay(amount))
+        }
+    }
+}
+import { connect } from 'react-redux'
+const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeMenuNaviBar)
+export default Ext;

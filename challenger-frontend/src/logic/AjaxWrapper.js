@@ -1,3 +1,4 @@
+import Rx from 'rxjs/Rx';
 
 $(function() {
     $.ajaxSetup({
@@ -29,7 +30,7 @@ $(function() {
 
 class AjaxWrapper {
 
-    login(login, pass, okCallbackData, errorCallbackjqXHRException) {
+/*    login(login, pass, okCallbackData, errorCallbackjqXHRException) {
         $.ajax({
             url: this.baseUrl + "/newToken",
             type: 'POST',
@@ -41,6 +42,17 @@ class AjaxWrapper {
             (data)=>okCallbackData(data),
             (jqXHR, exception) => errorCallbackjqXHRException(jqXHR, exception)
         );
+    }*/
+
+    login(login, pass) {
+        return $.ajax({
+            url: this.baseUrl + "/newToken",
+            type: 'POST',
+            data: {
+                'login': login,
+                'pass': pass
+            },
+        });
     }
 
     loadVisibleChallenges(callbackData) {
@@ -50,6 +62,25 @@ class AjaxWrapper {
                 "Authorization": "Bearer " + this.webToken
             }
         }).then(data=>callbackData(data));
+    }
+
+    loadVisibleChallengesObservable() {
+        return Rx.Observable.fromPromise($.ajax({
+            url: this.baseUrl + "/visibleChallenges",
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        }));
+    }
+
+    loadTasksFromServerObservable(challengeId, userNo, date) {
+        var formattedDate = date.toISOString().slice(0, 10);
+        return Rx.Observable.fromPromise($.ajax({
+            url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId +"/"+formattedDate ,
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        }));
     }
 
     //not used
@@ -63,9 +94,10 @@ class AjaxWrapper {
         });
     }
 
-    loadTasksFromServer(challengeId, userNo, callback) {
+    loadTasksFromServer(challengeId, userNo, date, callback) {
+        var formattedDate = date.toISOString().slice(0, 10);
         $.ajax({
-            url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId,
+            url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId +"/"+formattedDate ,
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
@@ -86,6 +118,22 @@ class AjaxWrapper {
             }
         }).then(function (updatedTask) {
             callback(updatedTask);
+        });
+    }
+
+    updateTaskProgress(taskProgress, callback) {
+        $.ajax({
+            url: this.baseUrl+ "/updateTaskProgress",
+            data: JSON.stringify(taskProgress),
+
+            contentType:  "application/json; charset=utf-8",
+            dataType: "json",
+            type: "POST",
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        }).then(function (updatedTaskProgress) {
+            callback(updatedTaskProgress);
         });
     }
 

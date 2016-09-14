@@ -1,7 +1,7 @@
 import React from "react";
 import {blue500, red500, greenA200} from "material-ui/styles/colors";
 import SvgIcon from "material-ui/SvgIcon";
-
+import { Component } from "react";
 /*
  var grepOne = function (array, func) {
  var result = $.grep(array, func);
@@ -72,11 +72,40 @@ const TaskType = {
     monthly: "monthly"
 }
 
+
+export var ResizeAware = ComposedComponent => class extends Component {
+
+    handleResize = (e) => {
+        this.forceUpdate();
+    }
+
+    componentDidMount = () => {
+        window.addEventListener('resize', this.handleResize);
+
+    }
+
+    componentWillUnmount = () => {
+        window.removeEventListener('resize', this.handleResize);
+    }
+    render() {
+        return <ComposedComponent {...this.props}  />;
+    }
+};
+
+Date.prototype.addDays = function(days)
+{
+    var dat = new Date(this.valueOf());
+    dat.setDate(dat.getDate() + days);
+    return dat;
+}
+
+
 export {
     DiffHardIcon as DiffHardIcon,
     DiffMediumIcon as DiffMediumIcon,
     DiffSimpleIcon as DiffSimpleIcon,
     ChallengeStatus as ChallengeStatus,
     TaskStatus as TaskStatus,
-    TaskType as TaskType
+    TaskType as TaskType,
+    ResizeAware as ResizeAware
 }

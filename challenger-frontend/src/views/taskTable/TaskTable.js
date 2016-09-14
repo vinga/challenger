@@ -6,9 +6,8 @@ import ajaxWrapper from "../../logic/AjaxWrapper";
 import DifficultyIconButton from "./DifficultyIconButton";
 import ChallengeTableCheckbox from "./ChallengeTableCheckbox";
 import TaskTableHeader from "./TaskTableHeader";
-import Chip from "material-ui/Chip";
-import {TaskStatus} from "../Constants";
-import FontIcon from "material-ui/FontIcon";
+import {ResizeAware} from "../Constants";
+import TaskLabel from "./TaskLabel";
 
 const styles = {
     icon: {
@@ -24,27 +23,19 @@ const styles = {
         color: 'grey',
         fontSize: '11px'
     },
-    wrapper: {
-        display: 'flex',
-        flexWrap: 'wrap',
-    },
-    chip: {
-        marginRight: '5px',
-        cursor: 'pointer'
-    }
+
 }
 
-export default class TaskTable extends React.Component {
+class TaskTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             tasksList: [],
             authorized: this.props.no == 0,
-            authorizePanel: false
+            authorizePanel: false,
+            busy: false
 
         }
-        //console.log("comp created");
-
     }
 
     handleResize = (e) => {
@@ -52,33 +43,44 @@ export default class TaskTable extends React.Component {
     }
 
     componentDidMount = () => {
-        window.addEventListener('resize', this.handleResize);
         if (this.props.selectedChallengeDTO != null)
-            this.loadTasksFromServer(this.props.selectedChallengeDTO);
-    }
-
-    componentWillUnmount = () => {
-        window.removeEventListener('resize', this.handleResize);
+            this.loadTasksFromServer(this.props.selectedChallengeDTO, this.props.currentDate);
     }
 
     componentWillReceiveProps(nextProps) {
         //console.log("component rec props");
-        if (this.props.selectedChallengeDTO == null || this.props.selectedChallengeDTO.id != nextProps.selectedChallengeDTO.id) {
-            this.loadTasksFromServer(nextProps.selectedChallengeDTO);
+        if (this.props.selectedChallengeDTO == null || this.props.selectedChallengeDTO.id != nextProps.selectedChallengeDTO.id || this.props.currentDate != nextProps.currentDate) {
+            this.loadTasksFromServer(nextProps.selectedChallengeDTO, nextProps.currentDate);
         }
     }
 
-    loadTasksFromServer = (contract) => {
+    loadTasksFromServer = (contract, date) => {
         //TODO test if really needed
-        ajaxWrapper.loadTasksFromServer(contract.id, this.props.no,
+        this.state.busy = true;
+
+        this.setState(this.state);
+        ajaxWrapper.loadTasksFromServer(contract.id, this.props.no, date,
             (data)=> {
                 this.state.tasksList = data;
+                this.state.busy = false;
                 this.setState(this.state);
             }
         )
     }
 
-    onTaskCheckedStateChangedFunc = () => {
+    onTaskCheckedStateChangedFunc = (taskDTO) => {
+
+        var taskProgressDTO = {
+            taskId: taskDTO.id,
+            done: taskDTO.done,
+            progressTime: this.props.currentDate.getTime()
+        };
+        ajaxWrapper.updateTaskProgress(taskProgressDTO,
+            (data)=> {
+               this.loadTasksFromServer(this.props.selectedChallengeDTO, this.props.currentDate);
+            }
+        );
+
         this.setState(this.state);
 
     }
@@ -116,14 +118,13 @@ export default class TaskTable extends React.Component {
     render() {
         var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 400) + "px";
         return (
-            <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '30px'}}>
+            <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
                 <TaskTableHeader no={this.props.no}
-                                            userDTO={this.props.userDTO}
-                                            ctx={this.props.ctx}
-                                            tasksList={this.state.tasksList}
-                                            userName={this.props.userName}
-                                            onTaskSuccessfullyUpdatedFunc={this.onTaskSuccessfullyUpdatedFunc}
-                                            challengeId={this.props.selectedChallengeDTO != null ? this.props.selectedChallengeDTO.id : -1}
+                                 userDTO={this.props.userDTO}
+                                 tasksList={this.state.tasksList}
+                                 userName={this.props.userName}
+                                 onTaskSuccessfullyUpdatedFunc={this.onTaskSuccessfullyUpdatedFunc}
+                                 challengeId={this.props.selectedChallengeDTO != null ? this.props.selectedChallengeDTO.id : -1}
                 />
 
                 <Paper style={{padding: '10px', display: "inline-block"}}>
@@ -137,7 +138,7 @@ export default class TaskTable extends React.Component {
 
 
                             >
-                                { this.state.tasksList.map(task =>
+                                { !this.state.busy && this.state.tasksList.map(task =>
                                     <TableRow key={task.id}>
                                         <TableRowColumn style={styles.icon}>
                                             <DifficultyIconButton
@@ -147,37 +148,12 @@ export default class TaskTable extends React.Component {
                                             />
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.label}>
-
-                                            { task.taskStatus != TaskStatus.waiting_for_acceptance &&
-                                            task.label
-                                            }
-
-
-                                            { false && task.taskStatus == TaskStatus.waiting_for_acceptance &&
-
-                                            <FontIcon className={'fa fa-question-circle-o' }
-                                                      color={this.props.no == 0 ? "red" : "grey"}
-                                                      hoverColor="orange"
-                                                      style={{margin: '5px', fontSize: '15px', textAlign: 'center'}}
-                                                      onClick={()=>alert('jaja')}>
-
-                                            </FontIcon>
-
-                                            }
-                                            { task.taskStatus == TaskStatus.waiting_for_acceptance &&
-
-                                            <div style={styles.wrapper}>
-
-                                                <div className="taskLabel">{task.label}</div>
-
-                                                <Chip style={styles.chip} className="clickableChip">
-                                                    <i className="fa fa-check"></i> Accept
-                                                </Chip>
-
-                                                <Chip style={styles.chip} className="clickableChip">
-                                                    <i className="fa fa-close"></i> Reject
-                                                </Chip></div>
-                                            }
+                                            <TaskLabel
+                                                no={this.props.no}
+                                                taskDTO={task}
+                                                userId={this.props.userDTO.id}
+                                                userLabel={this.props.userDTO.label}
+                                                authorized={this.state.authorized}/>
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.taskType}>
                                             {task.taskType}
@@ -194,6 +170,8 @@ export default class TaskTable extends React.Component {
                                     </TableRow>
                                 )}
 
+                                {this.state.busy && <TableRow>Loading</TableRow>}
+
                             </TableBody>
                         </Table>
                     </div>
@@ -207,6 +185,8 @@ TaskTable.propTypes = {
     userDTO: React.PropTypes.object.isRequired,
     selectedChallengeDTO: React.PropTypes.object.isRequired,
     no: React.PropTypes.number.isRequired,
+    currentDate: React.PropTypes.object.isRequired // date
 };
 
 
+export default ResizeAware(TaskTable);

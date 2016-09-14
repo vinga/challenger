@@ -26,7 +26,7 @@ export default class ChallengeTableCheckbox extends React.Component {
                     //else
                     //    this.state.taskDTO.taskStatus = TaskStatus.pending;
                     this.setState(this.state);
-                    this.props.onTaskCheckedStateChangedFunc();
+                    this.props.onTaskCheckedStateChangedFunc(this.state.taskDTO);
                 }
 
             };

@@ -14,7 +14,7 @@ import IconChooserButton from "./IconChooserButton";
 export default class ChallengeEditDialogWindow extends React.Component {
     constructor(props) {
         super(props);
-        var task = jQuery.extend({}, this.props.task)
+        var task = jQuery.extend({}, this.props.taskDTO)
         this.state = {
             task: task,
             submitDisabled: false

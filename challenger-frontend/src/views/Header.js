@@ -41,6 +41,8 @@ export default class Header extends React.Component {
                                                   className="right"
                                                   ctx={this.props.ctx}
                                                   onSelectedChallengeChanged={this.props.onSelectedChallengeChanged}
+                                                  onCurrentDateChangeFunc={this.props.onCurrentDateChangeFunc}
+                                                  currentDate={this.props.currentDate}
                             />
 
 
