@@ -1,7 +1,10 @@
 package com.kameo.challenger.web.rest.impl;
 
 import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.odb.*;
+import com.kameo.challenger.odb.ChallengeODB;
+import com.kameo.challenger.odb.TaskODB;
+import com.kameo.challenger.odb.TaskProgressODB;
+import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.odb.api.IIdentity;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import com.kameo.challenger.web.rest.api.IChallengerService;
@@ -46,9 +49,12 @@ public class ChallengerRestService implements IChallengerService {
         res.setSelectedChallengeId(cinfo.getDefaultChallengeId());
 
         res.setVisibleChallenges(cinfo.getVisibleChallenges().stream()
-             .map(VisibleChallengesDTO.ChallengeDTO::fromODB)
-             .map(c->{ c.setMyId(callerId); return c; })
-             .collect(Collectors.toList()));
+                                      .map(VisibleChallengesDTO.ChallengeDTO::fromODB)
+                                      .map(c -> {
+                                          c.setMyId(callerId);
+                                          return c;
+                                      })
+                                      .collect(Collectors.toList()));
 
         return res;
     }
@@ -75,6 +81,7 @@ public class ChallengerRestService implements IChallengerService {
         challengeTaskODB.setUser(new UserODB(challengeTaskDTO.getUserId()));
         return TaskDTO.fromOdb(challengeTaskODB);
     }
+
     @POST
     @Path("updateTaskProgress")
     public TaskProgressDTO updateTaskProgress(TaskProgressDTO tp) {
@@ -84,7 +91,24 @@ public class ChallengerRestService implements IChallengerService {
         return TaskProgressDTO.fromOdb(tpOdb);
     }
 
+    //TODO get all tasks, not only assigned to one person
+    @GET
+    @Path("tasks/{challengeId}/{date_yy-MM-dd}")
+    public List<TaskDTO> getTasks(@PathParam("challengeId") long contractId, @PathParam("date_yy-MM-dd") String dateString) {
+        long callerId = session.getUserId();
+        Date date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate();
 
+
+        List<TaskODB> tasks = challengerLogic
+                .getTasksAssignedToPerson(callerId, callerId, contractId, date);
+        List<TaskODB> tasks2 = challengerLogic.getTasksAssignedToOther(callerId, contractId, date);
+
+        tasks.addAll(tasks2);
+        return tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
+    }
+
+
+    @Deprecated
     @GET
     @Path("tasksForMe/{challengeId}/{date_yy-MM-dd}")
     public List<TaskDTO> getChallengeTasksForMe(@PathParam("challengeId") long contractId, @PathParam("date_yy-MM-dd") String dateString) {
@@ -98,6 +122,7 @@ public class ChallengerRestService implements IChallengerService {
         return Tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
     }
 
+    @Deprecated
     @GET
     @Path("tasksForOther/{contractId}/{date_yy-MM-dd}")
     public List<TaskDTO> getChallengeTasksForOther(@PathParam("contractId") long contractId, @PathParam("date_yy-MM-dd") String dateString) {
@@ -107,7 +132,6 @@ public class ChallengerRestService implements IChallengerService {
         List<TaskODB> Tasks = challengerLogic.getTasksAssignedToOther(callerId, contractId, date);
         return Tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
     }
-
 
 
 }
