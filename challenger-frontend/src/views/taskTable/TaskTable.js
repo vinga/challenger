@@ -182,11 +182,41 @@ class TaskTable extends React.Component {
     }
 }
 TaskTable.propTypes = {
+    no: React.PropTypes.number.isRequired,
+
     userDTO: React.PropTypes.object.isRequired,
     selectedChallengeDTO: React.PropTypes.object.isRequired,
-    no: React.PropTypes.number.isRequired,
     currentDate: React.PropTypes.object.isRequired // date
 };
 
 
-export default ResizeAware(TaskTable);
+
+const mapStateToProps = (state, ownprops) => {
+    var selectedChallengeDTO = state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id == state.visibleChallengesDTO.selectedChallengeId).pop();
+    var primaryUserId = state.users.filter(u=>u.primary == true).map(u=>u.id).pop();
+
+
+        var u1 = {
+            id: selectedChallengeDTO.firstUserId,
+            label: selectedChallengeDTO.firstUserLabel,
+            authorized: state.users.filter(u=>u.id == selectedChallengeDTO.firstUserId && u.jwtToken != null).pop()
+        }
+        var u2 = {
+            id: selectedChallengeDTO.secondUserId,
+            label: selectedChallengeDTO.secondUserLabel,
+            authorized: state.users.filter(u=>u.id == selectedChallengeDTO.secondUserId && u.jwtToken != null).pop()
+        }
+
+    return {
+        userDTO: ownprops.no==0 && u1.id==primaryUserId? u1: u2,
+        selectedChallengeDTO: selectedChallengeDTO,
+        currentDate: state.mainReducer.day
+       // taskList: state.tasks.filter( state.visibleChallengesDTO.selectedChallengeId + "-" + state.mainReducer.day.toISOString().slice(0, 10)])
+    }
+}
+
+import { connect } from 'react-redux'
+const Ext = connect(mapStateToProps)(ResizeAware(TaskTable))
+
+export default Ext;
+

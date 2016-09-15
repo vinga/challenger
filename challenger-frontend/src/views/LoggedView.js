@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import TaskTable from "./taskTable/TaskTable";
-
+import {connect} from "react-redux";
 
 
 class LoggedView extends React.Component {
@@ -11,30 +11,18 @@ class LoggedView extends React.Component {
                 <div className="section">
                     <div className="row">
                         <div className="col s12 s12 l6">
-                            {this.props.selectedChallengeDTO &&
-                            <TaskTable
-                                userDTO={this.props.firstUserDTO}
-                                selectedChallengeDTO={this.props.selectedChallengeDTO}
-                                no={0}
-                                currentDate={this.props.currentDate}
-                                ctx={this.props.ctx}/>
+                            {this.props.challengeSelected &&
+                            <TaskTable no={0}/>
                             }
                         </div>
-                       {/* <div className="col s2">
+                        {/* <div className="col s2">
 
-                        </div>*/}
+                         </div>*/}
                         <div className="col s12 s12 l6">
-                            {this.props.selectedChallengeDTO &&
-                            <TaskTable
-                                userDTO={this.props.secondUserDTO}
-                                no={1}
-                                selectedChallengeDTO={this.props.selectedChallengeDTO}
-                                currentDate={this.props.currentDate}
-                                ctx={this.props.ctx}
-                            />}
+                            {this.props.challengeSelected &&
+                            <TaskTable no={1}/>}
 
                         </div>
-
                     </div>
                 </div>
             </div>);
@@ -42,13 +30,10 @@ class LoggedView extends React.Component {
 }
 
 const mapStateToProps = (state) => {
-    console.log(state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id==state.visibleChallengesDTO.selectedChallengeId).pop());
-    return {
-        selectedChallengeDTO: state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id==state.visibleChallengesDTO.selectedChallengeId).pop(),
-        currentDate: state.mainReducer.day
+   return {
+        challengeSelected: state.visibleChallengesDTO.selectedChallengeId!=-1,
     }
 }
 
-import { connect } from 'react-redux'
 let Ext = connect(mapStateToProps)(LoggedView)
 export default Ext;

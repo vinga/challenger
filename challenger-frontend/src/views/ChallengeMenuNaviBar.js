@@ -5,9 +5,7 @@ import IconButton from "material-ui/IconButton/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import {ChallengeStatus} from "./Constants";
 import Divider from "material-ui/Divider";
-import ajaxWrapper from "../logic/AjaxWrapper";
-import {changeChallenge, incrementDay} from "../redux/actions/actions";
-import store from "../redux/store";
+import {changeChallengeAction, incrementDayAction} from "../redux/actions/actions";
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 
 
@@ -97,11 +95,9 @@ class ChallengeMenuNaviBar extends React.Component {
             </IconMenu></div>);
     }
 
-// this.onChallengeSelected
 }
 
 const mapStateToProps = (state) => {
-    console.log("changed...");
     return {
         visibleChallengesDTO: state.visibleChallengesDTO,
         day: state.mainReducer.day
@@ -110,10 +106,10 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         onChangeChallenge: (challengeId) => {
-            dispatch(changeChallenge(challengeId))
+            dispatch(changeChallengeAction(challengeId))
         },
         onIncrementDayFunc: (amount) => {
-            dispatch(incrementDay(amount))
+            dispatch(incrementDayAction(amount))
         }
     }
 }

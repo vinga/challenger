@@ -2,12 +2,11 @@ import {
     INCREMENT_DAY,
     CHANGE_CHALLENGE,
     WEB_CHALLENGES_REQUEST,
-    WEB_CHALLENGES_RESPONSE,
-    LOAD_TASKS_REQUEST,
-    LOAD_TASKS_RESPONSE
+    WEB_CHALLENGES_RESPONSE
 } from "../actions/actions";
 
-import users from "./usersReducers";
+import users from "./users";
+import tasks from "./tasks";
 import {combineReducers, createStore, applyMiddleware} from "redux";
 import {createEpicMiddleware, combineEpics} from "redux-observable";
 import Rx from "rxjs/Rx";
@@ -16,24 +15,6 @@ const {ajax} = Rx.Observable;
 // all operators
 
 
-/*
-
-
- return Object.assign({}, state, {
- todos: [
- ...state.todos,
- {
- text: action.text,
- completed: false
- }
- ]
- })
-
-
- return Object.assign({}, state, {
- [action.subreddit]: posts(state[action.subreddit], action)
- })
- */
 
 function mainReducer(state = { day: new Date() }, action) {
     // For now, don't handle any actions
@@ -53,23 +34,6 @@ function mainReducer(state = { day: new Date() }, action) {
     }
 
     return state
-}
-function tasksLists(state = [], action) {
-    switch (action.type) {
-        case LOAD_TASKS_RESPONSE:
-            var newState = {
-                ...state,
-                ["" + action.challengeId + "-" + action.userNo + "-" + action.day.toISOString().slice(0, 10)]: {
-                    ...action,
-                    lastUpdated: Date.now()
-                }
-            };
-            console.log(newState);
-            return newState;
-
-        default:
-            return state
-    }
 }
 
 
@@ -103,7 +67,7 @@ function visibleChallengesDTO(state = {
 export const rootReducer = combineReducers({
     mainReducer,
     visibleChallengesDTO,
-    tasksLists,
+    tasks,
     users
 
 })

@@ -94,14 +94,24 @@ class AjaxWrapper {
         });
     }
 
-    loadTasksFromServer(challengeId, userNo, date, callback) {
+    loadTasks(challengeId, date) {
         var formattedDate = date.toISOString().slice(0, 10);
-        $.ajax({
-            url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId +"/"+formattedDate ,
+        return $.ajax({
+            url: this.baseUrl+ "/tasks"+"/"+challengeId +"/"+formattedDate ,
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
-        }).then((data)=>callback(data));
+        });
+    }
+
+    loadTasksFromServer(challengeId, userNo, date, callback) {
+    var formattedDate = date.toISOString().slice(0, 10);
+    $.ajax({
+        url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId +"/"+formattedDate ,
+        headers: {
+            "Authorization": "Bearer " + this.webToken
+        }
+    }).then((data)=>callback(data));
     }
 
 
