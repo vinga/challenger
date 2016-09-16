@@ -1,11 +1,21 @@
-import React, {Component} from "react";
-import TaskTableUserIcon from "./TaskTableUserIcon";
+import * as React from "react";
+import TaskTableUserIcon from "./TaskTableUserIcon.tsx";
 import FlatButton from "material-ui/FlatButton";
-import ChallengeEditDialogWindow from "../ChallengeEditDialogWindow";
-import {TaskStatus, TaskType} from "../Constants";
-import colors from "../../logic/Colors";
+import ChallengeEditDialogWindow from "../taskEditWindow/ChallengeEditDialogWindow.tsx";
+import colors from "../common-components/Colors.ts";
+import {TaskDTO, TaskType, TaskStatus} from "../../logic/domain/TaskDTO";
 
-export default class TaskTableHeader extends React.Component {
+
+
+interface Props {
+    tasksList: Array<TaskDTO>,
+    userId: number,
+    challengeId: number,
+    userLabel:string,
+    no: number,
+    onTaskSuccessfullyUpdatedFunc: (task: TaskDTO) => void,
+}
+export default class TaskTableHeader extends React.Component<Props,{showNewWindow:boolean}> {
     constructor(props) {
         super(props);
         this.state = {
@@ -42,10 +52,12 @@ export default class TaskTableHeader extends React.Component {
             difficulty: 0,
             label: "Example task 1",
             taskType: TaskType.onetime,
-            taskStatus: TaskStatus.pending,
+            taskStatus: TaskStatus.waiting_for_acceptance,
             dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
             userId: this.props.userId,
-            challengeId: this.props.challengeId
+            challengeId: this.props.challengeId,
+            done: false
+
         }
         return taskDTO;
     }
@@ -60,7 +72,7 @@ export default class TaskTableHeader extends React.Component {
                     userNo={this.props.no}
                 />
 
-                <span className="left" style={{margin: '3px', lineHeight: '65px'}}>{this.props.userDTO.label}</span>
+                <span className="left" style={{margin: '3px', lineHeight: '65px'}}>{this.props.userLabel}</span>
 
             </h5>
             <div style={{clear: 'both'}}></div>
@@ -90,12 +102,4 @@ export default class TaskTableHeader extends React.Component {
 
 }
 
-TaskTableHeader.propTypes = {
-    tasksList: React.PropTypes.array.isRequired,
-    no: React.PropTypes.number.isRequired,
-    userDTO: React.PropTypes.object.isRequired,
-    challengeId: React.PropTypes.number.isRequired,
-    onTaskSuccessfullyUpdatedFunc: React.PropTypes.func.isRequired
-
-};
 

@@ -1,6 +1,6 @@
 import * as userActions from "../actions/users";
 import jwtDecode from "jwt-decode";
-import ajaxWrapper from "../../logic/AjaxWrapper";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 
 
 export default function users(state = [], action) {

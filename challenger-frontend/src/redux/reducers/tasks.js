@@ -1,5 +1,5 @@
 import * as taskActions from "../actions/tasks";
-import ajaxWrapper from "../../logic/AjaxWrapper";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 
 
 export default function tasks(state = [], action) {

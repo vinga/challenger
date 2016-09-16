@@ -1,4 +1,4 @@
-import ajaxWrapper from "../../logic/AjaxWrapper";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 import {fetchWebChallenges} from "./actions";
 
 export const LOGIN_USER_REQUEST='LOGIN_USER_REQUEST';

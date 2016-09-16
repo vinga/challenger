@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import IconButton from "material-ui/IconButton";
-import ChallengeMenuNaviBar from "./ChallengeMenuNaviBar";
+import ChallengeMenuNaviBar from "./ChallengeMenuNaviBar.tsx";
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from "material-ui/Toolbar";
 import FontIcon from "material-ui/FontIcon";
 

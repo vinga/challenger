@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import * as React from "react";
 import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
 
@@ -30,7 +30,9 @@ const icons = [
     "fa-cube"
 
 ]
-export default class IconChooserGrid extends React.Component {
+
+
+export default class IconChooserGrid extends React.Component<{ onClick: (icon: string)=> void},void> {
 
 
     render() {

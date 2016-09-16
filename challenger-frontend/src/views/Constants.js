@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import {blue500, red500, greenA200} from "material-ui/styles/colors";
 import SvgIcon from "material-ui/SvgIcon";
 import { Component } from "react";
@@ -49,31 +49,14 @@ const DiffMediumIcon = (props) => {
             <path d="M75 45a30 30 0 0 1-30 30 30 30 0 0 1-30-30 30 30 0 0 1 30-30 30 30 0 0 1 30 30z"/>
         </SvgIcon>
     );
-}
-
-
-const ChallengeStatus = {
-    INACIVE: "INACIVE",
-    ACTIVE: "ACTIVE",
-    WAITING_FOR_ACCEPTANCE: "WAITING_FOR_ACCEPTANCE",
-    REFUSED: "REFUSED"
 };
 
-const TaskStatus = {
-    waiting_for_acceptance: "waiting_for_acceptance",
-    accepted: "accepted",
-    rejected: "rejected"
-};
-
-const TaskType = {
-    onetime: "onetime",
-    daily: "daily",
-    weekly: "weekly",
-    monthly: "monthly"
-}
 
 
-export var ResizeAware = ComposedComponent => class extends Component {
+
+
+
+export var ResizeAware = ComposedComponent => class extends React.Component {
 
     handleResize = (e) => {
         this.forceUpdate();
@@ -104,8 +87,5 @@ export {
     DiffHardIcon as DiffHardIcon,
     DiffMediumIcon as DiffMediumIcon,
     DiffSimpleIcon as DiffSimpleIcon,
-    ChallengeStatus as ChallengeStatus,
-    TaskStatus as TaskStatus,
-    TaskType as TaskType,
     ResizeAware as ResizeAware
 }

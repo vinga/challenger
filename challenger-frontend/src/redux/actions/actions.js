@@ -45,7 +45,7 @@ export function changeChallengeAction(challengeId) {
 
 
 
-import ajaxWrapper from "../../logic/AjaxWrapper";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 export function fetchWebChallenges() {
     return function (dispatch, getState) {
         dispatch(webChallengesRequest());

@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import RaisedButton from "material-ui/RaisedButton";
-import TextFieldExt from "../common-components/TextFieldExt";
+import TextFieldExt from "./common-components/TextFieldExt.tsx";
 import LinearProgress from "material-ui/LinearProgress";
 import {loginUserAction} from "../redux/actions/users";
 

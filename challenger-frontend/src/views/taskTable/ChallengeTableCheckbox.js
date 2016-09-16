@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import Checkbox from "material-ui/Checkbox";
 import {TaskStatus} from "../Constants"
-import colors from "../../logic/Colors"
+import colors from "../common-components/Colors.ts"
 
 
 export default class ChallengeTableCheckbox extends React.Component {

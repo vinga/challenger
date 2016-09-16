@@ -2,12 +2,12 @@ import React, {Component} from "react";
 import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from "material-ui/Table";
 import SecondUserAuthorizePopover from "../SecondUserAuthorizePopover";
 import Paper from "material-ui/Paper";
-import ajaxWrapper from "../../logic/AjaxWrapper";
-import DifficultyIconButton from "./DifficultyIconButton";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
+import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import ChallengeTableCheckbox from "./ChallengeTableCheckbox";
-import TaskTableHeader from "./TaskTableHeader";
+import TaskTableHeader from "./TaskTableHeader.tsx";
 import {ResizeAware} from "../Constants";
-import TaskLabel from "./TaskLabel";
+import TaskLabel from "./TaskLabel.tsx";
 
 const styles = {
     icon: {
@@ -120,9 +120,9 @@ class TaskTable extends React.Component {
         return (
             <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
                 <TaskTableHeader no={this.props.no}
-                                 userDTO={this.props.userDTO}
+                                 userDTO={this.props.userDTO.label}
                                  tasksList={this.state.tasksList}
-                                 userName={this.props.userName}
+                                 userName={this.props.userDTO.label}
                                  onTaskSuccessfullyUpdatedFunc={this.onTaskSuccessfullyUpdatedFunc}
                                  challengeId={this.props.selectedChallengeDTO != null ? this.props.selectedChallengeDTO.id : -1}
                 />
@@ -192,21 +192,23 @@ TaskTable.propTypes = {
 
 
 const mapStateToProps = (state, ownprops) => {
+
+    //console.log(state.users);
     var selectedChallengeDTO = state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id == state.visibleChallengesDTO.selectedChallengeId).pop();
-    var primaryUserId = state.users.filter(u=>u.primary == true).map(u=>u.id).pop();
+    var primaryUserId = state.users.filter(u=>{  return u.primary == true;}).map(u=>u.userId).pop();
+
 
 
         var u1 = {
             id: selectedChallengeDTO.firstUserId,
             label: selectedChallengeDTO.firstUserLabel,
-            authorized: state.users.filter(u=>u.id == selectedChallengeDTO.firstUserId && u.jwtToken != null).pop()
+            authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.firstUserId && u.jwtToken != null)[0]
         }
         var u2 = {
             id: selectedChallengeDTO.secondUserId,
             label: selectedChallengeDTO.secondUserLabel,
-            authorized: state.users.filter(u=>u.id == selectedChallengeDTO.secondUserId && u.jwtToken != null).pop()
+            authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.secondUserId && u.jwtToken != null)[0]
         }
-
     return {
         userDTO: ownprops.no==0 && u1.id==primaryUserId? u1: u2,
         selectedChallengeDTO: selectedChallengeDTO,

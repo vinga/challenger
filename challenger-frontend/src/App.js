@@ -1,14 +1,12 @@
 import React, {Component} from "react";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import Header from "./views/Header";
-import jwtDecode from "jwt-decode";
 import LoginPanel from "./views/LoginPanel";
 import LoggedView from "./views/LoggedView";
-import ajaxWrapper from "./logic/AjaxWrapper";
+import ajaxWrapper from "./logic/AjaxWrapper.ts";
 import store from "./redux/store";
 import {Provider} from "react-redux";
 import {logout} from "./redux/actions/users"
-import TypeCompa from "./TypeCompa.tsx";
 ajaxWrapper.baseUrl = "http://localhost:9080/api";
 
 
@@ -38,7 +36,6 @@ class App extends Component {
                             logged={this.props.logged}
                             onLogout={this.props.onLogout}
                         />
-                        <TypeCompa/>
                         { this.props.logged
                             ?
                             <LoggedView/>

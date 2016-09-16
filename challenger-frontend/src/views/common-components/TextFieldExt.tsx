@@ -1,7 +1,16 @@
-import React, {Component} from "react";
+import * as React from "react";
 import TextField from "material-ui/TextField";
 
-export default class TextFieldExt extends React.Component {
+
+interface Props {
+    floatingLabelText: string,
+    type? :string,
+    fieldValue: string
+}
+interface State {
+    fieldValue: string
+}
+export default class TextFieldExt extends React.Component<Props,State> {
     state = { fieldValue: this.props.fieldValue };
     static defaultProps = {
         type:"text",

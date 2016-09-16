@@ -1,4 +1,4 @@
-import ajaxWrapper from "../../logic/AjaxWrapper";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 
 export const LOAD_TASKS_REQUEST='LOAD_TASKS_REQUEST';
 export const LOAD_TASKS_RESPONSE='LOAD_TASKS_RESPONSE';

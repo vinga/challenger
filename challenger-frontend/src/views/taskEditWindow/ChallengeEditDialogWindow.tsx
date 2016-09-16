@@ -1,26 +1,40 @@
-import React from "react";
+import * as React from "react";
+
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
 import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
-import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon, TaskType} from "./Constants";
+import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "../Constants";
 import DatePicker from "material-ui/DatePicker";
-import ajaxWrapper from "../logic/AjaxWrapper";
-import IconChooserButton from "./IconChooserButton";
+import ajaxWrapper from "../../logic/AjaxWrapper.ts";
+import IconChooserButton from "./IconChooserButton.tsx";
+import {TouchTapEvent} from "material-ui";
+import {TaskDTO, TaskType} from "../../logic/domain/TaskDTO.ts"
+
+
+interface Props {
+    taskDTO: TaskDTO,
+    onCloseFunc: (event?: TouchTapEvent) => void,
+    onTaskSuccessfullyUpdatedFunc: (task: TaskDTO) => void,
+    open: boolean
+}
+interface State {
+    task: TaskDTO,
+    submitDisabled: boolean
+}
 
 /**
  * A modal dialog can only be closed by selecting one of the actions.
  */
-export default class ChallengeEditDialogWindow extends React.Component {
+export default class ChallengeEditDialogWindow extends React.Component<Props, State> {
     constructor(props) {
         super(props);
-        var task = jQuery.extend({}, this.props.taskDTO)
+        var task = $.extend({}, this.props.taskDTO);
         this.state = {
             task: task,
             submitDisabled: false
         };
     }
-
 
     handleActionNameFieldChange = (event) => {
         this.state.task.label = event.target.value;
@@ -30,7 +44,7 @@ export default class ChallengeEditDialogWindow extends React.Component {
 
     handleSubmit = () => {
         ajaxWrapper.updateTask(this.state.task, (updatedTask)=>this.props.onTaskSuccessfullyUpdatedFunc(updatedTask));
-        this.props.onClose();
+        this.props.onCloseFunc();
     };
 
     //   title={this.resolveWindowTitle()}
@@ -190,11 +204,3 @@ export default class ChallengeEditDialogWindow extends React.Component {
 
 }
 
-
-ChallengeEditDialogWindow.propTypes = {
-    taskDTO: React.PropTypes.object.isRequired,
-    open: React.PropTypes.bool.isRequired,
-    onCloseFunc: React.PropTypes.func.isRequired,
-    onTaskSuccessfullyUpdatedFunc: React.PropTypes.func.isRequired
-
-};

@@ -1,9 +1,12 @@
-import React, { Component } from 'react';
+import * as React from 'react';
+import HTMLAttributes = __React.HTMLAttributes;
 
 
+/*interface Props extends HTMLAttributes {
+    icon: string
+}*/
 
-
-export default class ChallengeIcon extends React.Component {
+export default class ChallengeIcon extends React.Component<{icon: string, style?:{}},void> {
     constructor(props) {
         super(props);
 

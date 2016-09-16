@@ -1,7 +1,7 @@
-import React, {Component} from "react";
-import {TaskStatus} from "../Constants";
+import * as React from "react";
 import Chip from "material-ui/Chip";
-import colors from "../../logic/Colors";
+import colors from "../common-components/Colors.ts";
+import {TaskStatus} from "../../logic/domain/TaskDTO";
 
 const styles = {
     wrapper: {
@@ -15,14 +15,19 @@ const styles = {
 
 }
 
-export default class TaskLabel extends React.Component {
+interface TaskProps {
+    taskDTO: any,
+    authorized: boolean,
+    userId: number,
+    no: number,
+    userLabel: string
+}
+
+export default class TaskLabel extends React.Component<TaskProps,void> {
 
     render() {
-
-
         if (this.props.taskDTO.taskStatus != TaskStatus.waiting_for_acceptance) {
             return <div>{this.props.taskDTO.label}</div>
-
         } else if (!this.props.authorized && this.props.taskDTO.createdByUserId!=this.props.userId) {
 
             var chipWaiting= {
@@ -32,13 +37,12 @@ export default class TaskLabel extends React.Component {
                 color: 'red!important'
             }
             return (<div style={styles.wrapper}>
-
                 <div className="taskLabel">{this.props.taskDTO.label}</div>
-
                 <Chip style={chipWaiting} className="clickableChip">
-                    <div style={{lineHeight:'12px',fontSize: '12px',color:colors.userColorsLighten[this.props.no]}}>Waiting for {this.props.userLabel}'s<br/> acceptance  <i className="fa fa-hourglass-o"></i></div>
+                    <div style={{lineHeight:'12px',fontSize: '12px',
+                    color:colors.userColorsLighten[this.props.no]}}>
+                        Waiting for {this.props.userLabel}&apos;s<br/> acceptance  <i className="fa fa-hourglass-o"></i></div>
                 </Chip>
-
                </div>);
 
 

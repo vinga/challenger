@@ -1,4 +1,6 @@
-import Rx from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+
+
 
 $(function() {
     $.ajaxSetup({
@@ -29,7 +31,8 @@ $(function() {
 });
 
 class AjaxWrapper {
-
+    baseUrl: string;
+    webToken: string;
 /*    login(login, pass, okCallbackData, errorCallbackjqXHRException) {
         $.ajax({
             url: this.baseUrl + "/newToken",
@@ -64,7 +67,7 @@ class AjaxWrapper {
         }).then(data=>callbackData(data));
     }
 
-    loadVisibleChallengesObservable() {
+/*    loadVisibleChallengesObservable() {
         return Rx.Observable.fromPromise($.ajax({
             url: this.baseUrl + "/visibleChallenges",
             headers: {
@@ -81,7 +84,7 @@ class AjaxWrapper {
                 "Authorization": "Bearer " + this.webToken
             }
         }));
-    }
+    }*/
 
     //not used
     loadIconFromServer(iconId, callbackData) {

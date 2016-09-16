@@ -1,21 +1,30 @@
-import React, {Component} from "react";
+import * as React from "react";
 import IconMenu from "material-ui/IconMenu";
 import MenuItem from "material-ui/MenuItem";
-import IconButton from "material-ui/IconButton/IconButton";
+import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
-import {ChallengeStatus} from "./Constants";
 import Divider from "material-ui/Divider";
-import {changeChallengeAction, incrementDayAction} from "../redux/actions/actions";
+import {changeChallengeAction, incrementDayAction} from "../redux/actions/actions.js";
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
+import { connect } from 'react-redux'
+import {ChallengeStatus, VisibleChallengesDTO, ChallengeDTO} from "../logic/domain/ChallengeDTO";
+import IconMenuProps = __MaterialUI.Menus.IconMenuProps;
 
+interface Props {
+    visibleChallengesDTO: VisibleChallengesDTO,
+    day: Date,
+    onIncrementDayFunc: (amount: number)=> void;
+    onChangeChallenge: (challengeId: number)=>void;
+    style: IconMenuProps;
+}
 
-class ChallengeMenuNaviBar extends React.Component {
+class ChallengeMenuNaviBar extends React.Component<Props,void> {
     constructor(props) {
         super(props);
     }
 
 
-    calculateChallengeStatusIcon(challengeDTO) {
+    calculateChallengeStatusIcon(challengeDTO: ChallengeDTO) {
         var iconText;
         switch (challengeDTO.challengeStatus) {
             case ChallengeStatus.ACTIVE:
@@ -30,9 +39,8 @@ class ChallengeMenuNaviBar extends React.Component {
             case ChallengeStatus.REFUSED:
                 iconText = "fa-cancel";
                 break;
-            case ChallengeStatus.INACIVE:
+            case ChallengeStatus.INACTIVE:
                 throw "Not supported here";
-                break;
         }
         if (iconText != undefined)
             return <FontIcon
@@ -113,6 +121,6 @@ const mapDispatchToProps = (dispatch) => {
         }
     }
 }
-import { connect } from 'react-redux'
+
 const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeMenuNaviBar)
 export default Ext;

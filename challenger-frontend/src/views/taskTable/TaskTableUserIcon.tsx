@@ -1,13 +1,9 @@
-import React, {Component} from "react";
-import colors from "../../logic/Colors";
+import * as React from "react";
+import colors from "../common-components/Colors.ts";
 
-export default class TaskTableUserIcon extends React.Component {
+export default class TaskTableUserIcon extends React.Component<{userNo:number},void> {
     constructor(props) {
         super(props);
-        this.state = {
-            iconSvg: null
-        }
-
     }
 
 
