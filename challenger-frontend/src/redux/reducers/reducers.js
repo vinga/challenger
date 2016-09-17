@@ -3,9 +3,9 @@ import {
     CHANGE_CHALLENGE,
     WEB_CHALLENGES_REQUEST,
     WEB_CHALLENGES_RESPONSE
-} from "../actions/actions";
+} from "../actions/actions.ts";
 
-import users from "./users";
+import users from "./users.ts";
 import tasks from "./tasks";
 import {combineReducers, createStore, applyMiddleware} from "redux";
 import {createEpicMiddleware, combineEpics} from "redux-observable";

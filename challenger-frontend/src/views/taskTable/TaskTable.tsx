@@ -1,13 +1,16 @@
-import React, {Component} from "react";
-import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from "material-ui/Table";
-import SecondUserAuthorizePopover from "../SecondUserAuthorizePopover";
+import * as React from "react";
+import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
+import SecondUserAuthorizePopover from "./SecondUserAuthorizePopover.tsx";
 import Paper from "material-ui/Paper";
 import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
-import ChallengeTableCheckbox from "./ChallengeTableCheckbox";
+import ChallengeTableCheckbox from "./ChallengeTableCheckbox.tsx";
 import TaskTableHeader from "./TaskTableHeader.tsx";
 import {ResizeAware} from "../Constants";
 import TaskLabel from "./TaskLabel.tsx";
+import {connect} from "react-redux";
+import {ChallengeDTO} from "../../logic/domain/ChallengeDTO";
+import {UserDTO} from "../../logic/domain/UserDTO";
 
 const styles = {
     icon: {
@@ -26,7 +29,14 @@ const styles = {
 
 }
 
-class TaskTable extends React.Component {
+interface Props {
+    no:number,
+    selectedChallengeDTO:ChallengeDTO,
+    currentDate:Date,
+    userDTO:UserDTO
+}
+
+class TaskTable extends React.Component<Props, any> {
     constructor(props) {
         super(props);
         this.state = {
@@ -37,6 +47,7 @@ class TaskTable extends React.Component {
 
         }
     }
+
 
     handleResize = (e) => {
         this.setState(this.state);
@@ -77,7 +88,7 @@ class TaskTable extends React.Component {
         };
         ajaxWrapper.updateTaskProgress(taskProgressDTO,
             (data)=> {
-               this.loadTasksFromServer(this.props.selectedChallengeDTO, this.props.currentDate);
+                this.loadTasksFromServer(this.props.selectedChallengeDTO, this.props.currentDate);
             }
         );
 
@@ -99,6 +110,7 @@ class TaskTable extends React.Component {
         this.setState(this.state);
 
     }
+    authPopover:SecondUserAuthorizePopover;
 
 
     showAuthorizePanelFunc = (anchor, isInputChecked) => {
@@ -106,7 +118,7 @@ class TaskTable extends React.Component {
             this.state.authorizePanel = true;
         }
         if (this.state.authorizePanel) {
-            this.refs.authPopover.setState({
+            this.authPopover.setState({
                 anchorEl: anchor,
                 open: true
             });
@@ -120,9 +132,9 @@ class TaskTable extends React.Component {
         return (
             <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
                 <TaskTableHeader no={this.props.no}
-                                 userDTO={this.props.userDTO.label}
+                                 userLabel={this.props.userDTO.label}
+                                 userId={this.props.userDTO.id}
                                  tasksList={this.state.tasksList}
-                                 userName={this.props.userDTO.label}
                                  onTaskSuccessfullyUpdatedFunc={this.onTaskSuccessfullyUpdatedFunc}
                                  challengeId={this.props.selectedChallengeDTO != null ? this.props.selectedChallengeDTO.id : -1}
                 />
@@ -176,48 +188,41 @@ class TaskTable extends React.Component {
                         </Table>
                     </div>
                 </Paper>
-                <SecondUserAuthorizePopover ref="authPopover" userName={this.props.userDTO.label}/>
+                <SecondUserAuthorizePopover ref={(c) => { this.authPopover = c } } userName={this.props.userDTO.label}/>
             </div>
         );
     }
 }
-TaskTable.propTypes = {
-    no: React.PropTypes.number.isRequired,
-
-    userDTO: React.PropTypes.object.isRequired,
-    selectedChallengeDTO: React.PropTypes.object.isRequired,
-    currentDate: React.PropTypes.object.isRequired // date
-};
-
 
 
 const mapStateToProps = (state, ownprops) => {
 
     //console.log(state.users);
     var selectedChallengeDTO = state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id == state.visibleChallengesDTO.selectedChallengeId).pop();
-    var primaryUserId = state.users.filter(u=>{  return u.primary == true;}).map(u=>u.userId).pop();
+    var primaryUserId = state.users.filter(u=> {
+        return u.primary == true;
+    }).map(u=>u.userId).pop();
 
 
-
-        var u1 = {
-            id: selectedChallengeDTO.firstUserId,
-            label: selectedChallengeDTO.firstUserLabel,
-            authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.firstUserId && u.jwtToken != null)[0]
-        }
-        var u2 = {
-            id: selectedChallengeDTO.secondUserId,
-            label: selectedChallengeDTO.secondUserLabel,
-            authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.secondUserId && u.jwtToken != null)[0]
-        }
+    var u1 = {
+        id: selectedChallengeDTO.firstUserId,
+        label: selectedChallengeDTO.firstUserLabel,
+        authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.firstUserId && u.jwtToken != null)[0]
+    }
+    var u2 = {
+        id: selectedChallengeDTO.secondUserId,
+        label: selectedChallengeDTO.secondUserLabel,
+        authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.secondUserId && u.jwtToken != null)[0]
+    }
     return {
-        userDTO: ownprops.no==0 && u1.id==primaryUserId? u1: u2,
+        userDTO: ownprops.no == 0 && u1.id == primaryUserId ? u1 : u2,
         selectedChallengeDTO: selectedChallengeDTO,
         currentDate: state.mainReducer.day
-       // taskList: state.tasks.filter( state.visibleChallengesDTO.selectedChallengeId + "-" + state.mainReducer.day.toISOString().slice(0, 10)])
+        // taskList: state.tasks.filter( state.visibleChallengesDTO.selectedChallengeId + "-" + state.mainReducer.day.toISOString().slice(0, 10)])
     }
 }
 
-import { connect } from 'react-redux'
+
 const Ext = connect(mapStateToProps)(ResizeAware(TaskTable))
 
 export default Ext;

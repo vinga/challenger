@@ -48,6 +48,7 @@ export default class TaskTableHeader extends React.Component<Props,{showNewWindo
     createNewTask() {
         var today = new Date();
         var taskDTO = {
+            id: 0,
             icon: "fa-book",
             difficulty: 0,
             label: "Example task 1",

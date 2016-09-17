@@ -1,5 +1,6 @@
 
 export interface TaskDTO {
+    id: number,
     label: string,
     dueDate?: number,
     taskType: string,
@@ -8,7 +9,7 @@ export interface TaskDTO {
     taskStatus: string,
     done: boolean
 }
-//export interface TaskDTOList extends Array<TaskDTO>{}
+export interface TaskDTOList extends Array<TaskDTO>{}
 
 
 export const TaskStatus = {

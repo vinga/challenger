@@ -1,4 +1,6 @@
 import * as Rx from 'rxjs/Rx';
+import {VisibleChallengesDTO} from "./domain/ChallengeDTO";
+import {TaskDTO} from "./domain/TaskDTO";
 
 
 
@@ -47,7 +49,7 @@ class AjaxWrapper {
         );
     }*/
 
-    login(login, pass) {
+    login(login: string, pass: string) {
         return $.ajax({
             url: this.baseUrl + "/newToken",
             type: 'POST',
@@ -58,7 +60,7 @@ class AjaxWrapper {
         });
     }
 
-    loadVisibleChallenges(callbackData) {
+    loadVisibleChallenges(callbackData: (VisibleChallengesDTO)=>(void)) {
         $.ajax({
             url: this.baseUrl + "/visibleChallenges",
             headers: {
@@ -87,7 +89,7 @@ class AjaxWrapper {
     }*/
 
     //not used
-    loadIconFromServer(iconId, callbackData) {
+    loadIconFromServer(iconId: number, callbackData: (string)=>void) {
         $.ajax({
             url: this.baseUrl + "/newAvatar/" + iconId,
             cache: false,
@@ -97,7 +99,7 @@ class AjaxWrapper {
         });
     }
 
-    loadTasks(challengeId, date) {
+    loadTasks(challengeId: number, date: Date) {
         var formattedDate = date.toISOString().slice(0, 10);
         return $.ajax({
             url: this.baseUrl+ "/tasks"+"/"+challengeId +"/"+formattedDate ,
@@ -107,7 +109,9 @@ class AjaxWrapper {
         });
     }
 
-    loadTasksFromServer(challengeId, userNo, date, callback) {
+
+
+    loadTasksFromServer(challengeId: number, userNo: number, date: Date, callback: (TaskDTOList)=>(void)) {
     var formattedDate = date.toISOString().slice(0, 10);
     $.ajax({
         url: this.baseUrl+ ((userNo==0)?"/tasksForMe" : "/tasksForOther")+"/"+challengeId +"/"+formattedDate ,

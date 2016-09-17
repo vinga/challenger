@@ -1,10 +1,21 @@
-import React, {Component} from "react";
+import * as React from "react";
 import Checkbox from "material-ui/Checkbox";
-import {TaskStatus} from "../Constants"
 import colors from "../common-components/Colors.ts"
+import {TaskDTO} from "../../logic/domain/TaskDTO";
 
 
-export default class ChallengeTableCheckbox extends React.Component {
+interface Props {
+    no: number,
+    authorized: boolean,
+    taskDTO: TaskDTO,
+    showAuthorizePanelFunc: (event: EventTarget, isInputChecked:boolean)=>(boolean);
+    onTaskCheckedStateChangedFunc: (task: TaskDTO)=>void;
+}
+interface State {
+    taskDTO: TaskDTO
+}
+
+export default class ChallengeTableCheckbox extends React.Component<Props, State> {
     constructor(props) {
         super(props);
         this.state = {
@@ -42,9 +53,3 @@ export default class ChallengeTableCheckbox extends React.Component {
     }
 
 };
-ChallengeTableCheckbox.propTypes = {
-    taskDTO: React.PropTypes.object.isRequired,
-    showAuthorizePanelFunc: React.PropTypes.func.isRequired,
-    onTaskCheckedStateChangedFunc: React.PropTypes.func.isRequired,
-    authorized: React.PropTypes.bool.isRequired
-}

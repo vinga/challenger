@@ -1,10 +1,19 @@
-import React, {Component} from "react";
+import * as React from "react";
 import Popover from "material-ui/Popover";
 import TextField from "material-ui/TextField";
-import ChallengeIcon from "./common-components/ChallengeIcon.tsx";
+import ChallengeIcon from "../common-components/ChallengeIcon.tsx";
 import FlatButton from "material-ui/FlatButton";
 
-export default class SecondUserAuthorizePopover extends React.Component {
+interface Props {
+    userName: string,
+
+}
+interface State {
+    open: boolean,
+    anchorEl?: React.ReactInstance;
+}
+
+export default class SecondUserAuthorizePopover extends React.Component<Props,State> {
     constructor(props) {
         super(props);
 
@@ -49,10 +58,10 @@ export default class SecondUserAuthorizePopover extends React.Component {
                     Please authorize as <b>{this.props.userName}</b>:
                 </div>
 
-                <div style={{display: 'block'}}>
+                <div style={{display: 'block'}}  className="noShadow">
                     <TextField
-                        autoFocus
-                        className="noShadow"
+                        autoFocus={true}
+
                         hintText="Password Field"
                         floatingLabelText="Password"
                         type="password"
@@ -60,16 +69,16 @@ export default class SecondUserAuthorizePopover extends React.Component {
                     <br/>
                 </div>
 
-                <div style={{marginBottom: '20px'}}>
+                <div style={{marginBottom: '20px'}} className="right">
 
 
                     <FlatButton
-                        className="right"
+
                         onTouchTap={this.handleRequestClose}
                         label="Cancel"
                     />
                     <FlatButton
-                        className="right"
+
                         onTouchTap={this.handleRequestClose}
                         label="OK"
                     />

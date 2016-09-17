@@ -88,12 +88,14 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
 
         const actions = [
             <FlatButton
+
                 label={this.handleSubmitButtonTitle()}
                 primary={true}
                 disabled={this.state.submitDisabled}
                 onTouchTap={this.handleSubmit}
             />,
             <FlatButton
+
                 label="Cancel"
                 primary={false}
                 onTouchTap={this.props.onCloseFunc}

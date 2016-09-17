@@ -1,7 +1,9 @@
 import { rootReducer} from './reducers/reducers';
 import thunkMiddleware from "redux-thunk";
 import {combineReducers, createStore, applyMiddleware} from "redux";
-
+import {
+    incrementDay,
+} from "./actions/actions.ts";
 
 
 function configureStore(initialState) {
@@ -36,9 +38,7 @@ let unsubscribe = store.subscribe(() =>
 
 
 
-import {
-    incrementDay,
-} from "./actions/actions";
+
 store.dispatch(incrementDay(1));
 store.dispatch(incrementDay(-1));
 

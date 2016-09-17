@@ -4,7 +4,7 @@ import MenuItem from "material-ui/MenuItem";
 import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import Divider from "material-ui/Divider";
-import {changeChallengeAction, incrementDayAction} from "../redux/actions/actions.js";
+import {changeChallengeAction, incrementDayAction} from "../redux/actions/actions.ts";
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 import { connect } from 'react-redux'
 import {ChallengeStatus, VisibleChallengesDTO, ChallengeDTO} from "../logic/domain/ChallengeDTO";

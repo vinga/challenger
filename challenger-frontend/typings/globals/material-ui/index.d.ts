@@ -1669,6 +1669,7 @@ declare namespace __MaterialUI {
     }
 
     interface TextFieldProps extends React.Props<TextField> {
+        autoFocus?: boolean;
         className?: string;
         defaultValue?: string | number;
         disabled?: boolean;

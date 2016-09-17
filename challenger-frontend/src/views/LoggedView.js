@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import TaskTable from "./taskTable/TaskTable";
+import TaskTable from "./taskTable/TaskTable.tsx";
 import {connect} from "react-redux";
 
 
