@@ -13,6 +13,7 @@ export function logout() {
 export const LOGIN_USER_REQUEST: ActionType<{login: string, password: string, primary:boolean}> = new ActionType<any>('LOGIN_USER_REQUEST');
 export const LOGIN_USER_RESPONSE_SUCCESS: ActionType<{login: string, jwtToken: string}> = new ActionType<any>('LOGIN_USER_RESPONSE_SUCCESS');
 export const LOGIN_USER_RESPONSE_FAILURE: ActionType<{login: string, exception: any,data: any, jqXHR : JQueryXHR}> = new ActionType<any>('LOGIN_USER_RESPONSE_FAILURE');
+export const LOGOUT: ActionType<{}> = new ActionType<any>('LOGOUT');
 
 
 

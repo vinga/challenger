@@ -18,7 +18,6 @@ export class ActionType<T extends Action>{
     }
 }
 
-// important to use _ActionType here
 export function isAction<T extends Action>(action: Action, type: ActionType<T>|string): action is T {
     if (typeof type === 'string') {
         return action.type==type;
@@ -28,18 +27,53 @@ export function isAction<T extends Action>(action: Action, type: ActionType<T>|s
     return false;
 }
 
-
-
+/*
+const FOO: ActionType<{foo: string, foo2: string}> = new ActionType<any>('FOO');
 interface BarAction extends Action {
     bar: string;
 }
 const BAR: ActionType<BarAction> = new ActionType<BarAction>('BAR');
 
+// in reducer:
+export default function reducer(state = [], action:Action) {
+    if (isAction(action, FOO)) {
+        action.foo // have access
+        return state;
+    } else if (isAction(action, BAR)) {
+        action.bar;
+        return state;
+    } else
+        return state;
+}
+
+// create new action like this
+
+FOO.new({foo: 'foo'}) // error, foo2 is required
+FOO.new({foo: 'foo', foo2: 'foo'}) // OK
+
+// dispatch it like this
+dispatch(FOO.new({foo: 'foo', foo2: 'foo'}));*/
 
 
 
 
+/*
+function reduce(a: Action) {
+    console.log("type of action "+a.type+" "+JSON.stringify(a));
+    if (isAction2(a, BARR)) {
 
+        console.log("is login action "+a.bar);
+    } else
+        console.log("is no login action");
+}
+function reduce2(a: Action) {
+    console.log("type of action "+a.type+" "+JSON.stringify(a));
+    if (isAction(a, BAR)) {
+
+        console.log("is login action "+a.bar);
+    } else
+        console.log("is no login action");
+}
 /*
 
 

@@ -1,11 +1,13 @@
 import * as jwtDecode from "jwt-decode";
 import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 import {isAction,  Action} from "../actions/actions.ts";
-import {LOGIN_USER_REQUEST, LOGIN_USER_RESPONSE_SUCCESS, LOGIN_USER_RESPONSE_FAILURE} from "../actions/users";
+import {LOGOUT, LOGIN_USER_REQUEST, LOGIN_USER_RESPONSE_SUCCESS, LOGIN_USER_RESPONSE_FAILURE} from "../actions/users";
 
 export default function users(state = [], action:Action) {
-    if (isAction(action, LOGIN_USER_REQUEST)) {
-        console.log("LOGIN REQUEST "+action.login);
+    if (isAction(action, LOGOUT)) {
+        return [];
+    }
+    else if (isAction(action, LOGIN_USER_REQUEST)) {
         var nstate= [
             ...state,
             {
