@@ -1,11 +1,13 @@
 package com.kameo.challenger;
 
 
+import com.google.common.collect.Lists;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.logic.ConfirmationLinkLogic;
 import com.kameo.challenger.odb.ChallengeODB;
+import com.kameo.challenger.odb.ChallengeParticipantODB;
 import com.kameo.challenger.odb.ChallengeStatus;
 import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.util.TestHelper;
@@ -47,8 +49,16 @@ public class InvitationsTest implements En {
             UserODB myFriend = testHelper.myFriend();
 
             ChallengeODB cb = new ChallengeODB();
-            cb.setFirst(myself);
-            cb.setSecond(myFriend);
+
+            ChallengeParticipantODB cpa1=new ChallengeParticipantODB();
+            cpa1.setChallenge(cb);
+            cpa1.setUser(myself);
+            ChallengeParticipantODB cpa2=new ChallengeParticipantODB();
+            cpa2.setChallenge(cb);
+            cpa2.setUser(myFriend);
+            cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
+
+
 
             challengerService.createNewChallenge(myself.getId(), cb);
         });
@@ -86,8 +96,14 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
 
             ChallengeODB cb = new ChallengeODB();
-            cb.setFirst(myself);
-            cb.setSecond(UserODB.ofEmail(friendEmail));
+            ChallengeParticipantODB cpa1=new ChallengeParticipantODB();
+            cpa1.setChallenge(cb);
+            cpa1.setUser(myself);
+            ChallengeParticipantODB cpa2=new ChallengeParticipantODB();
+            cpa2.setChallenge(cb);
+            cpa2.setUser(UserODB.ofEmail(friendEmail));
+            cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
+
 
             challengerService.createNewChallenge(myself.getId(), cb);
         });
@@ -98,8 +114,13 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
 
             ChallengeODB cb = new ChallengeODB();
-            cb.setFirst(myself);
-            cb.setSecond(UserODB.ofEmail(friendEmail));
+            ChallengeParticipantODB cpa1=new ChallengeParticipantODB();
+            cpa1.setChallenge(cb);
+            cpa1.setUser(myself);
+            ChallengeParticipantODB cpa2=new ChallengeParticipantODB();
+            cpa2.setChallenge(cb);
+            cpa2.setUser(UserODB.ofEmail(friendEmail));
+            cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
 
             challengerService.createNewChallenge(myself.getId(), cb);
         });
@@ -119,8 +140,14 @@ public class InvitationsTest implements En {
             testHelper.createUsers("myFriend");
             UserODB myFriend = anyDao.getOnlyOne(UserODB.class, u -> u.getLogin().equals("myFriend"));
             ChallengeODB cb = new ChallengeODB();
-            cb.setFirst(myFriend);
-            cb.setSecond(UserODB.ofEmail("myself@email.em"));
+            ChallengeParticipantODB cpa1=new ChallengeParticipantODB();
+            cpa1.setChallenge(cb);
+            cpa1.setUser(myFriend);
+            ChallengeParticipantODB cpa2=new ChallengeParticipantODB();
+            cpa2.setChallenge(cb);
+            cpa2.setUser(UserODB.ofEmail("myself@email.em"));
+            cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
+
             challengerService.createNewChallenge(myFriend.getId(), cb);
         });
 
@@ -146,8 +173,8 @@ public class InvitationsTest implements En {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
 
-            anyDao.getOnlyOne(ChallengeODB.class, cc ->
-                    cc.getFirst().equals(myFriend) && cc.getSecond().equals(myself)
+            anyDao.getOnlyOne(ChallengeParticipantODB.class, cc ->
+                    cc.getUser().equals(myFriend)
                             && cc.getChallengeStatus() == ChallengeStatus.ACTIVE
             );
 

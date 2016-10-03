@@ -36,12 +36,13 @@ public class TaskODB implements IIdentity {
     @NotNull
     private UserODB user;
     @ManyToOne
+    @NotNull
     private UserODB createdByUser;
 
     @Transient
     boolean done;
 
-
+    @NotNull
     @ManyToOne
     private ChallengeODB challenge;
 

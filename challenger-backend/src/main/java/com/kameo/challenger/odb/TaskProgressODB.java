@@ -16,7 +16,10 @@ public class TaskProgressODB implements IIdentity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
+
+    @NotNull
     Date progressTime;
+
     boolean done;
 
 

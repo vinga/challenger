@@ -3,8 +3,11 @@ package com.kameo.challenger.web.rest.api;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +31,14 @@ public interface IChallengerService {
     }
 
     @Data
+    public static class TaskApprovalDTO {
+        long userId;
+        public long taskId;
+        TaskStatus taskStatus;
+        String rejectionReason;
+    }
+
+    @Data
     public static class TaskDTO {
         long id;
         String label;
@@ -40,6 +51,7 @@ public interface IChallengerService {
         TaskType taskType;
         TaskStatus taskStatus;
         boolean done;
+        Boolean deleted;
 
         public static TaskDTO fromOdb(TaskODB odb) {
             TaskDTO ca = new TaskDTO();
@@ -57,6 +69,16 @@ public interface IChallengerService {
             return ca;
         }
 
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserLabelDTO {
+        long id;
+        String label;
+        String login;//if exists
     }
 
     @Data
@@ -66,29 +88,37 @@ public interface IChallengerService {
 
         List<ChallengeDTO> visibleChallenges = Lists.newArrayList();
 
+
         @Data
         public static class ChallengeDTO {
             long id;
             String label;
             String challengeStatus;
-            long firstUserId;
-            long secondUserId;
-            String firstUserLabel;
-            String secondUserLabel;
+            long creatorId;
+
+
             long myId;
+            UserLabelDTO[] userLabels;
 
             public static ChallengeDTO fromODB(ChallengeODB c) {
                 ChallengeDTO co = new ChallengeDTO();
                 co.label = c.getLabel();
                 co.id = c.getId();
                 co.challengeStatus = c.getChallengeStatus().name();
-                co.firstUserId = c.getFirst().getId();
-                co.secondUserId = c.getSecond().getId();
-                co.firstUserLabel = Strings.isNullOrEmpty(c.getFirst().getLogin()) ? c.getFirst().getEmail() : c
+                co.creatorId = c.getCreatedBy().getId();
+                //co.secondUserId = c.getSecond().getId();
+
+
+                co.userLabels=c.getParticipants().stream().map(cp->cp.getUser()).map(u->new UserLabelDTO(u.getId(), u.getLoginOrEmail(), u.getLogin())).toArray(UserLabelDTO[]::new);
+            /*    List<UserODB> users=Lists.newArrayList(c.getFirst(), c.getSecond());
+
+                co.userLabels= users.stream().map(u->new UserLabelDTO(u.getId(), u.getLogin()!=null? u.getLogin():u.getEmail(), u.getLogin())).toArray(UserLabelDTO[]::new);
+*/
+               /* co.firstUserLabel = Strings.isNullOrEmpty(c.getFirst().getLogin()) ? c.getFirst().getEmail() : c
                         .getFirst()
                         .getLogin();
                 co.secondUserLabel = Strings.isNullOrEmpty(c.getSecond().getLogin()) ? c.getSecond().getEmail() : c
-                        .getSecond().getLogin();
+                        .getSecond().getLogin();*/
                 return co;
             }
         }

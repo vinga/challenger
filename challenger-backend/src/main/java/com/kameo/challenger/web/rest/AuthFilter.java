@@ -11,11 +11,14 @@ import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
@@ -46,6 +49,9 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     ChallengerSess myTokenInfo;
 
     @Inject
+    Provider<MultiUserChallengerSess> multiTokenInfos;
+
+    @Inject
     ChallengerLogic challengerService;
 
     @Inject
@@ -61,7 +67,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     protected ChallengerSess createNewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
         String login = req.getParameter("login");
         String pass = req.getParameter("pass");
-        long userId=loginLogic.login(login,pass);
+        long userId = loginLogic.login(login, pass);
         ChallengerSess td = new ChallengerSess();
         td.setUserId(userId);
         td.setExpires(new DateTime(DateUtils.addMinutes(new Date(), 15)));
@@ -69,8 +75,14 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     }
 
     @Override
-    protected void setRequestScopeVariable(ChallengerSess ti) {
-        ReflectionUtils.copy(ti, this.myTokenInfo);
+    protected void setRequestScopeVariable(List<ChallengerSess> ti) {
+
+
+        if (ti.size() == 1)
+            ReflectionUtils.copy(ti.get(0), this.myTokenInfo);
+        else {
+            multiTokenInfos.get().setUserIds(ti.stream().map(t -> t.getUserId()).collect(Collectors.toSet()));
+        }
     }
 
 

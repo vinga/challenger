@@ -2,6 +2,7 @@ package com.kameo.challenger.logic;
 
 import com.google.common.base.Strings;
 import com.kameo.challenger.odb.ChallengeODB;
+import com.kameo.challenger.odb.ChallengeParticipantODB;
 import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.odb.UserStatus;
 import com.kameo.challenger.utils.PasswordUtil;
@@ -55,8 +56,11 @@ public class LoginLogic {
                     throw new AbstractAuthFilter.AuthException("There have been several failed attempts to sign in from this account or IP address. Please wait a while and try again later.");
                 } else if (u.getUserStatus() != UserStatus.ACTIVE) {
                     throw new AbstractAuthFilter.AuthException("Your account is not active");
-                } else
+                } else {
+                    u.setFailedLoginsNumber(0);
+                    anyDao.getEm().merge(u);
                     return u.getId();
+                }
 
             } else {
                 u.setFailedLoginsNumber(u.getFailedLoginsNumber() + 1);
@@ -76,16 +80,19 @@ public class LoginLogic {
     public UserODB createPendingUserWithEmailOnly(ChallengeODB cb) {
         UserODB user = new UserODB();
         user.setLogin("");
-        user.setEmail(cb.getSecond().getEmail());
+        user.setEmail(cb.getParticipants().get(1).getUser().getEmail());
         user.setUserStatus(UserStatus.WAITING_FOR_EMAIL_CONFIRMATION);
         anyDao.getEm().persist(user);
+
+
         return user;
     }
 
     public boolean registerUser(String login, String password, String email) {
-        Optional<ChallengeODB> cco = anyDao.streamAll(ChallengeODB.class)
-                                                   .where(cc -> cc.getFirst().getEmail().equals(email) || cc
-                                                           .getSecond().getEmail().equals(email)).findAny();
+
+
+        Optional<ChallengeParticipantODB> cco = anyDao.streamAll(ChallengeParticipantODB.class)
+                                                   .where(cc -> cc.getUser().getEmail().equals(email)).findAny();
 
         if (!cco.isPresent()) {
             UserODB user = new UserODB();
@@ -98,12 +105,10 @@ public class LoginLogic {
             return true;
         } else {
 
-            ChallengeODB cc = cco.get();
-            boolean firsst = cc.getFirst().getEmail().equals(email) && cc.getFirst()
+            ChallengeParticipantODB cc = cco.get();
+            boolean firsst = cc.getUser().getEmail().equals(email) && cc.getUser()
                                                                          .getUserStatus() == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION;
-            boolean sec = cc.getSecond().getEmail().equals(email) && cc.getSecond()
-                                                                       .getUserStatus() == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION;
-            if (firsst || sec) {
+             if (firsst) {
                 confirmationLinkLogic.createAndSendEmailConfirmationLink(login, password, email);
                 return true;
             }

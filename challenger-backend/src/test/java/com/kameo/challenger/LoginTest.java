@@ -93,9 +93,9 @@ public class LoginTest implements En {
 
         Given("^I no invitation has been sent to me email$", () -> {
             String myEmail = "myself@email.em";
-            Optional<ChallengeODB> cco = anyDao.streamAll(ChallengeODB.class)
-                                                       .where(cc -> cc.getFirst().getEmail().equals(myEmail) || cc
-                                                               .getSecond().getEmail().equals(myEmail)).findAny();
+            Optional<ChallengeParticipantODB> cco = anyDao.streamAll(ChallengeParticipantODB.class)
+                                                       .where(cc -> !cc.getChallenge().getCreatedBy().equals(cc.getUser()) && cc.getUser().getEmail().equals(myEmail) || cc
+                                                               .getUser().getEmail().equals(myEmail)).findAny();
             Assert.assertTrue(!cco.isPresent());
         });
 

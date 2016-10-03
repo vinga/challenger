@@ -33,7 +33,7 @@ public class TestHelper {
 
 
     public List<UserODB> createUsers(String... logins) {
-        return fakeDataLogic.createUsers(logins);
+        return fakeDataLogic.createUsers(resolveLogins(logins));
     }
 
     public ChallengeODB createAcceptedChallenge(Iterator<UserODB> users) {
@@ -43,7 +43,9 @@ public class TestHelper {
         return fakeDataLogic.createChallengeWithLabel(label, users, ChallengeStatus.ACTIVE);
     }
 
-
+    public ChallengeODB createPendingChallengeWithLabel(String label, Iterator<UserODB> users) {
+        return fakeDataLogic.createChallengeWithLabel(label, users, ChallengeStatus.WAITING_FOR_ACCEPTANCE);
+    }
 
     public ChallengeODB createPendingChallenge(Iterator<UserODB> users) {
         return fakeDataLogic.createChallenge(users, ChallengeStatus.WAITING_FOR_ACCEPTANCE);
@@ -66,17 +68,27 @@ public class TestHelper {
     }
 
     public ChallengeODB getActiveChallengeBetween(UserODB u1, UserODB u2) {
-        JinqStream.Where<ChallengeODB, ?> goodUser = c ->
-                (c.getFirst().equals(u1) && c.getSecond().equals(u2)) ||
-                        (c.getFirst().equals(u2) && c.getSecond().equals(u1));
 
-        return anyDao.getOnlyOne(ChallengeODB.class,
-                goodUser,
-                c -> c.getChallengeStatus() == ChallengeStatus.ACTIVE
-        );
+        return anyDao.streamAll(ChallengeParticipantODB.class)
+              .where(c1->c1.getUser().equals(u1) && c1.getChallengeStatus()==ChallengeStatus.ACTIVE && c1.getChallenge().getChallengeStatus()==ChallengeStatus.ACTIVE)
+              .join((c1, source) -> source.stream(ChallengeParticipantODB.class))
+              .where(p->p.getOne().getChallenge().getId()==p.getTwo().getChallenge().getId()
+                      && p.getOne().getId()!=p.getTwo().getId()
+                      && p.getTwo().getChallengeStatus()==ChallengeStatus.ACTIVE).select(p->p.getOne().getChallenge()).findOne().get();
+
 
     }
+    public ChallengeODB getChallengeBetween(UserODB u1, UserODB u2) {
 
+        return anyDao.streamAll(ChallengeParticipantODB.class)
+                     .where(c1->c1.getUser().equals(u1) )
+                     .join((c1, source) -> source.stream(ChallengeParticipantODB.class))
+                     .where(p->p.getOne().getChallenge().getId()==p.getTwo().getChallenge().getId()
+                             && p.getOne().getId()!=p.getTwo().getId()
+                             ).select(p->p.getOne().getChallenge()).findOne().get();
+
+
+    }
     @Transactional
     public void clearSchema() {
         anyDao.getEm().createNativeQuery("TRUNCATE SCHEMA public AND COMMIT").executeUpdate();

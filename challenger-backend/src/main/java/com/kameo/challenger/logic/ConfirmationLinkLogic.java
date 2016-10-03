@@ -88,9 +88,14 @@ public class ConfirmationLinkLogic {
                 cc -> cc.getUid().equals(uid)
         );
         if (cclDB.getConfirmationLinkType()==ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION) {
+            long challengeId = cclDB.getChallengeId();
+            String email = cclDB.getEmail();
+            ChallengeParticipantODB cpa = anyDao
+                    .getOnlyOne(ChallengeParticipantODB.class, c -> c.getChallenge().getId() == challengeId && c
+                            .getUser().getEmail().equals(email));
             ChallengeODB cc = anyDao
                     .get(ChallengeODB.class, cclDB.getChallengeId());
-            if (cc.getChallengeStatus()==ChallengeStatus.WAITING_FOR_ACCEPTANCE && cc.getSecond().getUserStatus()==UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
+            if (cpa.getChallengeStatus()==ChallengeStatus.WAITING_FOR_ACCEPTANCE && cc.getChallengeStatus()==ChallengeStatus.WAITING_FOR_ACCEPTANCE && cpa.getUser().getUserStatus()==UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
                 return true;
             }
 
@@ -111,9 +116,9 @@ public class ConfirmationLinkLogic {
 
 
 
-    public void createAndSendChallengeConfirmationLink(ChallengeODB cb) {
+    public void createAndSendChallengeConfirmationLink(ChallengeODB cb, ChallengeParticipantODB cp) {
         ConfirmationLinkODB ccl = new ConfirmationLinkODB();
-        ccl.setEmail(cb.getSecond().getEmail());
+        ccl.setEmail(cp.getUser().getEmail());
         ccl.setChallengeId(cb.getId());
         ccl.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION);
         ccl.setUid(UUID.randomUUID().toString());
@@ -121,12 +126,12 @@ public class ConfirmationLinkLogic {
 
 
         String login = "you";
-        if (cb.getSecond().getUserStatus() != UserStatus.WAITING_FOR_EMAIL_CONFIRMATION)
-            login = cb.getSecond().getLogin();
-        mailService.sendHtml(new MailService.Message(cb.getSecond().getEmail(),
+        if (cp.getUser().getUserStatus() != UserStatus.WAITING_FOR_EMAIL_CONFIRMATION)
+            login = cp.getUser().getLogin();
+        mailService.sendHtml(new MailService.Message(cp.getUser().getEmail(),
                 "Invitation",
                 "Dear " + login + ",\n" +
-                        cb.getFirst().getLogin() + " challenged you: " + cb.getLabel() + "\n" +
+                        cb.getCreatedBy().getLogin() + " challenged you: " + cb.getLabel() + "\n" +
                         "Click <a href='" + toActionLink(ccl) + "'>here</a> if you accept the challenge."));
     }
 

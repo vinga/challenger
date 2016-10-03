@@ -1,11 +1,14 @@
 package com.kameo.challenger.utils.auth.jwt;
 
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 
 public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter {
@@ -42,16 +45,30 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 if (Strings.isNullOrEmpty(auth)) {
                     throw new IllegalAccessException("Unauthorized");
                 }
-                String token = auth.substring("Bearer ".length());
-                E tokenInfo = verifier.verifyToken(token);
-                if (tokenInfo.getExpires().isBeforeNow()) {
-                    onTokenExpired(httpReq, httpRes, chain);
-                } else {
-                    onTokenValidated(tokenInfo, httpReq, httpRes, chain);
+                String tokens = auth.substring("Bearer ".length());
+
+
+                List<String> tokensStringList=Lists.newArrayList(Splitter.on(" ").omitEmptyStrings().trimResults().split(tokens));
+                List<E> tokensList=Lists.newArrayList();
+                for (String token: tokensStringList) {
+                    E tokenInfo = verifier.verifyToken(token);
+                    if (tokenInfo.getExpires().isBeforeNow()) {
+                        onTokenExpired(httpReq, httpRes, chain);
+                    }
+                    else tokensList.add(tokenInfo);
                 }
 
+
+
+                //Authorization:Bearer eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q
+
+
+
+                onTokenValidated(tokensList, httpReq, httpRes, chain);
+
+
             } catch (IllegalAccessException ex) {
-                // ex.printStackTrace();
+                 ex.printStackTrace();
                 unauthorized(httpRes);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -100,12 +117,15 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
      *
      * @param ti
      */
-    protected abstract void setRequestScopeVariable(E ti);
+    protected abstract void setRequestScopeVariable(List<E> ti);
 
-    protected void onTokenValidated(E ti, HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
+
+    protected void onTokenValidated(List<E> ti, HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
         setRequestScopeVariable(ti);
         chain.doFilter(req, res);
     }
+
+
 
     protected void onTokenExpired(HttpServletRequest req, HttpServletResponse response, FilterChain chain) throws IOException {
         response.setHeader("jwt-status", "expired");

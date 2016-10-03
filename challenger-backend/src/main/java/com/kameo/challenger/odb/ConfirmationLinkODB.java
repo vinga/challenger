@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * Created by kmyczkowska on 2016-09-02.
@@ -20,8 +21,11 @@ public class ConfirmationLinkODB implements IIdentity {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     long id;
+
+    @NotNull
     String uid;
 
+    @NotNull
     @Enumerated
     ConfirmationLinkType confirmationLinkType;
 

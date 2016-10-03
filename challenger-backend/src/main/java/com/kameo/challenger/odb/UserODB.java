@@ -27,6 +27,7 @@ public class UserODB implements IIdentity {
     @NotNull
     String email;
 
+    @NotNull
     @Enumerated
     UserStatus userStatus=UserStatus.ACTIVE;
 
@@ -43,6 +44,11 @@ public class UserODB implements IIdentity {
         this.id=id;
     }
 
+    // email is never null
+    @Transient
+    public String getLoginOrEmail() {
+        return getLogin()!=null? getLogin(): getEmail();
+    }
 
     public static UserODB ofEmail(String email) {
         UserODB u=new UserODB();

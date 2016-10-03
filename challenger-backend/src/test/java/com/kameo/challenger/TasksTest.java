@@ -136,9 +136,7 @@ public class TasksTest implements En {
         When("my friend created new action for me$", () -> {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
-            ChallengeODB cc = anyDao.streamAll(ChallengeODB.class)
-                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
-                                            .getOnlyValue();
+            ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
             TaskODB ca = new TaskODB();
             ca.setTaskType(TaskType.daily);
@@ -154,9 +152,8 @@ public class TasksTest implements En {
         Then("^I should see mine actions$", () -> {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
-            ChallengeODB cc = anyDao.streamAll(ChallengeODB.class)
-                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
-                                            .getOnlyValue();
+
+            ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
             List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myself.getId(), cc.getId(), new Date());
             Assert.assertFalse(actions.isEmpty());
@@ -164,9 +161,7 @@ public class TasksTest implements En {
         Then("^I should see my friend's actions$", () -> {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
-            ChallengeODB cc = anyDao.streamAll(ChallengeODB.class)
-                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
-                                            .getOnlyValue();
+            ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
             List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myFriend.getId(), cc.getId(), new Date());
             Assert.assertFalse(actions.isEmpty());
@@ -175,9 +170,7 @@ public class TasksTest implements En {
         When("^my friend created new action for him$", () -> {
             UserODB myself = testHelper.myself();
             UserODB myFriend = testHelper.myFriend();
-            ChallengeODB cc = anyDao.streamAll(ChallengeODB.class)
-                                            .where(u -> u.getFirst().equals(myself) && u.getSecond().equals(myFriend))
-                                            .getOnlyValue();
+            ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
             TaskODB ca = new TaskODB();
             ca.setTaskType(TaskType.daily);

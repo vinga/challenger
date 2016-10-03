@@ -1,8 +1,7 @@
 package com.kameo.challenger.odb;
 
-
-import com.google.common.collect.Lists;
 import com.kameo.challenger.odb.api.IIdentity;
+import com.kameo.challenger.utils.odb.EntityHelper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -11,36 +10,36 @@ import lombok.ToString;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.List;
 
 @Entity
 @NoArgsConstructor
+@Table(indexes = {
+    @Index(columnList = "user_id"),
+    @Index(columnList = "challenge_id"),
+})
 @ToString(of = IIdentity.id_column)
-public @Data class ChallengeODB implements IIdentity {
+public @Data
+class ChallengeParticipantODB implements IIdentity {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     long id;
 
-    String label;
 
     @NotNull
     @ManyToOne
-    UserODB createdBy;
+    ChallengeODB challenge;
 
+    @NotNull
+    @ManyToOne
+    UserODB user;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    Date lastSeen;
 
 
     @NotNull
     @Enumerated
     ChallengeStatus challengeStatus;
-
-
-    @OneToMany(mappedBy = "challenge")
-    List<ChallengeParticipantODB> participants= Lists.newArrayList();
-
-
-    public ChallengeODB(long id) {
-        this.id = id;
-    }
 
     public int hashCode() {
         return Long.hashCode(id);
@@ -48,7 +47,6 @@ public @Data class ChallengeODB implements IIdentity {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof ChallengeODB && ((ChallengeODB) obj).getId()==this.getId();
+        return obj instanceof ChallengeParticipantODB && ((ChallengeParticipantODB) obj).getId()==this.getId();
     }
-
 }
