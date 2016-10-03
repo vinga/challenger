@@ -31,6 +31,7 @@ interface TaskProps {
     taskDTO:TaskDTO,
     user:AccountDTO,
     no:number,
+    isTaskCreatorLogged?:Boolean
 
 
 }
@@ -51,7 +52,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
             return <div>{this.props.taskDTO.label}</div>
         } else if (this.props.taskDTO.taskStatus == TaskStatus.rejected) {
             console.log("ISTHIS " + this.props.taskDTO.label + " " + this.props.taskDTO.createdByUserId + " " + this.props.user.userId);
-            if (this.props.taskDTO.createdByUserId == this.props.user.userId) { //  kto moze dawac do reworku?
+            if (this.props.isTaskCreatorLogged) {//this.props.taskDTO.createdByUserId == this.props.user.userId && this.props.user.jwtToken != null) { //  kto moze dawac do reworku?
 
                 return (
                     <div style={styles.wrapper}>
@@ -61,7 +62,6 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
                               onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
                             <i className="fa fa-share"></i> Rework
                         </Chip>
-
 
                         <Chip style={styles.chip} className="clickableChip"
                               onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
@@ -141,7 +141,11 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
 
 
 const mapStateToProps = (state:ReduxState, ownprops:any):any => {
-    return {}
+
+    var task: TaskDTO=ownprops.taskDTO;
+    var isTaskCreatorLogged:Boolean=state.users.filter(u=>u.userId==task.createdByUserId && u.jwtToken!=null).pop()!=null;
+
+    return {isTaskCreatorLogged: isTaskCreatorLogged}
 }
 
 const mapDispatchToProps = (dispatch):any => {
