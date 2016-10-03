@@ -1,38 +1,47 @@
 import * as React from "react";
-
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
 import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
 import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "../Constants";
 import DatePicker from "material-ui/DatePicker";
-import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 import IconChooserButton from "./IconChooserButton.tsx";
-import {TouchTapEvent} from "material-ui";
-import {TaskDTO, TaskType} from "../../logic/domain/TaskDTO.ts"
+import {TouchTapEvent, IconButton} from "material-ui";
+import {TaskDTO, TaskType} from "../../logic/domain/TaskDTO.ts";
+import {updateTask, deleteTask} from "../../redux/actions/taskActions";
+import {connect} from "react-redux";
+import {ReduxState} from "../../redux/ReduxState";
+import {CLOSE_EDIT_TASK} from "../../redux/actions/actions";
+import YesNoConfirmationDialog from "../common-components/YesNoConfirmationDialog";
 
 
 interface Props {
-    taskDTO: TaskDTO,
-    onCloseFunc: (event?: TouchTapEvent) => void,
-    onTaskSuccessfullyUpdatedFunc: (task: TaskDTO) => void,
-    open: boolean
+    task:TaskDTO,
+    creatorUserLabel: string
+}
+
+interface PropsFunc {
+    onTaskSuccessfullyUpdatedFunc:(task:TaskDTO)=>void;
+    onTaskDeleteFunc:(task:TaskDTO)=>void;
+    onCloseFunc?:(event?:TouchTapEvent) => void,
 }
 interface State {
-    task: TaskDTO,
-    submitDisabled: boolean
+    task:TaskDTO,
+    submitDisabled:boolean,
+    taskDeleteConfirmation:boolean
 }
 
 /**
  * A modal dialog can only be closed by selecting one of the actions.
  */
-export default class ChallengeEditDialogWindow extends React.Component<Props, State> {
+class ChallengeEditDialogWindow extends React.Component<Props & PropsFunc, State> {
     constructor(props) {
         super(props);
-        var task = $.extend({}, this.props.taskDTO);
+        //var task:TaskDTO = $.extend({}, this.props.task);
         this.state = {
-            task: task,
-            submitDisabled: false
+            task: this.props.task,
+            submitDisabled: false,
+            taskDeleteConfirmation: false
         };
     }
 
@@ -43,19 +52,10 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
 
 
     handleSubmit = () => {
-        ajaxWrapper.updateTask(this.state.task, (updatedTask)=>this.props.onTaskSuccessfullyUpdatedFunc(updatedTask));
+        this.props.onTaskSuccessfullyUpdatedFunc(this.state.task);
         this.props.onCloseFunc();
     };
 
-    //   title={this.resolveWindowTitle()}
-    resolveWindowTitle = () => {
-        var title;
-        if (this.props.taskDTO === undefined)
-            title = "New task";
-        else
-            title = "Edit task " + this.props.taskDTO.label;
-        return title;
-    }
     handleDueDateChange = (event, date) => {
         this.state.task.dueDate = date;
         this.setState(this.state);
@@ -70,9 +70,9 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
         this.setState(this.state);
     };
 
-    handleSubmitButtonTitle = () => {
+    getSubmitButtonTitle = () => {
         var title;
-        if (this.props.taskDTO === undefined)
+        if (this.props.task === undefined)
             title = "Create";
         else
             title = "Save";
@@ -82,20 +82,23 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
         this.state.task.icon = icon;
         this.setState(this.state);
     }
+    handleTaskDelete = () => {
+        this.state.taskDeleteConfirmation = true;
+        this.setState(this.state);
+    }
 
 
     render() {
-
+        if (this.props.task == null)
+            return <div/>;
         const actions = [
             <FlatButton
-
-                label={this.handleSubmitButtonTitle()}
+                label={this.getSubmitButtonTitle()}
                 primary={true}
                 disabled={this.state.submitDisabled}
                 onTouchTap={this.handleSubmit}
             />,
             <FlatButton
-
                 label="Cancel"
                 primary={false}
                 onTouchTap={this.props.onCloseFunc}
@@ -113,23 +116,21 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
                     onChange={this.handleDueDateChange}
                     floatingLabelText="Due date"
                     container="inline"
-
                 /></div>;
         }
-
+//width: "800px",
         return (
             <div>
-
                 <Dialog
-
                     actions={actions}
+
                     modal={true}
-                    open={this.props.open}
-                    style={{height: "400px", overflow: "none", display: "block"}}
+                    open={true}
+                    style={{height: "600px", overflow: "none", display: "block"}}
                 >
 
 
-                    <div style={{display: "table", marginBottom: '30px'}}>
+                    <div style={{display: "table", marginBottom: '0px',width:'100%'}}>
                         <div style={{display: "inline-block"}}>
                             <IconChooserButton
                                 icon={this.state.task.icon}
@@ -145,11 +146,21 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
                             onChange={this.handleActionNameFieldChange}
 
                         />
-
+                        {  this.props.task.id > 0 &&
+                        <div style={{float: "right"}}>
+                            <IconButton style={{width: 60, height: 60}}
+                                        onClick={this.handleTaskDelete}>
+                                &nbsp;<i className={'fa fa-trash' }
+                                         style={{fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
+                            </IconButton>
+                        </div>
+                        }
 
                     </div>
+                    <div style={{marginLeft: '10px',marginBottom: '20px',clear: "both"}}>Created by: {this.props.creatorUserLabel}</div>
 
                     <div style={{display: "block", float: "left", marginLeft: '20px', width: "200px"}}>
+
                         <RadioButtonGroup name="difficulty"
                                           defaultSelected={"" + this.state.task.difficulty}>
 
@@ -198,11 +209,45 @@ export default class ChallengeEditDialogWindow extends React.Component<Props, St
                             />
                         </RadioButtonGroup>
                     </div>
+
                     {datePicker}
+                    { this.state.taskDeleteConfirmation &&
+                    <YesNoConfirmationDialog
+                        closeYes={()=>{  this.props.onTaskDeleteFunc(this.state.task);  }}
+                        closeDialog={()=>{this.state.taskDeleteConfirmation=false; this.setState(this.state);}}
+                    >
+                        Do you want to remove this task? { this.state.task.id}
+                    </YesNoConfirmationDialog>
+                    }
                 </Dialog>
             </div>
         );
     }
 
 }
+const mapStateToProps = (state:ReduxState, ownProps):Props => {
 
+
+    return {task: state.currentSelection.editedTask,
+        creatorUserLabel: state.challenges.visibleChallenges.filter(ch=>ch.id==state.challenges.selectedChallengeId).pop().userLabels.filter(u=>u.id==state.currentSelection.editedTask.createdByUserId).pop().label
+    }
+}
+const mapDispatchToProps = (dispatch):PropsFunc => {
+    return {
+        onTaskSuccessfullyUpdatedFunc: (task:TaskDTO)=> {
+            dispatch(updateTask(task));
+        },
+        onTaskDeleteFunc: (task:TaskDTO)=> {
+            dispatch(deleteTask(task));
+        },
+        onCloseFunc: (event:TouchTapEvent)=> {
+            dispatch(CLOSE_EDIT_TASK.new({}));
+        },
+
+    }
+}
+
+
+const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeEditDialogWindow)
+
+export default Ext;

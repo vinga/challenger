@@ -1,26 +1,34 @@
 import * as React from "react";
 import TaskTableUserIcon from "./TaskTableUserIcon.tsx";
 import FlatButton from "material-ui/FlatButton";
-import ChallengeEditDialogWindow from "../taskEditWindow/ChallengeEditDialogWindow.tsx";
 import colors from "../common-components/Colors.ts";
 import {TaskDTO, TaskType, TaskStatus} from "../../logic/domain/TaskDTO";
-
+import {OPEN_EDIT_TASK, ON_LOGOUT_SECOND_USER} from "../../redux/actions/actions";
+import {connect} from "react-redux";
+import {IconButton} from "material-ui";
+import {AccountDTO} from "../../logic/domain/AccountDTO";
 
 
 interface Props {
-    tasksList: Array<TaskDTO>,
-    userId: number,
-    challengeId: number,
-    userLabel:string,
-    no: number,
-    onTaskSuccessfullyUpdatedFunc: (task: TaskDTO) => void,
+    tasksList:Array<TaskDTO>,
+    user:AccountDTO,
+    challengeId:number,
+    no:number
 }
-export default class TaskTableHeader extends React.Component<Props,{showNewWindow:boolean}> {
+
+interface ReduxPropsFunc {
+    onAddNewTaskFunc:(task:TaskDTO)=>void;
+    onSecondUserLogout:(userId:number)=>void;
+
+}
+interface PropsFunc {
+    onOpenDialogForLoginSecondUser:(event:EventTarget)=>void;
+}
+
+class TaskTableHeader extends React.Component<Props & ReduxPropsFunc & PropsFunc,void> {
     constructor(props) {
         super(props);
-        this.state = {
-            showNewWindow: false
-        };
+
 
     }
 
@@ -36,14 +44,6 @@ export default class TaskTableHeader extends React.Component<Props,{showNewWindo
             .reduce((total, num)=>total + num, 0);
     }
 
-    onAddNewTaskFunc = () => {
-        this.setState({showNewWindow: true});
-        // this.refs.challengeEditDialogWindow.handleOpen();
-    }
-    handleEditWindowCloseFunc = () => {
-        this.setState({showNewWindow: false});
-    }
-
 
     createNewTask() {
         var today = new Date();
@@ -55,9 +55,10 @@ export default class TaskTableHeader extends React.Component<Props,{showNewWindo
             taskType: TaskType.onetime,
             taskStatus: TaskStatus.waiting_for_acceptance,
             dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
-            userId: this.props.userId,
+            userId: this.props.user.userId,
             challengeId: this.props.challengeId,
-            done: false
+            done: false,
+            createdByUserId: this.props.user.userId,
 
         }
         return taskDTO;
@@ -68,19 +69,42 @@ export default class TaskTableHeader extends React.Component<Props,{showNewWindo
     render() {
 
         return (<div>
-            <h5 >
+
+
+            <h5  >
                 <TaskTableUserIcon
                     userNo={this.props.no}
                 />
 
-                <span className="left" style={{margin: '3px', lineHeight: '65px'}}>{this.props.userLabel}</span>
+                <span style={{}}><span style={{lineHeight: '65px'}}>{this.props.user.label}</span>
+                    {this.props.no != 0 && (this.props.user.jwtToken != null ?
+
+                            <IconButton
+                                onClick={() => {this.props.onSecondUserLogout(this.props.user.userId)}}>
+                                &nbsp;<i className={'fa fa-power-off' }
+                                         style={{marginTop: '3px',fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
+                            </IconButton>
+
+                            :
+
+                            <IconButton
+                                onClick={(event) => this.props.onOpenDialogForLoginSecondUser(event.currentTarget)}>
+                                &nbsp;<i className={'fa fa-lock' }
+                                         style={{marginTop: '3px',fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
+                            </IconButton>
+
+                    )}{this.props.user.errorDescription != null &&
+                    <span className="red-text text-darken-3"
+                          style={{fontSize:'15px'}}>
+                        {this.props.user.errorDescription}</span>}
+                </span>
 
             </h5>
             <div style={{clear: 'both'}}></div>
             <span className="left" style={{margin: '3px'}}>Points: {this.calculateCheckedCount()}</span>
             <div className="right" style={{display: "inline-block"}}>
                 <FlatButton
-                    onClick={this.onAddNewTaskFunc}
+                    onClick={()=>this.props.onAddNewTaskFunc(this.createNewTask())}
                     label="Add task"
                     labelPosition="before"
                     primary={true}
@@ -88,19 +112,29 @@ export default class TaskTableHeader extends React.Component<Props,{showNewWindo
                 />
             </div>
 
-            {this.state.showNewWindow &&
-            <ChallengeEditDialogWindow
-                open={this.state.showNewWindow}
-                onCloseFunc={this.handleEditWindowCloseFunc}
-                onTaskSuccessfullyUpdatedFunc={this.props.onTaskSuccessfullyUpdatedFunc}
-                taskDTO={this.createNewTask()}
 
-            />
-            }
         </div>);
     }
 
 
 }
+
+const mapStateToProps = (state, ownProps:Props & PropsFunc):{} => {
+    return {};
+}
+const mapDispatchToProps = (dispatch):ReduxPropsFunc => {
+    return {
+        onAddNewTaskFunc: (task:TaskDTO) => {
+            dispatch(OPEN_EDIT_TASK.new(task))
+        },
+        onSecondUserLogout: (userId:number) => {
+            dispatch(ON_LOGOUT_SECOND_USER.new({userId}));
+        }
+    }
+}
+
+const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskTableHeader)
+
+export default Ext;
 
 

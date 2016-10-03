@@ -2,7 +2,6 @@ import * as React from "react";
 import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import SecondUserAuthorizePopover from "./SecondUserAuthorizePopover.tsx";
 import Paper from "material-ui/Paper";
-import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import ChallengeTableCheckbox from "./ChallengeTableCheckbox.tsx";
 import TaskTableHeader from "./TaskTableHeader.tsx";
@@ -11,6 +10,13 @@ import TaskLabel from "./TaskLabel.tsx";
 import {connect} from "react-redux";
 import {ChallengeDTO} from "../../logic/domain/ChallengeDTO";
 import {UserDTO} from "../../logic/domain/UserDTO";
+import {ReduxState} from "../../redux/ReduxState";
+import {TaskDTO, createTaskDTOListKey, TaskDTOListForDay} from "../../logic/domain/TaskDTO";
+import {WebState} from "../../logic/domain/Common";
+import {TaskProgressDTO} from "../../logic/domain/TaskProgressDTO";
+import {markTaskDoneOrUndone} from "../../redux/actions/taskActions";
+import {OPEN_EDIT_TASK} from "../../redux/actions/actions";
+import {AccountDTO} from "../../logic/domain/AccountDTO";
 
 const styles = {
     icon: {
@@ -29,99 +35,77 @@ const styles = {
 
 }
 
+
 interface Props {
     no:number,
     selectedChallengeDTO:ChallengeDTO,
     currentDate:Date,
-    userDTO:UserDTO
+    user:AccountDTO,
+    tasksList:Array<TaskDTO>,
+    busy:boolean,
+
+
+
+}
+interface PropsFunc {
+    onTaskCheckedStateChangedFunc:(challengeId:number, taskProgress:TaskProgressDTO)=>void;
+    onEditTask:(task:TaskDTO)=>void;
+}
+interface State {
+    popoverAnchorEl?: React.ReactInstance;
+    authorizePanel:boolean
 }
 
-class TaskTable extends React.Component<Props, any> {
+class TaskTable extends React.Component<Props & PropsFunc, State> {
     constructor(props) {
         super(props);
         this.state = {
-            tasksList: [],
-            authorized: this.props.no == 0,
-            authorizePanel: false,
-            busy: false
-
+            authorizePanel: false
         }
     }
-
 
     handleResize = (e) => {
         this.setState(this.state);
     }
 
-    componentDidMount = () => {
-        if (this.props.selectedChallengeDTO != null)
-            this.loadTasksFromServer(this.props.selectedChallengeDTO, this.props.currentDate);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        //console.log("component rec props");
-        if (this.props.selectedChallengeDTO == null || this.props.selectedChallengeDTO.id != nextProps.selectedChallengeDTO.id || this.props.currentDate != nextProps.currentDate) {
-            this.loadTasksFromServer(nextProps.selectedChallengeDTO, nextProps.currentDate);
-        }
-    }
-
-    loadTasksFromServer = (contract, date) => {
-        //TODO test if really needed
-        this.state.busy = true;
-
-        this.setState(this.state);
-        ajaxWrapper.loadTasksFromServer(contract.id, this.props.no, date,
-            (data)=> {
-                this.state.tasksList = data;
-                this.state.busy = false;
-                this.setState(this.state);
-            }
-        )
-    }
-
     onTaskCheckedStateChangedFunc = (taskDTO) => {
-
         var taskProgressDTO = {
             taskId: taskDTO.id,
             done: taskDTO.done,
             progressTime: this.props.currentDate.getTime()
         };
-        ajaxWrapper.updateTaskProgress(taskProgressDTO,
-            (data)=> {
-                this.loadTasksFromServer(this.props.selectedChallengeDTO, this.props.currentDate);
-            }
-        );
-
-        this.setState(this.state);
-
+        this.props.onTaskCheckedStateChangedFunc(this.props.selectedChallengeDTO.id, taskProgressDTO);
     }
 
-    onTaskSuccessfullyUpdatedFunc = (newTask) => {
-        var found = false;
-        $.each(this.state.tasksList, (k, v) => {
-            if (v.id == newTask.id) {
-                this.state.tasksList[k] = newTask;
-                found = true;
-            }
-        });
-        if (!found) {
-            this.state.tasksList.push(newTask);
-        }
-        this.setState(this.state);
-
-    }
-    authPopover:SecondUserAuthorizePopover;
 
 
-    showAuthorizePanelFunc = (anchor, isInputChecked) => {
-        if (!this.state.authorized) {
+    showAuthorizePanelFuncFromHeader = (anchor) => {
+        if (this.props.user.jwtToken==null) {
             this.state.authorizePanel = true;
         }
         if (this.state.authorizePanel) {
-            this.authPopover.setState({
+
+            this.state.popoverAnchorEl=anchor;
+           /* this.authPopover.setState({
                 anchorEl: anchor,
                 open: true
-            });
+            });*/
+            this.setState(this.state);
+            return true;
+        }
+        return false;
+    }
+    showAuthorizePanelFunc = (anchor, isInputChecked) => {
+        if (this.props.user.jwtToken==null) {
+            this.state.authorizePanel = true;
+        }
+        if (this.state.authorizePanel) {
+            this.state.popoverAnchorEl=anchor;
+            this.setState(this.state);
+         /*   this.authPopover.setState({
+                anchorEl: anchor,
+                open: true
+            });*/
             return true;
         }
         return false;
@@ -129,43 +113,44 @@ class TaskTable extends React.Component<Props, any> {
 
     render() {
         var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 400) + "px";
+        var other = {minHeight: height, height: height, overflowY: "auto", overflowX: "none"};
+
+        //TODO delay wyszarzenie jesli call nie wrocil
+        if (this.props.busy) {
+            Object.assign(other, {opacity: "0.4"});
+        }
+
         return (
             <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
                 <TaskTableHeader no={this.props.no}
-                                 userLabel={this.props.userDTO.label}
-                                 userId={this.props.userDTO.id}
-                                 tasksList={this.state.tasksList}
-                                 onTaskSuccessfullyUpdatedFunc={this.onTaskSuccessfullyUpdatedFunc}
-                                 challengeId={this.props.selectedChallengeDTO != null ? this.props.selectedChallengeDTO.id : -1}
-                />
+                                 user={this.props.user}
 
+                                 tasksList={this.props.tasksList }
+                                 challengeId={this.props.selectedChallengeDTO != null ? this.props.selectedChallengeDTO.id : -1}
+
+                                 onOpenDialogForLoginSecondUser={(eventTarget:EventTarget)=>this.showAuthorizePanelFuncFromHeader(eventTarget)}
+                />
                 <Paper style={{padding: '10px', display: "inline-block"}}>
-                    <div style={{minHeight: height, height: height, overflowY: "auto", overflowX: "none"}}>
+                    <div style={other}>
                         <Table selectable={false}
                                fixedHeader={true}
-
-
                         >
-                            <TableBody displayRowCheckbox={false}
-
-
-                            >
-                                { !this.state.busy && this.state.tasksList.map(task =>
+                            <TableBody displayRowCheckbox={false}>
+                                { this.props.tasksList.map(task =>
                                     <TableRow key={task.id}>
                                         <TableRowColumn style={styles.icon}>
                                             <DifficultyIconButton
                                                 no={this.props.no}
-                                                taskDTO={task}
-                                                onTaskSuccessfullyUpdatedFunc={this.onTaskSuccessfullyUpdatedFunc}
+                                                task={task}
+                                                onEditTask={this.props.onEditTask}
                                             />
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.label}>
                                             <TaskLabel
                                                 no={this.props.no}
                                                 taskDTO={task}
-                                                userId={this.props.userDTO.id}
-                                                userLabel={this.props.userDTO.label}
-                                                authorized={this.state.authorized}/>
+                                                user={this.props.user}
+                                            />
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.taskType}>
                                             {task.taskType}
@@ -176,54 +161,62 @@ class TaskTable extends React.Component<Props, any> {
                                                 taskDTO={task}
                                                 showAuthorizePanelFunc={this.showAuthorizePanelFunc}
                                                 onTaskCheckedStateChangedFunc={this.onTaskCheckedStateChangedFunc}
-                                                authorized={this.state.authorized}
+                                                authorized={this.props.user.jwtToken!=null}
                                             />
                                         </TableRowColumn>
                                     </TableRow>
                                 )}
-
-                                {this.state.busy && <TableRow>Loading</TableRow>}
-
-                            </TableBody>
+                           </TableBody>
                         </Table>
                     </div>
                 </Paper>
-                <SecondUserAuthorizePopover ref={(c) => { this.authPopover = c } } userName={this.props.userDTO.label}/>
+
+                <SecondUserAuthorizePopover
+                    user={this.props.user}
+                    anchorEl={this.state.popoverAnchorEl}
+                    handleRequestClose={()=>{this.state.popoverAnchorEl=null; this.setState(this.state);}}/>
             </div>
         );
     }
 }
 
 
-const mapStateToProps = (state, ownprops) => {
-
-    //console.log(state.users);
-    var selectedChallengeDTO = state.visibleChallengesDTO.visibleChallenges.filter(ch=>ch.id == state.visibleChallengesDTO.selectedChallengeId).pop();
-    var primaryUserId = state.users.filter(u=> {
-        return u.primary == true;
-    }).map(u=>u.userId).pop();
-
-
-    var u1 = {
-        id: selectedChallengeDTO.firstUserId,
-        label: selectedChallengeDTO.firstUserLabel,
-        authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.firstUserId && u.jwtToken != null)[0]
-    }
-    var u2 = {
-        id: selectedChallengeDTO.secondUserId,
-        label: selectedChallengeDTO.secondUserLabel,
-        authorized: state.users.filter(u=>u.userId == selectedChallengeDTO.secondUserId && u.jwtToken != null)[0]
-    }
+const mapStateToProps = (state:ReduxState, ownprops:any):any => {
+    var selectedChallengeDTO = state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop();
+    var key:string = createTaskDTOListKey(selectedChallengeDTO.id, state.currentSelection.day);
+    var currentTaskListDTO:TaskDTOListForDay=state.tasks[key];
+    var tasksList;
+    var busy = false;
+    if (currentTaskListDTO != null) {
+        tasksList = currentTaskListDTO.taskList.filter((t:TaskDTO)=>t.userId == ownprops.user.userId);
+        busy = currentTaskListDTO.webState == WebState.FETCHING_VISIBLE;
+        if (busy) {
+            busy=tasksList.filter((t:TaskDTO)=>currentTaskListDTO.invalidTasksIds.contains(t.id)).length>0;
+        }
+    } else tasksList = [];
     return {
-        userDTO: ownprops.no == 0 && u1.id == primaryUserId ? u1 : u2,
+        user: ownprops.user,
         selectedChallengeDTO: selectedChallengeDTO,
-        currentDate: state.mainReducer.day
-        // taskList: state.tasks.filter( state.visibleChallengesDTO.selectedChallengeId + "-" + state.mainReducer.day.toISOString().slice(0, 10)])
+        currentDate: state.currentSelection.day,
+        tasksList: tasksList,
+        busy: busy
+    }
+}
+
+const mapDispatchToProps = (dispatch):PropsFunc => {
+
+    return {
+        onTaskCheckedStateChangedFunc: (challengeId:number, taskProgress:TaskProgressDTO)=> {
+            dispatch(markTaskDoneOrUndone(challengeId, taskProgress));
+        },
+        onEditTask: (task:TaskDTO) => {
+            dispatch(OPEN_EDIT_TASK.new(task))
+        }
     }
 }
 
 
-const Ext = connect(mapStateToProps)(ResizeAware(TaskTable))
+const Ext = connect(mapStateToProps, mapDispatchToProps)(ResizeAware(TaskTable))
 
 export default Ext;
 

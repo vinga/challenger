@@ -1,11 +1,23 @@
-import React, {Component} from "react";
+import * as React from "react";
 import IconButton from "material-ui/IconButton";
 import ChallengeMenuNaviBar from "./ChallengeMenuNaviBar.tsx";
 import {Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle} from "material-ui/Toolbar";
 import FontIcon from "material-ui/FontIcon";
+import {ReduxState} from "../redux/ReduxState";
+import {AccountDTO} from "../logic/domain/AccountDTO";
+import {LOGOUT} from "../redux/actions/actions";
+import { connect } from 'react-redux'
 
 
-export default class Header extends React.Component {
+
+interface Props {
+    logged: boolean;
+}
+
+interface PropsFunc {
+    onLogout: ()=>void;
+}
+class Header extends React.Component<Props & PropsFunc, void> {
 
     render() {
         return (
@@ -32,8 +44,7 @@ export default class Header extends React.Component {
 
                     {this.props.logged &&
                     <ToolbarGroup>
-                        <ChallengeMenuNaviBar style={{color: 'white'}}
-                                              className="right"/>
+                        <ChallengeMenuNaviBar />
                         <ToolbarSeparator />
                         <div >
                             {
@@ -51,3 +62,22 @@ export default class Header extends React.Component {
         );
     }
 }
+const mapStateToProps = (state:ReduxState) => {
+    var logged=state.users.filter(u=>u.primary==true).map((u:AccountDTO)=>{
+        return u.jwtToken != null;
+    }).pop();
+    return {
+        logged: logged,
+    }
+}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onLogout: () => {
+            dispatch(LOGOUT.new({}))
+        }
+    }
+}
+
+const Ext = connect(mapStateToProps, mapDispatchToProps)(Header)
+
+export default Ext;

@@ -1,17 +1,29 @@
-import React, {Component} from "react";
+import * as React from "react";
 import RaisedButton from "material-ui/RaisedButton";
 import TextFieldExt from "./common-components/TextFieldExt.tsx";
 import LinearProgress from "material-ui/LinearProgress";
-import {loginUserAction} from "../redux/actions/users";
+import {loginUserAction} from "../redux/actions/userActions";
 
-class LoginPanel extends React.Component {
+
+interface Props {
+    loginFailed: boolean,
+    inProgress: boolean,
+    errorDescription : string
+}
+interface PropsFunc {
+    onLoginFunc: (login: string, pass: string)=>void;
+}
+
+class LoginPanel extends React.Component<Props & PropsFunc, void> {
+    private loginField:TextFieldExt;
+    private passwordField:TextFieldExt;
     constructor(props) {
         super(props);
     }
 
     onLogin = () => {
-        var login = this.refs.loginField.state.fieldValue;
-        var pass = this.refs.passwordField.state.fieldValue;
+        var login = this.loginField.state.fieldValue;
+        var pass = this.passwordField.state.fieldValue;
         this.props.onLoginFunc(login,pass);
     }
 
@@ -36,16 +48,16 @@ class LoginPanel extends React.Component {
                     <div className="row">
                         <div className="col s3 offset-s4">
                             <TextFieldExt
-                                style={{widht: '100%'}}
+                                style={{width: '100%'}}
                                 floatingLabelText="Login"
                                 fieldValue="kami"
-                                ref="loginField"/>
+                                ref={(c)=>{this.loginField=c}}/>
                             <br />
                             <TextFieldExt
                                 floatingLabelText="Password"
                                 fieldValue="kamipass"
                                 type="password"
-                                ref="passwordField"/>
+                                ref={(c)=>{this.passwordField=c}}/>
                         </div>
                     </div>
                     <div className="row">

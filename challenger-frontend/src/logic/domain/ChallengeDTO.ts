@@ -1,11 +1,15 @@
 
 
+
+import {UserDTO} from "./UserDTO";
 export interface ChallengeDTO {
     id: number,
     label: string,
     challengeStatus: string;
-    firstUserId: number;
+    creatorId: number;
     myId: number;
+    userLabels: Array<UserDTO>;
+
 
 }
 

@@ -1,4 +1,5 @@
 
+import {WebState} from "./Common";
 export interface TaskDTO {
     id: number,
     label: string,
@@ -7,9 +8,27 @@ export interface TaskDTO {
     icon: string,
     difficulty: number,
     taskStatus: string,
-    done: boolean
+    done: boolean,
+    userId:number;
+    createdByUserId:number;
+    deleted?: boolean
 }
-export interface TaskDTOList extends Array<TaskDTO>{}
+
+
+export interface TaskDTOListForDay {
+    day: Date;
+    taskList: Array<TaskDTO>,
+    lastUpdated: Date;
+    challengeId: number;
+    webState: WebState;
+    invalidTasksIds: Array<number>
+
+
+
+}
+export function createTaskDTOListKey(challengeId: number, day: Date):string {
+   return  "" + challengeId + "-" + day.toISOString().slice(0, 10)
+}
 
 
 export const TaskStatus = {

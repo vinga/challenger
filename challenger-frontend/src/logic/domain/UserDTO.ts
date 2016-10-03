@@ -1,5 +1,9 @@
 
 export interface UserDTO {
     id: number,
-    label: string
+    label: string,
+    login?: string
+
+
+
 }

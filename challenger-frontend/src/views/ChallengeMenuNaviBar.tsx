@@ -4,21 +4,27 @@ import MenuItem from "material-ui/MenuItem";
 import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import Divider from "material-ui/Divider";
-import {changeChallengeAction, incrementDayAction} from "../redux/actions/actions.ts";
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 import { connect } from 'react-redux'
 import {ChallengeStatus, VisibleChallengesDTO, ChallengeDTO} from "../logic/domain/ChallengeDTO";
 import IconMenuProps = __MaterialUI.Menus.IconMenuProps;
+import {changeChallengeAction} from "../redux/actions/challengeActions";
+import {incrementDayAction} from "../redux/actions/dayActions";
+import {ReduxState} from "../redux/ReduxState";
 
 interface Props {
     visibleChallengesDTO: VisibleChallengesDTO,
     day: Date,
-    onIncrementDayFunc: (amount: number)=> void;
-    onChangeChallenge: (challengeId: number)=>void;
-    style: IconMenuProps;
+
+
 }
 
-class ChallengeMenuNaviBar extends React.Component<Props,void> {
+interface PropsFunc {
+    onIncrementDayFunc: (amount: number)=> void;
+    onChangeChallenge: (challengeId: number)=>void;
+
+}
+class ChallengeMenuNaviBar extends React.Component<Props & PropsFunc & {  style: IconMenuProps },void> {
     constructor(props) {
         super(props);
     }
@@ -31,7 +37,7 @@ class ChallengeMenuNaviBar extends React.Component<Props,void> {
                 iconText = null;
                 break;
             case ChallengeStatus.WAITING_FOR_ACCEPTANCE:
-                if (challengeDTO.firstUserId == challengeDTO.myId)
+                if (challengeDTO.creatorId == challengeDTO.myId)
                     iconText = "fa-hourglass";
                 else
                     iconText = "fa-question";
@@ -51,7 +57,7 @@ class ChallengeMenuNaviBar extends React.Component<Props,void> {
     }
 
 
-    calculateTitle(challengeId) {
+    calculateTitle(challengeId:number) {
        var rres =this.props.visibleChallengesDTO.visibleChallenges.find(ch=>ch.id==challengeId);
        return rres!=undefined? rres.label: "<not set>";
     }
@@ -105,18 +111,18 @@ class ChallengeMenuNaviBar extends React.Component<Props,void> {
 
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state:ReduxState):Props => {
     return {
-        visibleChallengesDTO: state.visibleChallengesDTO,
-        day: state.mainReducer.day
+        visibleChallengesDTO: state.challenges,
+        day: state.currentSelection.day
     }
 }
-const mapDispatchToProps = (dispatch) => {
+const mapDispatchToProps = (dispatch):PropsFunc => {
     return {
-        onChangeChallenge: (challengeId) => {
+        onChangeChallenge: (challengeId:number) => {
             dispatch(changeChallengeAction(challengeId))
         },
-        onIncrementDayFunc: (amount) => {
+        onIncrementDayFunc: (amount:number) => {
             dispatch(incrementDayAction(amount))
         }
     }

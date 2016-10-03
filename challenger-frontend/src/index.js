@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import App from './App.tsx';
 import injectTapEventPlugin from "react-tap-event-plugin";
 import Footer from './views/Footer'
 

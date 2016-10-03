@@ -1,7 +1,13 @@
 import * as React from "react";
 import Chip from "material-ui/Chip";
 import colors from "../common-components/Colors.ts";
-import {TaskStatus} from "../../logic/domain/TaskDTO";
+import {TaskStatus, TaskDTO} from "../../logic/domain/TaskDTO";
+import {AccountDTO} from "../../logic/domain/AccountDTO";
+import {ReduxState} from "../../redux/ReduxState";
+import {connect} from "react-redux";
+import TextInputDialog from "../common-components/TextInputDialog";
+import {updateTaskStatus} from "../../redux/actions/taskActions";
+import {TaskApprovalDTO} from "../../logic/domain/TaskApprovalDTO";
 
 const styles = {
     wrapper: {
@@ -15,25 +21,79 @@ const styles = {
 
 }
 
-interface TaskProps {
-    taskDTO: any,
-    authorized: boolean,
-    userId: number,
-    no: number,
-    userLabel: string
+interface PropsFunc {
+    onTaskAccept:(task:TaskDTO)=>void;
+    onTaskReject:(task:TaskDTO, taskRejectReason:string)=>void;
 }
 
-export default class TaskLabel extends React.Component<TaskProps,void> {
+
+interface TaskProps {
+    taskDTO:TaskDTO,
+    user:AccountDTO,
+    no:number,
+
+
+}
+interface State {
+    showTaskRejectPopup:boolean
+}
+
+export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
+    constructor(props) {
+        super(props);
+        this.state = {
+            showTaskRejectPopup: false
+        }
+    }
 
     render() {
-        if (this.props.taskDTO.taskStatus != TaskStatus.waiting_for_acceptance) {
+        if (this.props.taskDTO.taskStatus == TaskStatus.accepted) {
             return <div>{this.props.taskDTO.label}</div>
-        } else if (!this.props.authorized && this.props.taskDTO.createdByUserId!=this.props.userId) {
+        } else if (this.props.taskDTO.taskStatus == TaskStatus.rejected) {
+            console.log("ISTHIS " + this.props.taskDTO.label + " " + this.props.taskDTO.createdByUserId + " " + this.props.user.userId);
+            if (this.props.taskDTO.createdByUserId == this.props.user.userId) { //  kto moze dawac do reworku?
 
-            var chipWaiting= {
-                marginRight: '5px',
+                return (
+                    <div style={styles.wrapper}>
+                        <div className="taskLabel"
+                             style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
+                        <Chip style={styles.chip} className="clickableChip"
+                              onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
+                            <i className="fa fa-share"></i> Rework
+                        </Chip>
+
+
+                        <Chip style={styles.chip} className="clickableChip"
+                              onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
+                            <i className="fa fa-trash"></i> Delete
+                        </Chip></div>);
+            }
+            else {
+                var chipWaiting = {
+                    marginRight: '5px',
                     cursor: 'pointer',
                     backgroundColor: 'white',
+                    color: 'red!important'
+                }
+                return (<div style={styles.wrapper}>
+                    <div className="taskLabel" style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
+                    <Chip style={chipWaiting} className="clickableChip">
+                        <div style={{lineHeight:'12px',fontSize: '12px',
+                    color:colors.userColorsLighten[this.props.no]}}>
+                            Waiting for {this.props.taskDTO.createdByUserId}&apos;s<br/> rework or deletion <i
+                            className="fa fa-hourglass-o"></i>
+                        </div>
+                    </Chip>
+                </div>);
+            }
+
+            //  return <div style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
+        } else if (this.props.user.jwtToken == null && this.props.taskDTO.createdByUserId != this.props.user.userId) {
+
+            var chipWaiting = {
+                marginRight: '5px',
+                cursor: 'pointer',
+                backgroundColor: 'white',
                 color: 'red!important'
             }
             return (<div style={styles.wrapper}>
@@ -41,9 +101,10 @@ export default class TaskLabel extends React.Component<TaskProps,void> {
                 <Chip style={chipWaiting} className="clickableChip">
                     <div style={{lineHeight:'12px',fontSize: '12px',
                     color:colors.userColorsLighten[this.props.no]}}>
-                        Waiting for {this.props.userLabel}&apos;s<br/> acceptance  <i className="fa fa-hourglass-o"></i></div>
+                        Waiting for {this.props.user.label}&apos;s<br/> acceptance <i className="fa fa-hourglass-o"></i>
+                    </div>
                 </Chip>
-               </div>);
+            </div>);
 
 
         } else {
@@ -52,13 +113,62 @@ export default class TaskLabel extends React.Component<TaskProps,void> {
 
                 <div className="taskLabel">{this.props.taskDTO.label}</div>
 
-                <Chip style={styles.chip} className="clickableChip">
+                <Chip style={styles.chip} className="clickableChip"
+                      onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
                     <i className="fa fa-check"></i> Accept
                 </Chip>
 
-                <Chip style={styles.chip} className="clickableChip">
+
+                <Chip style={styles.chip} className="clickableChip"
+                      onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
                     <i className="fa fa-close"></i> Reject
-                </Chip></div>);
+                </Chip>
+
+                { this.state.showTaskRejectPopup &&
+                <TextInputDialog
+                    floatingLabelText="Reject reason"
+                    closeYes={(str)=>this.props.onTaskReject(this.props.taskDTO, str)}
+                    closeDialog={()=>{this.state.showTaskRejectPopup=false; this.setState(this.state);}}
+                />
+                }
+
+            </div>);
+        }
+    }
+
+
+}
+
+
+const mapStateToProps = (state:ReduxState, ownprops:any):any => {
+    return {}
+}
+
+const mapDispatchToProps = (dispatch):any => {
+
+    return {
+        onTaskAccept: (task:TaskDTO)=> {
+            //dispatch(markTaskDoneOrUndone(challengeId, taskProgress));
+            var taskApproval:TaskApprovalDTO = {
+                userId: -1,
+                taskId: task.id,
+                taskStatus: TaskStatus.accepted
+            }
+            dispatch(updateTaskStatus(taskApproval));
+        },
+        onTaskReject: (task:TaskDTO, rejectionReason:string) => {
+            var taskApproval:TaskApprovalDTO = {
+                userId: -1,
+                taskId: task.id,
+                taskStatus: TaskStatus.rejected,
+                rejectionReason: rejectionReason
+            }
+            dispatch(updateTaskStatus(taskApproval));
         }
     }
 }
+
+
+const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskLabel)
+
+export default Ext;
