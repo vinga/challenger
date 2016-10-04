@@ -1,6 +1,6 @@
 import * as React from "react";
 import Chip from "material-ui/Chip";
-import colors from "../common-components/Colors.ts";
+import colors, {getColorSuperlightenForUser} from "../common-components/Colors.ts";
 import {TaskStatus, TaskDTO} from "../../logic/domain/TaskDTO";
 import {AccountDTO} from "../../logic/domain/AccountDTO";
 import {ReduxState} from "../../redux/ReduxState";
@@ -8,6 +8,7 @@ import {connect} from "react-redux";
 import TextInputDialog from "../common-components/TextInputDialog";
 import {updateTaskStatus} from "../../redux/actions/taskActions";
 import {TaskApprovalDTO} from "../../logic/domain/TaskApprovalDTO";
+import {UserDTO} from "../../logic/domain/UserDTO";
 
 const styles = {
     wrapper: {
@@ -31,7 +32,8 @@ interface TaskProps {
     taskDTO:TaskDTO,
     user:AccountDTO,
     no:number,
-    isTaskCreatorLogged?:Boolean
+    isTaskCreatorLogged?:Boolean,
+    taskCreatorOrdinal:Number
 
 
 }
@@ -53,17 +55,17 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
         } else if (this.props.taskDTO.taskStatus == TaskStatus.rejected) {
             console.log("ISTHIS " + this.props.taskDTO.label + " " + this.props.taskDTO.createdByUserId + " " + this.props.user.userId);
             if (this.props.isTaskCreatorLogged) {//this.props.taskDTO.createdByUserId == this.props.user.userId && this.props.user.jwtToken != null) { //  kto moze dawac do reworku?
-
+            var style=Object.assign({},styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.taskCreatorOrdinal)});
                 return (
                     <div style={styles.wrapper}>
                         <div className="taskLabel"
                              style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
-                        <Chip style={styles.chip} className="clickableChip"
+                        <Chip style={style} className="clickableChip"
                               onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
                             <i className="fa fa-share"></i> Rework
                         </Chip>
 
-                        <Chip style={styles.chip} className="clickableChip"
+                        <Chip style={style} className="clickableChip"
                               onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
                             <i className="fa fa-trash"></i> Delete
                         </Chip></div>);
@@ -108,18 +110,19 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
 
 
         } else {
+            var style=Object.assign({},styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.no)});
 
             return (<div style={styles.wrapper}>
 
                 <div className="taskLabel">{this.props.taskDTO.label}</div>
 
-                <Chip style={styles.chip} className="clickableChip"
+                <Chip style={style} className="clickableChip"
                       onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
                     <i className="fa fa-check"></i> Accept
                 </Chip>
 
 
-                <Chip style={styles.chip} className="clickableChip"
+                <Chip style={style} className="clickableChip"
                       onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
                     <i className="fa fa-close"></i> Reject
                 </Chip>
@@ -145,7 +148,12 @@ const mapStateToProps = (state:ReduxState, ownprops:any):any => {
     var task: TaskDTO=ownprops.taskDTO;
     var isTaskCreatorLogged:Boolean=state.users.filter(u=>u.userId==task.createdByUserId && u.jwtToken!=null).pop()!=null;
 
-    return {isTaskCreatorLogged: isTaskCreatorLogged}
+
+    var us:Array<UserDTO>=state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels;
+    var taskCreatorOrdinal:Number = us.findIndex(u=>u.id==task.createdByUserId);
+    //state.challenges.visibleChallenges.filter(ch=>ch.id==state.challenges.selectedChallengeId).pop();
+
+    return {isTaskCreatorLogged: isTaskCreatorLogged, taskCreatorOrdinal: taskCreatorOrdinal}
 }
 
 const mapDispatchToProps = (dispatch):any => {
