@@ -1,11 +1,7 @@
 import * as React from "react";
 import IconButton from "material-ui/IconButton";
 import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "../Constants";
-import ChallengeEditDialogWindow from "../taskEditWindow/ChallengeEditDialogWindow.tsx";
 import {TaskDTO} from "../../logic/domain/TaskDTO";
-import {OPEN_EDIT_TASK} from "../../redux/actions/actions";
-import {ReduxState} from "../../redux/ReduxState";
-import { connect } from 'react-redux'
 
 
 interface Props {
@@ -49,7 +45,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
                            style={{width: '50px', height: '50px', padding: '0px', marginTop: '4px'}}
                            onClick={this.onEditTask}
         >
-            <div className="" style={{}}>
+            <div>
                 {background}{icon}
             </div>
         </IconButton>//;
