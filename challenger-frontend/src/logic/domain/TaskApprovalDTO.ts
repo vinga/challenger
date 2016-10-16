@@ -5,4 +5,5 @@ export interface TaskApprovalDTO {
     taskStatus: string,
     rejectionReason?: string
 
+
 }

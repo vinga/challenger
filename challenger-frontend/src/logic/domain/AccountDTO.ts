@@ -6,5 +6,6 @@ export interface AccountDTO {
     errorDescription: string,
     inProgress: boolean,
     primary: boolean,
-    jwtToken?: string
+    jwtToken?: string,
+    tokenExpirationDate?: Date
 }

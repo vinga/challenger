@@ -13,7 +13,7 @@ import {UserDTO} from "../../logic/domain/UserDTO";
 const styles = {
     wrapper: {
         display: 'flex',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
     },
     chip: {
         marginRight: '5px',
@@ -54,21 +54,39 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
             return <div>{this.props.taskDTO.label}</div>
         } else if (this.props.taskDTO.taskStatus == TaskStatus.rejected) {
             console.log("ISTHIS " + this.props.taskDTO.label + " " + this.props.taskDTO.createdByUserId + " " + this.props.user.userId);
+
             if (this.props.isTaskCreatorLogged) {//this.props.taskDTO.createdByUserId == this.props.user.userId && this.props.user.jwtToken != null) { //  kto moze dawac do reworku?
-            var style=Object.assign({},styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.taskCreatorOrdinal)});
+                var style = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.taskCreatorOrdinal), flexBasis: 'min-content', minWidth: '40px'});
                 return (
                     <div style={styles.wrapper}>
-                        <div className="taskLabel"
-                             style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
-                        <Chip style={style} className="clickableChip"
-                              onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
-                            <i className="fa fa-share"></i> Rework
-                        </Chip>
+                        <div
+                            style={{ lineHeight:'15px', display:'flex', flexDirection: 'column', overflow: "hidden",
+  textOverflow: "ellipsis",minWidth: '50px',flexBasis:'min-content'}}>
+                            <div>{this.props.taskDTO.label}</div>
 
-                        <Chip style={style} className="clickableChip"
-                              onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
-                            <i className="fa fa-trash"></i> Delete
-                        </Chip></div>);
+                            <div style={{flexDirection: 'row', display:'flex'}}>
+                                <div style={{fontSize:'10px', overflow:'hidden',
+                            whiteSpace: "nowrap", textOverflow: "ellipsis"}}><b>K</b>: {this.props.taskDTO.taskApproval.rejectionReason}
+                                    to jest dlugi komentarz limitowany jak dlugoo blah blah blah blah blah blah
+                                </div>
+                                <a style={{lineHeight:'16px', marginRight:'5px', color:'#444'}} className="fa fa-comment"/></div>
+                        </div>
+                        <div style={{flexBasis:'fit-content',  display:'flex'}}>
+
+                            <Chip className="clickableChip" style={style}
+                                  labelStyle={{ fontSize:'12px'}}
+                                  onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
+                                <i className="fa fa-share"></i> Rework
+                            </Chip>
+
+                            <Chip className="clickableChip" style={style}
+                                  labelStyle={{ fontSize:'12px'}}
+                                  onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
+                                <i className="fa fa-trash"></i> Delete
+                            </Chip>
+                        </div>
+                    </div>);
+                <div></div>
             }
             else {
                 var chipWaiting = {
@@ -110,22 +128,35 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
 
 
         } else {
-            var style=Object.assign({},styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.no)});
+            var style = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.no)});
 
             return (<div style={styles.wrapper}>
 
-                <div className="taskLabel">{this.props.taskDTO.label}</div>
-
-                <Chip style={style} className="clickableChip"
-                      onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
-                    <i className="fa fa-check"></i> Accept
-                </Chip>
 
 
-                <Chip style={style} className="clickableChip"
-                      onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
-                    <i className="fa fa-close"></i> Reject
-                </Chip>
+                    <div  style={{lineHeight:'32px',minWidth:'50px',overflow:'hidden',
+                            whiteSpace: "nowrap", textOverflow: "ellipsis", marginRight:'5px'}}>{this.props.taskDTO.label}</div>
+
+
+
+
+
+                    <div style={{flexBasis:'fit-content',  display:'flex'}}>
+
+                        <Chip className="clickableChip" style={style}
+                              labelStyle={{ fontSize:'12px'}}
+                              onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
+                            <i className="fa fa-check"></i> Accept
+                        </Chip>
+
+                        <Chip className="clickableChip" style={style}
+                              labelStyle={{ fontSize:'12px'}}
+                              onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
+                            <i className="fa fa-close"></i> Reject
+                        </Chip>
+                    </div>
+
+
 
                 { this.state.showTaskRejectPopup &&
                 <TextInputDialog
@@ -145,12 +176,12 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
 
 const mapStateToProps = (state:ReduxState, ownprops:any):any => {
 
-    var task: TaskDTO=ownprops.taskDTO;
-    var isTaskCreatorLogged:Boolean=state.users.filter(u=>u.userId==task.createdByUserId && u.jwtToken!=null).pop()!=null;
+    var task:TaskDTO = ownprops.taskDTO;
+    var isTaskCreatorLogged:Boolean = state.users.filter(u=>u.userId == task.createdByUserId && u.jwtToken != null).pop() != null;
 
 
-    var us:Array<UserDTO>=state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels;
-    var taskCreatorOrdinal:Number = us.findIndex(u=>u.id==task.createdByUserId);
+    var us:Array<UserDTO> = state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels;
+    var taskCreatorOrdinal:Number = us.findIndex(u=>u.id == task.createdByUserId);
     //state.challenges.visibleChallenges.filter(ch=>ch.id==state.challenges.selectedChallengeId).pop();
 
     return {isTaskCreatorLogged: isTaskCreatorLogged, taskCreatorOrdinal: taskCreatorOrdinal}

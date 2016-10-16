@@ -13,6 +13,7 @@ export default function tasks(state:Map<string,TaskDTOListForDay> = new Map<stri
         var newState:Map<string,TaskDTOListForDay> = Object.assign({}, state)
         var newAction:TaskDTOListForDay = Object.assign({}, action);
         newState[key] = Object.assign({}, action);
+        console.log(newAction);
         return newState;
     } else if (isAction(action, MARK_TASK_DONE_OPTIMISTIC)) {
         var key:string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));

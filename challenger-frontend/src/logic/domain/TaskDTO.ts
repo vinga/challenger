@@ -1,5 +1,6 @@
 
 import {WebState} from "./Common";
+import {TaskApprovalDTO} from "./TaskApprovalDTO";
 export interface TaskDTO {
     id: number,
     label: string,
@@ -10,8 +11,9 @@ export interface TaskDTO {
     taskStatus: string,
     done: boolean,
     userId:number;
-    createdByUserId:number;
-    deleted?: boolean
+    createdByUserId:number,
+    deleted?: boolean,
+    taskApproval?: TaskApprovalDTO;
 }
 
 
@@ -26,6 +28,10 @@ export interface TaskDTOListForDay {
 
 
 }
+
+
+
+
 export function createTaskDTOListKey(challengeId: number, day: Date):string {
    return  "" + challengeId + "-" + day.toISOString().slice(0, 10)
 }

@@ -49,6 +49,14 @@ class AjaxWrapper {
             },
         });
     }
+    renewToken(login: string, jwtToken: string) {
+        return $.ajax({
+            url: this.baseUrl + "/renewToken",
+            headers: {
+                "Authorization": "Bearer " + jwtToken
+            },
+        });
+    }
 
     loadVisibleChallenges(callbackData: (VisibleChallengesDTO)=>(void)) {
         $.ajax({

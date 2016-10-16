@@ -13,10 +13,10 @@ const colors={
 }
 export default colors;
 
-export const getColorLightenForUser = (userId:Number):String => {
+export const getColorLightenForUser = (userId:number):String => {
   return colors.userColorsLighten[userId % colors.userColorsLighten.length];
 }
 
-export const getColorSuperlightenForUser = (userId:Number):String => {
+export const getColorSuperlightenForUser = (userId:number):String => {
     return colors.userColorsSuperlighten[userId % colors.userColorsLighten.length];
 }
