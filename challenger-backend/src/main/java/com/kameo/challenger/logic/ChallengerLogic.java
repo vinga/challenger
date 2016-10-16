@@ -37,8 +37,16 @@ public class ChallengerLogic {
     @Inject
     private ConfirmationLinkLogic confirmationLinkLogic;
 
+    @Inject
+    private TaskDAO taskDao;
+
 
     public List<TaskODB> getTasks(long callerId, long challengeId, Date date) {
+       // System.out.println("Z kotliny");
+       // if (true)
+       // return taskDao.getTasks(callerId, challengeId,date);
+
+
         ChallengeParticipantODB callerPermission = anyDao
                 .getOnlyOne(ChallengeParticipantODB.class, cp -> cp.getChallenge().getId() == challengeId && cp
                         .getUser().getId() == callerId);
@@ -57,6 +65,10 @@ public class ChallengerLogic {
                 tp -> res.stream().filter(task -> task.getId() == tp.getTask().getId()).findAny().get()
                          .setDone(tp.isDone())
         );
+
+
+
+
 
         return res;
     }
@@ -89,6 +101,10 @@ public class ChallengerLogic {
                          .setDone(tp.isDone())
         );
 
+
+
+
+
         return res;
 
     }
@@ -114,7 +130,10 @@ public class ChallengerLogic {
     }
 
 
+
+
     public void createNewChallenge(long userId, ChallengeODB cb) {
+
 
         if (!cb.getParticipants().stream().anyMatch(cp -> cp.getUser().getId() == userId)) {
             ChallengeParticipantODB cp = new ChallengeParticipantODB();
@@ -414,6 +433,13 @@ public class ChallengerLogic {
             anyDao.getEm().merge(task);
         }
         return task;
+    }
+
+    public List<TaskApprovalODB> getTasksApprovalForRejectedTasks(List<TaskODB> tasks) {
+        List<Long> rejectedTaskIds = tasks.stream().filter(t -> t.getTaskStatus() == TaskStatus.rejected).map(t -> t.getId()).collect(Collectors.toList());
+        if(rejectedTaskIds.isEmpty())
+            return Lists.newArrayList();
+        return anyDao.streamAll(TaskApprovalODB.class).where(ta->rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected).collect(Collectors.toList());
     }
 
 

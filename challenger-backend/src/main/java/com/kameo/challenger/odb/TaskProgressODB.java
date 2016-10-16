@@ -27,4 +27,33 @@ public class TaskProgressODB implements IIdentity {
     @ManyToOne
     TaskODB task;
 
+    public TaskODB getTask() {
+        return task;
+    }
+
+    public void setTask(TaskODB task) {
+        this.task = task;
+    }
+
+    public Date getProgressTime() {
+        return progressTime;
+    }
+
+    public void setProgressTime(Date progressTime) {
+        this.progressTime = progressTime;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public void setDone(boolean done) {
+        this.done = done;
+    }
+
+
+    @Override
+    public boolean isNew() {
+        return getId()<0;
+    }
 }

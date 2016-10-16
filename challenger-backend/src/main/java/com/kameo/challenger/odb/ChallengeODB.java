@@ -15,7 +15,7 @@ import java.util.List;
 
 @Entity
 @NoArgsConstructor
-@ToString(of = IIdentity.id_column)
+@ToString(of = "id")
 public @Data class ChallengeODB implements IIdentity {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
@@ -51,4 +51,8 @@ public @Data class ChallengeODB implements IIdentity {
         return obj instanceof ChallengeODB && ((ChallengeODB) obj).getId()==this.getId();
     }
 
+    @Override
+    public boolean isNew() {
+        return getId()<0;
+    }
 }

@@ -64,7 +64,7 @@ public class EntityHelper {
 		CriteriaQuery<F> criteria = cb.createQuery(sa.getBindableJavaType());
 		Root<E> root = criteria.from(sa.getDeclaringType().getJavaType());
 		criteria.select(root.get(sa));
-		criteria.where(cb.equal(root.get(IIdentity.id_column), id));
+		criteria.where(cb.equal(root.get(AnyDAO.id_column), id));
 		TypedQuery<F> query = em.createQuery(criteria);
 		EntityHelper.applyHints(query, hints);
 		query.setMaxResults(1);
@@ -227,7 +227,7 @@ public class EntityHelper {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
 		Root<E> root = criteria.from(clz);
-		Expression<Long> count = cb.count(root.get(IIdentity.id_column));
+		Expression<Long> count = cb.count(root.get(AnyDAO.id_column));
 		criteria.select(count);
 		criteria.where(rest.apply(cb, criteria, root));
 

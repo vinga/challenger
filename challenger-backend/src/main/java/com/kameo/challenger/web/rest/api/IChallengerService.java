@@ -36,6 +36,15 @@ public interface IChallengerService {
         public long taskId;
         TaskStatus taskStatus;
         String rejectionReason;
+
+        public static IChallengerService.TaskApprovalDTO fromODBtoDTO(TaskApprovalODB odb) {
+            TaskApprovalDTO dto = new TaskApprovalDTO();
+            dto.setTaskId(odb.getTask().getId());
+            dto.setRejectionReason(odb.getRejectionReason());
+            dto.setTaskStatus(odb.getTaskStatus());
+            dto.setUserId(odb.getUser().getId());
+            return dto;
+        }
     }
 
     @Data
@@ -52,6 +61,7 @@ public interface IChallengerService {
         TaskStatus taskStatus;
         boolean done;
         Boolean deleted;
+        TaskApprovalDTO taskApproval;
 
         public static TaskDTO fromOdb(TaskODB odb) {
             TaskDTO ca = new TaskDTO();

@@ -27,6 +27,14 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
                          FilterChain chain) throws IOException, ServletException {
+
+
+/*        if (true) {
+            chain.doFilter(req,res);
+            return;
+        }*/
+
+
         HttpServletRequest httpReq = (HttpServletRequest) req;
         HttpServletResponse httpRes = (HttpServletResponse) res;
         if (isResourceANewTokenGenerator(httpReq)) {

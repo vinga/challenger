@@ -28,6 +28,7 @@ public class AnyDAO {
 	@Autowired
 	@PersistenceContext
 	public EntityManager em;
+	public static final String id_column="id";
 
 	public void initialize(Object o) {
 		EntityHelper.initialize(o);
@@ -56,11 +57,11 @@ public class AnyDAO {
 			return 0;
 		}
 		Class<E> clz = set.getDeclaringType().getJavaType();
-		CriteriaBuilder _ = getEm().getCriteriaBuilder();
-		CriteriaUpdate<E> update = _.createCriteriaUpdate(clz);
+		CriteriaBuilder cb = getEm().getCriteriaBuilder();
+		CriteriaUpdate<E> update = cb.createCriteriaUpdate(clz);
 		Root<E> root = update.from(clz);
 		update.set(set, newValue);
-		update.where(_.equal(root.get(IIdentity.id_column), obj.getId()));
+		update.where(cb.equal(root.get(id_column), obj.getId()));
 		return getEm().createQuery(update).executeUpdate();
 	}
 
@@ -245,7 +246,7 @@ public class AnyDAO {
 		CriteriaBuilder criteriaBuilder = getEm().getCriteriaBuilder();
 		CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
 		Root<E> root = criteriaQuery.from(clz);
-		criteriaQuery.select((Selection) root.get(IIdentity.id_column));
+		criteriaQuery.select((Selection) root.get(id_column));
 		if (restrictions != null)
 			restrictions.apply(criteriaBuilder, criteriaQuery, root);
 		TypedQuery<Long> query = getEm().createQuery(criteriaQuery);
@@ -256,8 +257,8 @@ public class AnyDAO {
 	public <E, F> List<E> getAll(Class<E> clz, final SingularAttribute<E, F> attr, final F obj, Hints... hints) {
 		return EntityHelper.get(getEm(), clz, new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
-				return _.equal(root.get(attr), obj);
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
+				return cb.equal(root.get(attr), obj);
 			}
 		}, hints);
 	}
@@ -266,15 +267,15 @@ public class AnyDAO {
 	public <E,F> List<E> getByField(F obj, SingularAttribute<E, F> sa) {
 		return EntityHelper.get(getEm(), sa.getDeclaringType().getJavaType(), new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
-				return _.equal(root.get(sa), obj);
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
+				return cb.equal(root.get(sa), obj);
 			}
 		});
 	}
 	public <E,F> List<E> getByFieldPath(F obj, SingularAttribute<E, ?> sa, SingularAttribute<?, ?> ... sas) {
 		return EntityHelper.get(getEm(), sa.getDeclaringType().getJavaType(), new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
 				
 				Path path=root;
 				path=path.get(sa);
@@ -282,7 +283,7 @@ public class AnyDAO {
 					path=path.get(s);
 				}
 				
-				return _.equal(path, obj);
+				return cb.equal(path, obj);
 			}
 		});
 	}
@@ -300,11 +301,11 @@ public class AnyDAO {
 		public List<E> getAll(Hints... hints) {
 			return EntityHelper.get(getEm(), ef.get(0).getDeclaringType().getJavaType(), new IRestrictions<E>() {
 				@Override
-				public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
-					Predicates p = new Predicates(_);
+				public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
+					Predicates p = new Predicates(cb);
 
 					for (int i = 0; i < ef.size(); i++) {
-						p.add(_.equal(root.get(ef.get(i)), object.get(i)));
+						p.add(cb.equal(root.get(ef.get(i)), object.get(i)));
 
 					}
 					return p.getAsOne();
@@ -323,8 +324,8 @@ public class AnyDAO {
 	public <E, F> List<E> getAll(final SingularAttribute<E, F> attr, final F obj, Hints... hints) {
 		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
-				return _.equal(root.get(attr), obj);
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
+				return cb.equal(root.get(attr), obj);
 			}
 		}, hints);
 	}
@@ -332,7 +333,7 @@ public class AnyDAO {
 	public <E, F> List<E> getAll(final SingularAttribute<E, F> attr, final List<F> objList, Hints... hints) {
 		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
 				return root.get(attr).in(objList);
 			}
 		}, hints);
@@ -341,7 +342,7 @@ public class AnyDAO {
 	public <E, F> List<E> getAll(final SingularAttribute<E, F> attr, final Collection<F> obj, Hints... hints) {
 		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
 				return root.get(attr).in(obj);
 			}
 		}, hints);
@@ -350,7 +351,7 @@ public class AnyDAO {
 	public <E, F> List<E> getAll(Class<E> clz, final SingularAttribute<E, F> attr, final Collection<F> obj, Hints... hints) {
 		return EntityHelper.get(getEm(), clz, new IRestrictions<E>() {
 			@Override
-			public Predicate apply(CriteriaBuilder _, CriteriaQuery<?> cq, Root<E> root) {
+			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
 				return root.get(attr).in(obj);
 			}
 		}, hints);
@@ -422,16 +423,16 @@ public class AnyDAO {
 			Hints... hints) {
 		if (loader.objsLoaded.isEmpty())
 			return;
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<F> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<F> from = q.from(jt);
 		Path<E> path = from.get(se);
-		q.multiselect(path.get(IIdentity.id_column), from);
+		q.multiselect(path.get(id_column), from);
 
-		Predicates p = new Predicates(_);
-		p.add(path.get(IIdentity.id_column).in(loader.objsLoaded.keySet()));
+		Predicates p = new Predicates(cb);
+		p.add(path.get(id_column).in(loader.objsLoaded.keySet()));
 		p.addIfPresent(loader.restrToLoad, q, from);
 		p.addIfPresent(loader.restrLoaded, q, path);
 		q.where(p.getAsOne());
@@ -465,16 +466,16 @@ public class AnyDAO {
 		if (loader.objsLoaded.isEmpty())
 			return;
 		Set<Long> idSet = EntityHelper.toIdSet(loader.objsLoaded);
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<F> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<F> from = q.from(jt);
 		Path<E> path = from.get(se);
-		q.multiselect(path.get(IIdentity.id_column), from);
+		q.multiselect(path.get(id_column), from);
 
-		Predicates p = new Predicates(_);
-		p.add(path.get(IIdentity.id_column).in(idSet));
+		Predicates p = new Predicates(cb);
+		p.add(path.get(id_column).in(idSet));
 		p.addIfPresent(loader.restrToLoad, q, from);
 		p.addIfPresent(loader.restrLoaded, q, path);
 		q.where(p.getAsOne());
@@ -507,16 +508,16 @@ public class AnyDAO {
 			Hints... hints) {
 		if (loader.objsLoaded.isEmpty())
 			return;
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<F> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<F> from = q.from(jt);
 		Path<E> path = from.get(se);
-		q.multiselect(path.get(IIdentity.id_column), from);
+		q.multiselect(path.get(id_column), from);
 
-		Predicates p = new Predicates(_);
-		p.add(path.get(IIdentity.id_column).in(loader.objsLoaded.keySet()));
+		Predicates p = new Predicates(cb);
+		p.add(path.get(id_column).in(loader.objsLoaded.keySet()));
 		p.addIfPresent(loader.restrToLoad, q, from);
 		p.addIfPresent(loader.restrLoaded, q, path);
 		q.where(p.getAsOne());
@@ -572,16 +573,16 @@ public class AnyDAO {
 	public <E extends IIdentity, F extends IIdentity> void loadFor(MapIdentityLoader<E, F> loader, SingularAttribute<E, F> se, Hints... hints) {
 		if (loader.objsLoaded.isEmpty())
 			return;
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<E> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<E> from = q.from(jt);
 		Path<F> path = from.get(se);
-		q.multiselect(from.get(IIdentity.id_column), path);
+		q.multiselect(from.get(id_column), path);
 
-		Predicates p = new Predicates(_);
-		p.add(from.get(IIdentity.id_column).in(loader.objsLoaded.keySet()));
+		Predicates p = new Predicates(cb);
+		p.add(from.get(id_column).in(loader.objsLoaded.keySet()));
 		p.addIfPresent(loader.restrLoaded, q, from);
 		p.addIfPresent(loader.restrToLoad, q, path);
 		q.where(p.getAsOne());
@@ -684,15 +685,15 @@ public class AnyDAO {
 	public <E extends IIdentity, F extends IIdentity> void loadSet(Map<Long, E> objs, SetAttribute<E, F> res, SingularAttribute<F, E> se) {
 		if (objs.isEmpty())
 			return;
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<F> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<F> from = q.from(jt);
 
-		q.multiselect(from.get(se).get(IIdentity.id_column), from);
+		q.multiselect(from.get(se).get(id_column), from);
 
-		q.where(from.get(se).get(IIdentity.id_column).in(objs.keySet()));
+		q.where(from.get(se).get(id_column).in(objs.keySet()));
 		String setterMethod = "set" + String.valueOf(res.getName().charAt(0)).toUpperCase() + res.getName().substring(1);
 		try {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, Set.class);
@@ -720,15 +721,15 @@ public class AnyDAO {
 		if (objs.isEmpty())
 			return;
 		Set<Long> idSet = EntityHelper.toIdSet(objs);
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<F> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<F> from = q.from(jt);
 
-		q.multiselect(from.get(se).get(IIdentity.id_column), from);
+		q.multiselect(from.get(se).get(id_column), from);
 
-		q.where(from.get(se).get(IIdentity.id_column).in(idSet));
+		q.where(from.get(se).get(id_column).in(idSet));
 		String setterMethod = "set" + String.valueOf(res.getName().charAt(0)).toUpperCase() + res.getName().substring(1);
 		try {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, jt);
@@ -756,15 +757,15 @@ public class AnyDAO {
 		if (objs.isEmpty())
 			return;
 
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<E> eClz = res.getDeclaringType().getJavaType();
 		Class<F> fClz = res.getElementType().getJavaType();
 
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<E> from = q.from(eClz);
 		ListJoin<E, F> join = from.join(res);
-		q.multiselect(from.get(IIdentity.id_column), join.get(IIdentity.id_column));
+		q.multiselect(from.get(id_column), join.get(id_column));
 		q.where(from.in(objs.keySet()));
 		TypedQuery<Object[]> query = em.createQuery(q);
 		List<Object[]> resultList = query.getResultList();
@@ -807,15 +808,15 @@ public class AnyDAO {
 	public <E extends IIdentity, F extends IIdentity> void loadList(Map<Long, E> objs, ListAttribute<E, F> res, SingularAttribute<F, E> se) {
 		if (objs.isEmpty())
 			return;
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<F> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<F> from = q.from(jt);
 
-		q.multiselect(from.get(se).get(IIdentity.id_column), from);
+		q.multiselect(from.get(se).get(id_column), from);
 
-		q.where(from.get(se).get(IIdentity.id_column).in(objs.keySet()));
+		q.where(from.get(se).get(id_column).in(objs.keySet()));
 		String setterMethod = "set" + String.valueOf(res.getName().charAt(0)).toUpperCase() + res.getName().substring(1);
 		try {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, List.class);
@@ -842,14 +843,14 @@ public class AnyDAO {
 	public <E extends IIdentity, F extends IIdentity> void loadFor(Map<Long, E> objs, SingularAttribute<E, F> se) {
 		if (objs.isEmpty())
 			return;
-		CriteriaBuilder _ = em.getCriteriaBuilder();
+		CriteriaBuilder cb = em.getCriteriaBuilder();
 
 		Class<E> jt = se.getDeclaringType().getJavaType();
-		CriteriaQuery<Object[]> q = _.createQuery(Object[].class);
+		CriteriaQuery<Object[]> q = cb.createQuery(Object[].class);
 		Root<E> from = q.from(jt);
 		Path<F> path = from.get(se);
-		q.multiselect(from.get(IIdentity.id_column), path);
-		q.where(from.get(IIdentity.id_column).in(objs.keySet()));
+		q.multiselect(from.get(id_column), path);
+		q.where(from.get(id_column).in(objs.keySet()));
 
 		String setterMethod = "set" + String.valueOf(se.getName().charAt(0)).toUpperCase() + se.getName().substring(1);
 		try {
@@ -882,7 +883,7 @@ public class AnyDAO {
 		CriteriaQuery<F> criteria = cb.createQuery(sa.getBindableJavaType());
 		Root<E> root = criteria.from(sa.getDeclaringType().getJavaType());
 		criteria.select(root.get(sa));
-		criteria.where(cb.equal(root.get(IIdentity.id_column), id));
+		criteria.where(cb.equal(root.get(id_column), id));
 		TypedQuery<F> query = em.createQuery(criteria);
 		EntityHelper.applyHints(query, hints);
 		query.setMaxResults(1);
@@ -894,11 +895,11 @@ public class AnyDAO {
 	}
 
 	public <E extends Object> int update(Class<E> clz, IUpdateRestrictions<E> restr) {
-		CriteriaBuilder _ = getEm().getCriteriaBuilder();
-		CriteriaUpdate<E> update = _.createCriteriaUpdate(clz);
+		CriteriaBuilder cb = getEm().getCriteriaBuilder();
+		CriteriaUpdate<E> update = cb.createCriteriaUpdate(clz);
 		Root<E> root = update.from(clz);
 
-		CriteriaUpdate<?> where = restr.applySetAndWhere(_, update, root);
+		CriteriaUpdate<?> where = restr.applySetAndWhere(cb, update, root);
 
 		return getEm().createQuery(where).executeUpdate();
 	}

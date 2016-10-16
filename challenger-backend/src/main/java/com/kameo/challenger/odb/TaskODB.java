@@ -9,14 +9,15 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
-@Data
+
 @NoArgsConstructor
-@ToString(of = IIdentity.id_column)
+@ToString(of = "id")
 @Entity
 @Table(indexes = {
         @Index(columnList = "user_id"),
         @Index(columnList = "challenge_id"),
 })
+@Data
 public class TaskODB implements IIdentity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -48,5 +49,58 @@ public class TaskODB implements IIdentity {
 
     public TaskODB(long id) {
         this.id = id;
+    }
+
+    public ChallengeODB getChallenge() {
+        return challenge;
+    }
+
+    public void setChallenge(ChallengeODB challenge) {
+        this.challenge = challenge;
+    }
+
+    public UserODB getUser() {
+        return user;
+    }
+
+    public void setUser(UserODB user) {
+        this.user = user;
+    }
+
+    public TaskStatus getTaskStatus() {
+        return taskStatus;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskStatus(TaskStatus taskStatus) {
+        this.taskStatus = taskStatus;
+    }
+
+    public void setTaskType(TaskType taskType) {
+        this.taskType = taskType;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public void setDone(boolean done) {
+        this.done = done;
+    }
+
+    public Date getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(Date dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    @Override
+    public boolean isNew() {
+        return getId()<0;
     }
 }

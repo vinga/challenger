@@ -37,9 +37,11 @@ public class ChallengerRestService implements IChallengerService {
     @GET
     @Path("ping")
     public String ping() {
+
+
+        challengerLogic.getTasks(0L,0L,new Date());
         return "pong";
     }
-
 
 
     @GET
@@ -60,9 +62,9 @@ public class ChallengerRestService implements IChallengerService {
                                           userLabels.sort(new Comparator<UserLabelDTO>() {
                                               @Override
                                               public int compare(UserLabelDTO o1, UserLabelDTO o2) {
-                                                  if (o1.getId()==callerId)
+                                                  if (o1.getId() == callerId)
                                                       return -1;
-                                                  if (o2.getId()==callerId)
+                                                  if (o2.getId() == callerId)
                                                       return 1;
                                                   return 0;
                                               }
@@ -77,9 +79,6 @@ public class ChallengerRestService implements IChallengerService {
 
         return res;
     }
-
-
-
 
 
     @POST
@@ -109,7 +108,7 @@ public class ChallengerRestService implements IChallengerService {
             challengeTaskODB.setDueDate(new Date(challengeTaskDTO.getDueDate()));
         if (challengeTaskDTO.getId() > 0)
             challengeTaskODB.setId(challengeTaskDTO.getId());
-        if (challengeTaskDTO.getDeleted()!=null) {
+        if (challengeTaskDTO.getDeleted() != null) {
             challengerLogic.deleteTask(callerId, challengeTaskODB);
             return null;
         }
@@ -140,10 +139,18 @@ public class ChallengerRestService implements IChallengerService {
         List<TaskODB> tasks = challengerLogic
                 .getTasks(callerId, contractId, date);
 
-        return tasks.stream().sorted(IIdentity::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
+        List<TaskApprovalODB> taskApprovalODBs = challengerLogic.getTasksApprovalForRejectedTasks(tasks);
+
+        List<TaskDTO> taskDTOs = tasks.stream().sorted(IIdentity.Meta::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
+
+
+        taskApprovalODBs.stream().forEach(taskApprovalODB ->
+                taskDTOs.stream().filter(taskDTO -> taskDTO.getId() == taskApprovalODB.getTask().getId())
+                        .forEach(taskDTO ->
+                                taskDTO.setTaskApproval(TaskApprovalDTO.fromODBtoDTO(taskApprovalODB))));
+
+        return taskDTOs;
     }
-
-
 
 
 }

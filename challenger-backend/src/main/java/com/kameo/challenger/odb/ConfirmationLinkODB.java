@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
  */
 @Entity
 @Data
-@ToString(of= IIdentity.id_column)
+@ToString(of= "id")
 @NoArgsConstructor
 
 public class ConfirmationLinkODB implements IIdentity {
@@ -36,4 +36,8 @@ public class ConfirmationLinkODB implements IIdentity {
     Long challengeId;
 
 
+    @Override
+    public boolean isNew() {
+        return getId()<0;
+    }
 }
