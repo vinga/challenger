@@ -53,7 +53,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
         if (this.props.taskDTO.taskStatus == TaskStatus.accepted) {
             return <div>{this.props.taskDTO.label}</div>
         } else if (this.props.taskDTO.taskStatus == TaskStatus.rejected) {
-            console.log("ISTHIS " + this.props.taskDTO.label + " " + this.props.taskDTO.createdByUserId + " " + this.props.user.userId);
+            //console.log("ISTHIS " + this.props.taskDTO.label + " " + this.props.taskDTO.createdByUserId + " " + this.props.user.userId);
 
             if (this.props.isTaskCreatorLogged) {//this.props.taskDTO.createdByUserId == this.props.user.userId && this.props.user.jwtToken != null) { //  kto moze dawac do reworku?
                 var style = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.taskCreatorOrdinal), flexBasis: 'min-content', minWidth: '40px'});
@@ -86,7 +86,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
                             </Chip>
                         </div>
                     </div>);
-                <div></div>
+
             }
             else {
                 var chipWaiting = {
@@ -128,7 +128,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
 
 
         } else {
-            var style = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.no)});
+            var chipStyle = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.no)});
 
             return (<div style={styles.wrapper}>
 
@@ -143,13 +143,13 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
 
                     <div style={{flexBasis:'fit-content',  display:'flex'}}>
 
-                        <Chip className="clickableChip" style={style}
+                        <Chip className="clickableChip" style={chipStyle}
                               labelStyle={{ fontSize:'12px'}}
                               onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
                             <i className="fa fa-check"></i> Accept
                         </Chip>
 
-                        <Chip className="clickableChip" style={style}
+                        <Chip className="clickableChip" style={chipStyle}
                               labelStyle={{ fontSize:'12px'}}
                               onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
                             <i className="fa fa-close"></i> Reject
