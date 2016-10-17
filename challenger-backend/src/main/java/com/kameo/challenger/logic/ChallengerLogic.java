@@ -8,6 +8,7 @@ import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import com.kameo.challenger.utils.odb.EntityHelper;
+import com.kameo.challenger.utils.odb.IRestrictions;
 import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,6 +19,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.function.Function;
@@ -42,9 +47,9 @@ public class ChallengerLogic {
 
 
     public List<TaskODB> getTasks(long callerId, long challengeId, Date date) {
-       // System.out.println("Z kotliny");
-       // if (true)
-       // return taskDao.getTasks(callerId, challengeId,date);
+        System.out.println("Z kotliny");
+      if (true)
+        return taskDao.getTasks(callerId, challengeId,date);
 
 
         ChallengeParticipantODB callerPermission = anyDao

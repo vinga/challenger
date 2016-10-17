@@ -1,6 +1,7 @@
 package com.kameo.challenger.config;
 
 import com.kameo.challenger.utils.odb.AnyDAO;
+import com.kameo.challenger.utils.odb.AnyDAONew;
 import org.jinq.jpa.JinqJPAStreamProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,13 @@ public class DatabaseConfig {
     public AnyDAO anyDao() {
         return new AnyDAO();
     }
+
+
+    @Bean
+    public AnyDAONew anyDaoNew() {
+        return new AnyDAONew();
+    }
+
 
     @Bean
     public DataSource dataSource() {
