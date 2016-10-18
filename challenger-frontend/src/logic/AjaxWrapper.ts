@@ -1,4 +1,4 @@
-import * as Rx from 'rxjs/Rx';
+//import * as Rx from 'rxjs/Rx'; /*   "rxjs": "^5.0.0-beta.12"*/
 import {VisibleChallengesDTO} from "./domain/ChallengeDTO";
 import {TaskDTO} from "./domain/TaskDTO";
 import {TaskProgressDTO} from "./domain/TaskProgressDTO";

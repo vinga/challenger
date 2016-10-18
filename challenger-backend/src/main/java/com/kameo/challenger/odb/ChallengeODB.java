@@ -28,6 +28,10 @@ public @Data class ChallengeODB implements IIdentity {
     UserODB createdBy;
 
 
+    @Override
+    public long getId() {
+        return id;
+    }
 
     @NotNull
     @Enumerated

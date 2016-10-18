@@ -100,6 +100,11 @@ public class TaskODB implements IIdentity {
     }
 
     @Override
+    public long getId() {
+        return id;
+    }
+
+    @Override
     public boolean isNew() {
         return getId()<0;
     }

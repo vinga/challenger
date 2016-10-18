@@ -1,6 +1,9 @@
 package com.kameo.challenger.logic
 
 import com.kameo.challenger.odb.*
+import com.kameo.challenger.odb.ChallengeParticipantODB_
+import com.kameo.challenger.odb.TaskODB_
+import com.kameo.challenger.odb.TaskProgressODB_
 import com.kameo.challenger.utils.DateUtil
 import com.kameo.challenger.utils.odb.AnyDAO
 import com.kameo.challenger.utils.odb.AnyDAONew

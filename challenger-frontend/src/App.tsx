@@ -8,6 +8,7 @@ import {Provider, connect} from "react-redux";
 import {ReduxState} from "./redux/ReduxState";
 import {AccountDTO} from "./logic/domain/AccountDTO";
 
+// typescript 2.0.3 caused errors
 
 interface Props {
     logged:boolean

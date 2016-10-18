@@ -86,6 +86,6 @@ Date.prototype.addDays = function(days)
 export {
     DiffHardIcon as DiffHardIcon,
     DiffMediumIcon as DiffMediumIcon,
-    DiffSimpleIcon as DiffSimpleIcon,
-    ResizeAware as ResizeAware
+    DiffSimpleIcon as DiffSimpleIcon
+
 }

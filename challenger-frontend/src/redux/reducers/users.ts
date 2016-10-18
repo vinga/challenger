@@ -1,6 +1,6 @@
 import * as jwtDecode from "jwt-decode";
 import ajaxWrapper from "../../logic/AjaxWrapper.ts";
-import {Action, isAction} from "../ReduxTask";
+import {Action, isAction, ActionType} from "../ReduxTask";
 import {
     LOGOUT,
     LOGIN_USER_REQUEST,
@@ -10,11 +10,21 @@ import {
 import {AccountDTO} from "../../logic/domain/AccountDTO";
 
 
+
+export function isAction2<T extends Action>(action: Action, type: ActionType<T>|string): action is T {
+    if (typeof type === 'string') {
+        return action.type==type;
+    } else if (type instanceof ActionType) {
+        return action.type === type.type;
+    }
+    return false;
+}
+
 export default function users(state:Array<AccountDTO> = [], action:Action) {
-    if (isAction(action, LOGOUT)) {
+    if (isAction2(action, LOGOUT)) {
         return [];
     }
-    else if (isAction(action, LOGIN_USER_REQUEST)) {
+    else if (isAction2(action, LOGIN_USER_REQUEST)) {
         var nstate:Array<AccountDTO> = [
             ...state,
             {
