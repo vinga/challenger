@@ -3,7 +3,9 @@ package com.kameo.challenger.utils.odb
 import com.kameo.challenger.odb.TaskODB
 import com.kameo.challenger.odb.TaskODB_
 import com.kameo.challenger.odb.UserODB
+import com.kameo.challenger.utils.odb.newapi.KPro
 import com.kameo.challenger.utils.odb.newapi.PathWrap
+import com.kameo.challenger.utils.odb.newapi.foo
 import org.springframework.beans.factory.annotation.Autowired
 import java.util.*
 import javax.persistence.EntityManager
@@ -39,9 +41,13 @@ public class AnyDAONew {
 
                     it.inIds(1L,2L)
 
-                   /* it.eq(TaskODB::id,2L);
-                    it.eq(UserODB::email,"bbb");
-                    it.eq(UserODB::email,2);*/
+             /*       it.eq2(KPro(TaskODB::id),"baa");
+                    it.eq2(KPro(TaskODB::id),2L);
+                    it.eq2(TaskODB::id.foo(),2L);
+                    it.eq2(TaskODB::id.foo(),"AA");*/
+                   // it.eq2(PathWrap.KPro(TaskODB::id),2L);
+                    //it.eq2(UserODB::email,"bbb");
+                    //it.eq2(UserODB::email,2);
 
                     it.newOr()
                             .inIds(1L)
@@ -54,7 +60,7 @@ public class AnyDAONew {
 
     }
 
-    fun <E> getAll(clz: Class<E>, restr: (PathWrap<E>) -> Unit):List<E> {
+            fun <E> getAll(clz: Class<E>, restr: (PathWrap<E>) -> Unit):List<E> {
         val cb = em.criteriaBuilder
         val criteria = cb.createQuery(clz)
         val root = criteria.from(clz)

@@ -42,7 +42,7 @@ public class TaskDAO {
                     it.newOr()
                             .notEq(TaskODB_.taskType, TaskType.onetime)
                             .after(TaskODB_.dueDate, date)
-                            .finish();
+                    .finish();
 
                 });
 

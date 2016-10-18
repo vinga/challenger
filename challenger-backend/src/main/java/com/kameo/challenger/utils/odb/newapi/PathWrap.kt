@@ -8,7 +8,15 @@ import javax.persistence.criteria.Root
 import javax.persistence.metamodel.SingularAttribute
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.KProperty1
 
+
+class KPro<Any,E>(val prop: KProperty<E>) {
+
+}
+fun <F,E> KProperty<E>.foo():KPro<F,E> {
+    return KPro(this);
+}
 
 class PathWrap<E> constructor (val cb: CriteriaBuilder, val root: Path<E>, var arr:MutableList<()->Predicate?>, val parent: PathWrap<E>? =null) {
 
@@ -110,12 +118,11 @@ class PathWrap<E> constructor (val cb: CriteriaBuilder, val root: Path<E>, var a
         return this;
     }
 
-/*
-    fun <F> eq(sa: KProperty<F>, f: F): PathWrap<E> {
-        arr.add({cb.equal(root.get<Path<F>>(sa.name),f)});
+/*    fun <F> eq2(sa: KPro<E,F>, f: F): PathWrap<E> {
+        arr.add({cb.equal(root.get<Path<F>>(sa.prop.name),f)});
         return this;
-    }
-*/
+    }*/
+
 
     fun <F> notEq(sa: SingularAttribute<E,F>, f: F): PathWrap<E> {
         arr.add({cb.notEqual(root.get(sa),f)});
