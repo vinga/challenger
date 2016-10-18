@@ -55,7 +55,11 @@ public class TaskDAO {
 
           }).filter { t -> t.taskType != TaskType.onetime || DateTime(t.getDueDate()).isAfter(date.getTime()) }*/
 
-        getTaskProgress(tasks, date).forEach { tp -> tasks.filter({ t -> t.id == tp.task.id }).find { tp.isDone } }
+        println("len "+getTaskProgress(tasks, date));
+
+        getTaskProgress(tasks, date).forEach { tp ->
+            tasks.filter({ t -> t.id == tp.task.id })
+                .forEach  {it.setDone(tp.isDone); } };//.find { tp.isDone } }
 
         return tasks;
         /*  var test = { t: TaskODB -> t.getTaskStatus() == TaskStatus.accepted };

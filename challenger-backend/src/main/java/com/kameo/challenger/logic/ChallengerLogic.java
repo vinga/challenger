@@ -48,8 +48,8 @@ public class ChallengerLogic {
 
     public List<TaskODB> getTasks(long callerId, long challengeId, Date date) {
         System.out.println("Z kotliny");
-      if (true)
-        return taskDao.getTasks(callerId, challengeId,date);
+    if (true)
+       return taskDao.getTasks(callerId, challengeId,date);
 
 
         ChallengeParticipantODB callerPermission = anyDao
