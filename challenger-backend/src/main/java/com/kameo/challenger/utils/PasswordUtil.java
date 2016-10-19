@@ -3,9 +3,7 @@ package com.kameo.challenger.utils;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * Created by kmyczkowska on 2016-09-02.
- */
+
 public class PasswordUtil {
 
 
@@ -13,7 +11,7 @@ public class PasswordUtil {
         return (int) (Math.random() * (max - min) + min);
     }
 
-    public static String randomString(int min, int max) {
+    private static String randomString(int min, int max) {
         int num = randomInt(min, max);
         byte b[] = new byte[num];
         for (int i = 0; i < num; i++)
@@ -29,7 +27,7 @@ public class PasswordUtil {
     public static String getPasswordHash(String pass, String salt) {
 
         MessageDigest md;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
             md = MessageDigest.getInstance("SHA-256");
             md.update((salt+pass+salt).getBytes());

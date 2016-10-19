@@ -1,8 +1,6 @@
 package com.kameo.challenger.utils;
 
-/**
- * Created by kmyczkowska on 2016-09-01.
- */
+
 public class StringHelper {
     public static String getFirstHrefValue(String str) {
         str=str.replace("\"","'");

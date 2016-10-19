@@ -1,26 +1,21 @@
 package com.kameo.challenger.web.rest.api;
 
-import com.google.common.collect.Lists;
-import com.kameo.challenger.domain.challenges.ChallengeODB;
 import com.kameo.challenger.odb.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Date;
 import java.util.Optional;
 
-/**
- * Created by kmyczkowska on 2016-08-30.
- */
 public interface IChallengerService {
+
     @Data
-    public static class TaskProgressDTO {
+    class TaskProgressDTO {
         long taskId;
         long progressTime;
         boolean done;
+
         public static TaskProgressDTO fromOdb(TaskProgressODB odb) {
-            TaskProgressDTO tp=new TaskProgressDTO();
+            TaskProgressDTO tp = new TaskProgressDTO();
             tp.setProgressTime(odb.getProgressTime().getTime());
             tp.setTaskId(odb.getTask().getId());
             tp.setDone(odb.getDone());
@@ -30,7 +25,7 @@ public interface IChallengerService {
     }
 
     @Data
-    public static class TaskApprovalDTO {
+    class TaskApprovalDTO {
         long userId;
         public long taskId;
         TaskStatus taskStatus;
@@ -47,7 +42,7 @@ public interface IChallengerService {
     }
 
     @Data
-    public static class TaskDTO {
+    class TaskDTO {
         long id;
         String label;
         String icon;
@@ -62,25 +57,24 @@ public interface IChallengerService {
         Boolean deleted;
         TaskApprovalDTO taskApproval;
 
-        public static TaskDTO fromOdb(TaskODB odb) {
+        public TaskDTO fromOdb(TaskODB odb) {
             TaskDTO ca = new TaskDTO();
             ca.id = odb.getId();
             ca.label = odb.getLabel();
             ca.icon = odb.getIcon();
             ca.difficulty = odb.getDifficulty();
             ca.challengeId = odb.getChallenge().getId();
-            ca.dueDate = Optional.ofNullable(odb.getDueDate()).map(d -> d.getTime()).orElse(null);
+            ca.dueDate = Optional.ofNullable(odb.getDueDate()).map(Date::getTime).orElse(null);
             ca.taskType = odb.getTaskType();
             ca.taskStatus = odb.getTaskStatus();
             ca.userId = odb.getUser().getId();
-            ca.done=odb.getDone();
-            ca.createdByUserId=odb.getCreatedByUser().getId();
+            ca.done = odb.getDone();
+            ca.createdByUserId = odb.getCreatedByUser().getId();
             return ca;
         }
 
 
     }
-
 
 
 }

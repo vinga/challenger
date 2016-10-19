@@ -1,7 +1,6 @@
 package com.kameo.challenger.web.rest;
 
 import com.kameo.challenger.config.ServerConfig;
-import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.logic.LoginLogic;
 import com.kameo.challenger.utils.ReflectionUtils;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
@@ -23,6 +22,18 @@ import java.util.stream.Collectors;
 @Component
 public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
+    private final ChallengerSess myTokenInfo;
+    private final Provider<MultiUserChallengerSess> multiTokenInfos;
+    private final LoginLogic loginLogic;
+
+    @Inject
+    public AuthFilter(ChallengerSess myTokenInfo, Provider<MultiUserChallengerSess> multiTokenInfos, LoginLogic loginLogic) {
+        this.myTokenInfo = myTokenInfo;
+        this.multiTokenInfos = multiTokenInfos;
+        this.loginLogic = loginLogic;
+    }
+
+
     @Override
     protected boolean isResourceANewTokenGenerator(HttpServletRequest req) {
         return req.getPathInfo().equals("/api/newToken");
@@ -40,22 +51,9 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
                 return;
             }
         }
-
-
         super.doFilter(req, res, chain);
     }
 
-    @Inject
-    ChallengerSess myTokenInfo;
-
-    @Inject
-    Provider<MultiUserChallengerSess> multiTokenInfos;
-
-    @Inject
-    ChallengerLogic challengerService;
-
-    @Inject
-    LoginLogic loginLogic;
 
     @Override
     protected JWTServiceConfig getJWTServiceConfig(FilterConfig fc) {
@@ -81,7 +79,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         if (ti.size() == 1)
             ReflectionUtils.copy(ti.get(0), this.myTokenInfo);
         else {
-            multiTokenInfos.get().setUserIds(ti.stream().map(t -> t.getUserId()).collect(Collectors.toSet()));
+            multiTokenInfos.get().setUserIds(ti.stream().map(ChallengerSess::getUserId).collect(Collectors.toSet()));
         }
     }
 

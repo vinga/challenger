@@ -1,10 +1,7 @@
 package com.kameo.challenger.utils;
 
-import com.google.common.collect.Lists;
-
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 public class DateUtil {
 
@@ -12,11 +9,10 @@ public class DateUtil {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(d);
         resetTimePart(calendar);
-        Date date = new Date(calendar.getTimeInMillis());
-        return date;
+        return new Date(calendar.getTimeInMillis());
     }
 
-    public static void resetTimePart(Calendar cal) {
+    private static void resetTimePart(Calendar cal) {
         cal.set(Calendar.HOUR_OF_DAY, 0); // set hour to midnight
         cal.set(Calendar.MINUTE, 0); // set minute in hour
         cal.set(Calendar.SECOND, 0); // set second in minute
