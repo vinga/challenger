@@ -60,7 +60,7 @@ class AjaxWrapper {
 
     loadVisibleChallenges(callbackData: (VisibleChallengesDTO)=>(void)) {
         $.ajax({
-            url: this.baseUrl + "/visibleChallenges",
+            url: this.baseUrl + "/challenge/visibleChallenges",
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }

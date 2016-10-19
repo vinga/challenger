@@ -2,6 +2,9 @@ package com.kameo.challenger.logic;
 
 
 import com.google.common.collect.Lists;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
+import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.ChallengeStatus;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.PasswordUtil;

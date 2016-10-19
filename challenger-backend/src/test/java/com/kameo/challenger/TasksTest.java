@@ -4,6 +4,8 @@ package com.kameo.challenger;
 import com.google.common.collect.Sets;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.util.TestHelper;
@@ -27,6 +29,8 @@ public class TasksTest implements En {
     private AnyDAO anyDao;
     @Inject
     private ChallengerLogic challengerService;
+    @Inject
+    private ChallengeDAO challengerDao;
     @Inject
     private TestHelper testHelper;
 
@@ -93,7 +97,8 @@ public class TasksTest implements En {
             ChallengeODB cc = testHelper
                     .getActiveChallengeBetween(testHelper.myself(), testHelper.myFriend());
             List<TaskODB> actions = challengerService
-                    .getTasksAssignedToPerson(testHelper.myself().getId(), testHelper.myself().getId(), cc.getId(), new Date());
+                    .getTasks(testHelper.myself().getId(), cc.getId(), new Date())
+                    .stream().filter(t->t.getUser().getId()==testHelper.myself().getId()).collect(Collectors.toList());
             Assert.assertEquals(arg1.longValue(), actions.size());
         });
     }
@@ -155,7 +160,8 @@ public class TasksTest implements En {
 
             ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
-            List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myself.getId(), cc.getId(), new Date());
+            List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(), new Date())
+                    .stream().filter(t->t.getUser().getId()==myself.getId()).collect(Collectors.toList());;
             Assert.assertFalse(actions.isEmpty());
         });
         Then("^I should see my friend's actions$", () -> {
@@ -163,7 +169,8 @@ public class TasksTest implements En {
             UserODB myFriend = testHelper.myFriend();
             ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
-            List<TaskODB> actions = challengerService.getTasksAssignedToPerson(myself.getId(), myFriend.getId(), cc.getId(), new Date());
+            List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(), new Date())
+                    .stream().filter(t->t.getUser().getId()==myFriend.getId()).collect(Collectors.toList());
             Assert.assertFalse(actions.isEmpty());
         });
 
@@ -209,14 +216,14 @@ public class TasksTest implements En {
         When("^\"([^\"]*)\" view todo list of challenge \"([^\"]*)\"$", (String arg1, String arg2) -> {
             UserODB user1 = testHelper.resolveUserByLogin(arg1);
             ChallengeODB challengeODB = testHelper.resolveChallenge(arg2);
-            challengerService.getTasksAssignedToPerson(user1.getId(),user1.getId(),challengeODB.getId(), new Date());
+            challengerService.getTasks(user1.getId(),challengeODB.getId(), new Date());
         });
 
         Then("^\"([^\"]*)\" last visible challenge is \"([^\"]*)\"$", (String arg1, String arg2) -> {
             UserODB user1 = testHelper.resolveUserByLogin(arg1);
             ChallengeODB expected = testHelper.resolveChallenge(arg2);
             ChallengeODB actual = anyDao
-                    .get(ChallengeODB.class, challengerService.getVisibleChallenges(user1.getId()).getDefaultChallengeId());
+                    .get(ChallengeODB.class, challengerDao.getVisibleChallenges(user1.getId()).getDefaultChallengeId());
             Assert.assertEquals(expected.getLabel(),actual.getLabel());
         });
 

@@ -1,5 +1,6 @@
 package com.kameo.challenger.odb
 
+import com.kameo.challenger.domain.challenges.ChallengeODB
 import com.kameo.challenger.odb.api.IIdentity
 import java.util.*
 import javax.persistence.*
@@ -18,7 +19,6 @@ data class UserODB( @Id
     lateinit var userStatus:UserStatus;
     lateinit var suspendedDueDate:Date;
     var failedLoginsNumber:Int=0;
-    var defaultChallengeContract:Long?=null;
     @ManyToMany(targetEntity = ChallengeODB::class)
     lateinit var contracts:MutableList<ChallengeODB>;
 

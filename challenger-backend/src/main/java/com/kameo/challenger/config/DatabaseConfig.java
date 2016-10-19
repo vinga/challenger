@@ -11,12 +11,17 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
 
 @Configuration
 public class DatabaseConfig {
-
+    @Inject
+    Provider<EntityManager> em;
 
     @Bean
     @Scope(proxyMode= ScopedProxyMode.TARGET_CLASS)
@@ -31,7 +36,7 @@ public class DatabaseConfig {
 
     @Bean
     public AnyDAONew anyDaoNew() {
-        return new AnyDAONew();
+        return new AnyDAONew(em.get());
     }
 
 

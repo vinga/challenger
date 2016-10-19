@@ -1,6 +1,8 @@
 package com.kameo.challenger.web.rest.impl;
 
 import com.google.common.collect.Lists;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.odb.api.IIdentity;
@@ -44,41 +46,6 @@ public class ChallengerRestService implements IChallengerService {
     }
 
 
-    @GET
-    @Path("visibleChallenges")
-    public VisibleChallengesDTO getVisibleChallenges() {
-        long callerId = session.getUserId();
-        ChallengerLogic.ChallengeInfoDTO cinfo = challengerLogic
-                .getVisibleChallenges(callerId);
-
-        VisibleChallengesDTO res = new VisibleChallengesDTO();
-        res.setSelectedChallengeId(cinfo.getDefaultChallengeId());
-
-        res.setVisibleChallenges(cinfo.getVisibleChallenges().stream()
-                                      .map(VisibleChallengesDTO.ChallengeDTO::fromODB)
-                                      .map(c -> {
-
-                                          ArrayList<UserLabelDTO> userLabels = Lists.newArrayList(c.getUserLabels());
-                                          userLabels.sort(new Comparator<UserLabelDTO>() {
-                                              @Override
-                                              public int compare(UserLabelDTO o1, UserLabelDTO o2) {
-                                                  if (o1.getId() == callerId)
-                                                      return -1;
-                                                  if (o2.getId() == callerId)
-                                                      return 1;
-                                                  return 0;
-                                              }
-                                          });
-                                          c.setUserLabels(userLabels.toArray(new UserLabelDTO[0]));
-
-                                          c.setMyId(callerId);
-                                          return c;
-                                      })
-
-                                      .collect(Collectors.toList()));
-
-        return res;
-    }
 
 
     @POST

@@ -4,64 +4,56 @@ import com.kameo.challenger.utils.odb.AnyDAO
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.Path
 import javax.persistence.criteria.Predicate
-import javax.persistence.criteria.Root
 import javax.persistence.metamodel.SingularAttribute
-import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty1
 
 
-class KPro<Any,E>(val prop: KProperty<E>) {
 
-}
-fun <F,E> KProperty<E>.foo():KPro<F,E> {
-    return KPro(this);
-}
-
-class PathWrap<E> constructor (val cb: CriteriaBuilder, val root: Path<E>, var arr:MutableList<()->Predicate?>, val parent: PathWrap<E>? =null) {
-
+open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, var arr: MutableList<() -> Predicate?>, val parent: PathWrap<E>? = null) {
 
 
     infix fun eqId(id: Long): PathWrap<E> {
 
 
-
-        arr.add({cb.equal(root.get<Path<Long>>(AnyDAO.id_column),id)});
+        arr.add({ cb.equal(root.get<Path<Long>>(AnyDAO.id_column), id) });
         return this;
     }
 
     infix fun inIds(ids: List<Long>): PathWrap<E> {
-        arr.add({root.get<Path<Long>>(AnyDAO.id_column).`in`(ids)});
+        arr.add({ root.get<Path<Long>>(AnyDAO.id_column).`in`(ids) });
         return this;
     }
 
-    fun newOr():PathWrap<E> {
-        var list=mutableListOf<()->Predicate?>();
+    fun newOr(): PathWrap<E> {
+        var list = mutableListOf<() -> Predicate?>();
 
 
-        var pw=PathWrap(cb,root, list, this);
+        var pw = PathWrap(cb, root, list, this);
 
 
-        arr.add({calculateOr(list)});
+        arr.add({ calculateOr(list) });
         return pw;
     }
-    fun newAnd():PathWrap<E> {
-        var list=mutableListOf<()->Predicate?>();
+
+    fun newAnd(): PathWrap<E> {
+        var list = mutableListOf<() -> Predicate?>();
 
 
-        var pw=PathWrap(cb,root, list, this);
+        var pw = PathWrap(cb, root, list, this);
 
 
-        arr.add({calculateAnd(list)});
+        arr.add({ calculateAnd(list) });
         return pw;
     }
-    fun finish():PathWrap<E> {
-        if (parent!=null)
-             return parent;
+
+    fun finish(): PathWrap<E> {
+        if (parent != null)
+            return parent;
         throw IllegalArgumentException();
     }
 
-    private fun calculateOr(list: MutableList<() -> Predicate?>):Predicate? {
+    private fun calculateOr(list: MutableList<() -> Predicate?>): Predicate? {
         var predicates = mutableListOf<Predicate>();
         for (p in list) {
             var pp: Predicate? = p.invoke();
@@ -74,7 +66,8 @@ class PathWrap<E> constructor (val cb: CriteriaBuilder, val root: Path<E>, var a
         }
         return null;
     }
-    private fun calculateAnd(list: MutableList<() -> Predicate?>):Predicate? {
+
+    private fun calculateAnd(list: MutableList<() -> Predicate?>): Predicate? {
         var predicates = mutableListOf<Predicate>();
         for (p in list) {
             var pp: Predicate? = p.invoke();
@@ -88,7 +81,7 @@ class PathWrap<E> constructor (val cb: CriteriaBuilder, val root: Path<E>, var a
         return null;
     }
 
-    public fun getPredicate():Predicate {
+    public fun getPredicate(): Predicate {
         var predicates = mutableListOf<Predicate>();
         for (p in arr) {
             var pp: Predicate? = p.invoke();
@@ -96,49 +89,77 @@ class PathWrap<E> constructor (val cb: CriteriaBuilder, val root: Path<E>, var a
                 predicates.add(pp);
             }
         };
-        if (predicates.size==1) {
+        if (predicates.size == 1) {
             return predicates[0];
         } else {
-           return cb.and(*predicates.toTypedArray());
+            return cb.and(*predicates.toTypedArray());
         }
     }
 
-    fun inIds(vararg  ids: Long): PathWrap<E> {
-        arr.add({root.get<Path<Long>>(AnyDAO.id_column).`in`(ids)});
+    fun inIds(vararg ids: Long): PathWrap<E> {
+        arr.add({ root.get<Path<Long>>(AnyDAO.id_column).`in`(ids) });
         return this;
     }
 
     infix fun eq(id: E): PathWrap<E> {
-        arr.add({cb.equal(root,id)});
+        arr.add({ cb.equal(root, id) });
         return this;
     }
 
-    fun <F> eq(sa: SingularAttribute<E,F>, f: F): PathWrap<E> {
-        arr.add({cb.equal(root.get(sa),f)});
+    fun <F> eq(sa: SingularAttribute<E, F>, f: F): PathWrap<E> {
+        arr.add({ cb.equal(root.get(sa), f) });
         return this;
     }
 
-/*    fun <F> eq2(sa: KPro<E,F>, f: F): PathWrap<E> {
-        arr.add({cb.equal(root.get<Path<F>>(sa.prop.name),f)});
-        return this;
-    }*/
-
-
-    fun <F> notEq(sa: SingularAttribute<E,F>, f: F): PathWrap<E> {
-        arr.add({cb.notEqual(root.get(sa),f)});
+    /*    fun <F> eq2(sa: KPro<E,F>, f: F): PathWrap<E> {
+            arr.add({cb.equal(root.get<Path<F>>(sa.prop.name),f)});
+            return this;
+        }*/
+    fun <F> eq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E> {
+        arr.add({ cb.equal(root.get<Path<F>>(sa.name), f) });
         return this;
     }
-    fun <F:Comparable<F>> after(sa: SingularAttribute<E,F>, f: F): PathWrap<E> {
-        arr.add({cb.greaterThan(root.get(sa),f)});
+
+    /*    fun <F> eq4(sa: KProperty1<E,F>, f: F): PathWrap<E> {
+            arr.add({cb.equal(root.get<Path<F>>(sa.name),f)});
+            return this;
+        }*/
+    fun <F> notEq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E> {
+        arr.add({ cb.notEqual(root.get<F>(sa.name), f) });
         return this;
     }
-    fun <F> get(sa: SingularAttribute<E,F>): PathWrap<F> {
-        return PathWrap(cb,root.get(sa),arr);
+
+    fun <F> notEq(sa: SingularAttribute<E, F>, f: F): PathWrap<E> {
+        arr.add({ cb.notEqual(root.get(sa), f) });
+        return this;
+    }
+
+    fun <F : Comparable<F>> after(sa: SingularAttribute<E, F>, f: F): PathWrap<E> {
+        arr.add({ cb.greaterThan(root.get(sa), f) });
+        return this;
+    }
+    fun <F : Comparable<F>> after(sa: KMutableProperty1<E, F?>, f: F): PathWrap<E> {
+        arr.add({ cb.greaterThan(root.get(sa.name), f) });
+        return this;
+    }
+    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F> {
+        return PathWrap(cb, root.get(sa), arr);
+    }
+
+    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F> {
+        return PathWrap(cb, root.get(sa.name), arr);
     }
 
     fun eqIdToPred(id: Long): Predicate {
-        return cb.equal(root.get<Path<Long>>(AnyDAO.id_column),id)
+        return cb.equal(root.get<Path<Long>>(AnyDAO.id_column), id)
     }
+
+    fun isIn(list: List<E>): PathWrap<E> {
+        arr.add({ root.`in`(list) });
+        return this;
+    }
+
+
 
 
 }

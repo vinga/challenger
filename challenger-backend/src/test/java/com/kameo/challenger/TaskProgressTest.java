@@ -46,20 +46,21 @@ public class TaskProgressTest implements En {
             UserODB user1 = testHelper.resolveUserByLogin(login);
             TaskODB taskODB = testHelper.resolveTask(task);
             List<TaskODB> res = challengerService
-                    .getTasksAssignedToPerson(user1.getId(), user1.getId(), taskODB.getChallenge().getId(), new Date());
+                    .getTasks(user1.getId(), taskODB.getChallenge().getId(), new Date())
+                    .stream().filter(t->t.getUser().getId()==user1.getId()).collect(Collectors.toList());
             List<TaskProgressODB> taskProgress = challengerService.getTaskProgress(res, new Date());
 
             if (doneUndone.equals("undone")) {
                 taskProgress.stream().forEach(tp -> {
                     if (tp.getTask().getId()==taskODB.getId()) {
-                        Assert.assertEquals(false,tp.isDone());
+                        Assert.assertEquals(false,tp.getDone());
                     }
                 });
             } else if (doneUndone.equals("done")) {
                 TaskProgressODB tpODB = taskProgress.stream()
                                                               .filter(tp -> tp.getTask().getId() == taskODB.getId())
                                                               .findAny().get();
-                Assert.assertEquals(true,tpODB.isDone());
+                Assert.assertEquals(true,tpODB.getDone());
             } else throw new IllegalArgumentException(doneUndone +" should be done or undone");
 
         });

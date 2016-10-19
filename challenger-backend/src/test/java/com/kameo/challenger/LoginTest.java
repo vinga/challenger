@@ -3,6 +3,9 @@ package com.kameo.challenger;
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
+import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.ChallengeStatus;
 import com.kameo.challenger.logic.ConfirmationLinkLogic;
 import com.kameo.challenger.logic.LoginLogic;
 import com.kameo.challenger.odb.*;

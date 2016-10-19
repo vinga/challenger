@@ -3,10 +3,11 @@ package com.kameo.challenger;
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
 import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.odb.ChallengeODB;
-import com.kameo.challenger.odb.ChallengeParticipantODB;
-import com.kameo.challenger.odb.ChallengeStatus;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
+import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.ChallengeStatus;
 import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
@@ -27,6 +28,8 @@ public class ChallengesTest implements En {
     private AnyDAO anyDao;
     @Inject
     private ChallengerLogic challengerService;
+    @Inject
+    private ChallengeDAO challengerDao;
     @Inject
     private TestHelper testHelper;
 
@@ -75,7 +78,7 @@ public class ChallengesTest implements En {
 
         Then("^I should see (\\d+) challenges on my list$", (Integer arg1) -> {
             UserODB myself = testHelper.myself();
-            ChallengerLogic.ChallengeInfoDTO res = challengerService
+            ChallengeDAO.ChallengeInfoDTO res = challengerDao
                     .getVisibleChallenges(myself.getId());
 
             Assert.assertEquals(arg1.longValue(), res.getVisibleChallenges().size());
@@ -84,7 +87,7 @@ public class ChallengesTest implements En {
 
         Then("^see which challenge was recently chosen from the list$", () -> {
             UserODB myself = testHelper.myself();
-            ChallengerLogic.ChallengeInfoDTO res = challengerService
+            ChallengeDAO.ChallengeInfoDTO res = challengerDao
                     .getVisibleChallenges(myself.getId());
             Assert.assertNotNull(res.getDefaultChallengeId());
         });

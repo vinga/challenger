@@ -1,8 +1,8 @@
 package com.kameo.challenger.logic;
 
 import com.google.common.base.Strings;
-import com.kameo.challenger.odb.ChallengeODB;
-import com.kameo.challenger.odb.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
+import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
 import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.odb.UserStatus;
 import com.kameo.challenger.utils.PasswordUtil;

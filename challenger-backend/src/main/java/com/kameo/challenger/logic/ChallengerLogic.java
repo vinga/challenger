@@ -4,11 +4,13 @@ package com.kameo.challenger.logic;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.kameo.challenger.domain.challenges.ChallengeODB;
+import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.ChallengeStatus;
 import com.kameo.challenger.odb.*;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import com.kameo.challenger.utils.odb.EntityHelper;
-import com.kameo.challenger.utils.odb.IRestrictions;
 import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,10 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 import java.util.function.Function;
@@ -47,78 +45,10 @@ public class ChallengerLogic {
 
 
     public List<TaskODB> getTasks(long callerId, long challengeId, Date date) {
-        System.out.println("Z kotliny");
-    if (true)
        return taskDao.getTasks(callerId, challengeId,date);
-
-
-        ChallengeParticipantODB callerPermission = anyDao
-                .getOnlyOne(ChallengeParticipantODB.class, cp -> cp.getChallenge().getId() == challengeId && cp
-                        .getUser().getId() == callerId);
-
-        updateSeendDateOfChallegeContract(callerPermission);
-        List<TaskODB> res = anyDao.streamAll(TaskODB.class)
-                                  .where(t -> t.getChallenge().getId() == challengeId)
-                                  .where(ca -> ca.getChallenge().getId() == challengeId)
-                                  .filter(ca ->
-                                          ca.getTaskType() != TaskType.onetime ||
-                                                  ca.getTaskType() == TaskType.onetime &&
-                                                          new DateTime(ca.getDueDate()).isAfter(date.getTime()))
-                                  .collect(Collectors.toList());
-
-        getTaskProgress(res, date).stream().forEach(
-                tp -> res.stream().filter(task -> task.getId() == tp.getTask().getId()).findAny().get()
-                         .setDone(tp.isDone())
-        );
-
-
-
-
-
-        return res;
-    }
-
-    @Deprecated // use getTasks
-    public List<TaskODB> getTasksAssignedToPerson(long callerId, long userId, long challengeId, Date date) {
-        // permission check
-        ChallengeParticipantODB callerPermission = anyDao
-                .getOnlyOne(ChallengeParticipantODB.class, cp -> cp.getChallenge().getId() == challengeId && cp
-                        .getUser().getId() == callerId);
-        if (callerId != userId)
-            anyDao.getOnlyOne(ChallengeParticipantODB.class, cp -> cp.getChallenge().getId() == challengeId && cp
-                    .getUser().getId() == userId);
-
-
-        if (callerId == userId)
-            updateSeendDateOfChallegeContract(callerPermission);
-        List<TaskODB> res = anyDao.streamAll(TaskODB.class)
-                                  .where(t -> t.getChallenge().getId() == challengeId)
-                                  .where(ca -> ca.getChallenge().getId() == challengeId &&
-                                          ca.getUser().getId() == userId)
-                                  .filter(ca ->
-                                          ca.getTaskType() != TaskType.onetime ||
-                                                  ca.getTaskType() == TaskType.onetime &&
-                                                          new DateTime(ca.getDueDate()).isAfter(date.getTime()))
-                                  .collect(Collectors.toList());
-
-        getTaskProgress(res, date).stream().forEach(
-                tp -> res.stream().filter(task -> task.getId() == tp.getTask().getId()).findAny().get()
-                         .setDone(tp.isDone())
-        );
-
-
-
-
-
-        return res;
-
     }
 
 
-    private void updateSeendDateOfChallegeContract(ChallengeParticipantODB cp) {
-        cp.setLastSeen(new Date());
-        anyDao.getEm().merge(cp);
-    }
 
     // no permission checked
     public List<TaskProgressODB> getTaskProgress(List<TaskODB> tasks, Date day) {
@@ -448,59 +378,7 @@ public class ChallengerLogic {
     }
 
 
-    public static class ChallengeInfoDTO {
-        @Getter
-        Long defaultChallengeId;
-        @Getter
-        List<ChallengeODB> visibleChallenges = Lists.newArrayList();
-    }
-
-    public ChallengeInfoDTO getVisibleChallenges(long callerId) {
-        ChallengeInfoDTO res = new ChallengeInfoDTO();
-        JPAJinqStream<ChallengeParticipantODB> userIsPariticipating = anyDao.streamAll(ChallengeParticipantODB.class)
-                                                                            .where(cp -> cp.getUser()
-                                                                                           .getId() == callerId &&
-
-                                                                                    (cp.getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE || cp
-                                                                                            .getChallengeStatus() == ChallengeStatus.ACTIVE));
-
-        res.visibleChallenges = userIsPariticipating.select(c -> c.getChallenge()).collect(Collectors.toList());
-
-        Map<Long, UserODB> map = Maps.newHashMap();
-        for (ChallengeODB vc : res.visibleChallenges) {
-            EntityHelper.initializeCollection(vc.getParticipants());
-          /*  for (ChallengeParticipantODB cp: vc.getParticipants()) {
-                map.put(cp.getUser().getId(), cp.getUser());
-            }*/
-        }
 
 
-        UserODB user = anyDao.get(UserODB.class, callerId);
-        res.defaultChallengeId = user.getDefaultChallengeContract();
 
-        if (res.defaultChallengeId == null && !res.visibleChallenges.isEmpty()) {
-            Map<ChallengeODB, ChallengeParticipantODB> collect = userIsPariticipating
-                    .collect(Collectors
-                            .toMap(ChallengeParticipantODB::getChallenge, Function.identity(), (p1, p2) -> p1));
-            res.defaultChallengeId = res.visibleChallenges.stream()
-                                                          .sorted(new Comparator<ChallengeODB>() {
-
-                                                              @Override
-                                                              public int compare(ChallengeODB o1, ChallengeODB o2) {
-                                                                  Date d1 = collect.get(o1).getLastSeen();
-                                                                  Date d2 = collect.get(o2).getLastSeen();
-                                                                  if (d1 == null)
-                                                                      return 1;
-                                                                  if (d2 == null)
-                                                                      return -1;
-
-                                                                  return -d1.compareTo(d2);
-                                                              }
-                                                          })
-                                                          .filter(c -> c.getChallengeStatus() == ChallengeStatus.ACTIVE)
-                                                          .findAny()
-                                                          .orElse(res.visibleChallenges.get(0)).getId();
-        }
-        return res;
-    }
 }
