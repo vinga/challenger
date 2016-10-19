@@ -1,6 +1,7 @@
 package com.kameo.challenger.domain.challenges
 
 import com.google.common.collect.Lists
+import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import lombok.Data
 
 

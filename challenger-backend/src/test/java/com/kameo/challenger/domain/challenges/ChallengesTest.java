@@ -1,14 +1,13 @@
-package com.kameo.challenger;
+package com.kameo.challenger.domain.challenges;
 
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
-import com.kameo.challenger.domain.challenges.ChallengeDAO;
+import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.domain.challenges.ChallengeODB;
-import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
-import com.kameo.challenger.domain.challenges.ChallengeStatus;
-import com.kameo.challenger.odb.UserODB;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
@@ -33,6 +32,7 @@ public class ChallengesTest implements En {
     @Inject
     private TestHelper testHelper;
 
+
     @Before
     public void recreateSchema() {
         testHelper.clearSchema();
@@ -40,7 +40,6 @@ public class ChallengesTest implements En {
 
 
     public ChallengesTest() {
-
 
         Given("^I have (\\d+) accepted challenge? with my friend$", (Integer arg1) -> {
             List<UserODB> users = testHelper.createUsers("myself", "myFriend");
@@ -110,16 +109,15 @@ public class ChallengesTest implements En {
             ChallengeODB chall = testHelper.resolveChallenge(ch);
 
 
+            long chalId = chall.getId();
 
-            long chalId=chall.getId();
+            Assert.assertTrue(challengerService.getPendingChallenges(user2.getId()).stream().anyMatch(cha -> cha.getLabel().equals(ch)));
 
-            Assert.assertTrue(challengerService.getPendingChallenges(user2.getId()).stream().anyMatch(cha->cha.getLabel().equals(ch)));
-
-            long user2Id=user2.getId();
+            long user2Id = user2.getId();
             Assert.assertEquals(ChallengeStatus.WAITING_FOR_ACCEPTANCE, chall.getChallengeStatus());
             anyDao.streamAll(ChallengeParticipantODB.class)
-                  .where(cp -> cp.getChallenge().getId() == chalId).forEach(cp -> {
-                if (cp.getUser().getId()==user2Id)
+                    .where(cp -> cp.getChallenge().getId() == chalId).forEach(cp -> {
+                if (cp.getUser().getId() == user2Id)
                     Assert.assertEquals(ChallengeStatus.WAITING_FOR_ACCEPTANCE, cp.getChallengeStatus());
                 else Assert.assertEquals(ChallengeStatus.ACTIVE, cp.getChallengeStatus());
             });

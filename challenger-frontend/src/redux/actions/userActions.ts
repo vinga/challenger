@@ -1,4 +1,4 @@
-import ajaxWrapper from "../../logic/AjaxWrapper.ts";
+ import ajaxWrapper from "../../logic/AjaxWrapper.ts";
 import {LOGIN_USER_REQUEST, LOGIN_USER_RESPONSE_SUCCESS, LOGIN_USER_RESPONSE_FAILURE} from "./actions.ts";
 import {fetchWebChallenges} from "./challengeActions";
 import {ReduxState} from "../ReduxState";

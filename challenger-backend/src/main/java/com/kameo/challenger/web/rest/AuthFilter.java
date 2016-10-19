@@ -1,7 +1,7 @@
 package com.kameo.challenger.web.rest;
 
 import com.kameo.challenger.config.ServerConfig;
-import com.kameo.challenger.logic.LoginLogic;
+import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.utils.ReflectionUtils;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
@@ -24,13 +24,13 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
     private final ChallengerSess myTokenInfo;
     private final Provider<MultiUserChallengerSess> multiTokenInfos;
-    private final LoginLogic loginLogic;
+    private final AccountDAO accountDao;
 
     @Inject
-    public AuthFilter(ChallengerSess myTokenInfo, Provider<MultiUserChallengerSess> multiTokenInfos, LoginLogic loginLogic) {
+    public AuthFilter(ChallengerSess myTokenInfo, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao) {
         this.myTokenInfo = myTokenInfo;
         this.multiTokenInfos = multiTokenInfos;
-        this.loginLogic = loginLogic;
+        this.accountDao = accountDao;
     }
 
 
@@ -65,7 +65,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     protected ChallengerSess createNewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
         String login = req.getParameter("login");
         String pass = req.getParameter("pass");
-        long userId = loginLogic.login(login, pass);
+        long userId = accountDao.login(login, pass);
         ChallengerSess td = new ChallengerSess();
         td.setUserId(userId);
         td.setExpires(new DateTime(DateUtils.addMinutes(new Date(), 15)));
@@ -74,7 +74,6 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
     @Override
     protected void setRequestScopeVariable(List<ChallengerSess> ti) {
-
 
         if (ti.size() == 1)
             ReflectionUtils.copy(ti.get(0), this.myTokenInfo);

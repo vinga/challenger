@@ -1,5 +1,6 @@
-package com.kameo.challenger.odb
+package com.kameo.challenger.domain.tasks.db
 
+import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.odb.api.IIdentity
 import java.util.*
 import javax.persistence.*

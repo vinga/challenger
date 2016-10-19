@@ -2,11 +2,11 @@ package com.kameo.challenger;
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.logic.FakeDataLogic;
-import com.kameo.challenger.domain.challenges.ChallengeODB;
-import com.kameo.challenger.domain.challenges.ChallengeStatus;
-import com.kameo.challenger.odb.UserODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java8.En;

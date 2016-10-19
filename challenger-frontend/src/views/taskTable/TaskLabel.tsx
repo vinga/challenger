@@ -6,9 +6,10 @@ import {AccountDTO} from "../../logic/domain/AccountDTO";
 import {ReduxState} from "../../redux/ReduxState";
 import {connect} from "react-redux";
 import TextInputDialog from "../common-components/TextInputDialog";
-import {updateTaskStatus} from "../../redux/actions/taskActions";
+import {updateTaskStatus, showTaskConversation} from "../../redux/actions/taskActions";
 import {TaskApprovalDTO} from "../../logic/domain/TaskApprovalDTO";
 import {UserDTO} from "../../logic/domain/UserDTO";
+import {ConversationDTO} from "../../logic/domain/ConversationDTO";
 
 const styles = {
     wrapper: {
@@ -25,6 +26,7 @@ const styles = {
 interface PropsFunc {
     onTaskAccept:(task:TaskDTO)=>void;
     onTaskReject:(task:TaskDTO, taskRejectReason:string)=>void;
+    onTaskConversationShow:(task: TaskDTO)=> void;
 }
 
 
@@ -69,7 +71,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
                             whiteSpace: "nowrap", textOverflow: "ellipsis"}}><b>K</b>: {this.props.taskDTO.taskApproval.rejectionReason}
                                     to jest dlugi komentarz limitowany jak dlugoo blah blah blah blah blah blah
                                 </div>
-                                <a style={{lineHeight:'16px', marginRight:'5px', color:'#444'}} className="fa fa-comment"/></div>
+                                <a style={{lineHeight:'16px', marginRight:'5px', color:'#444'}} className="fa fa-comment" onClick={()=>this.props.onTaskConversationShow(this.props.taskDTO)}/></div>
                         </div>
                         <div style={{flexBasis:'fit-content',  display:'flex'}}>
 
@@ -207,6 +209,9 @@ const mapDispatchToProps = (dispatch):any => {
                 rejectionReason: rejectionReason
             }
             dispatch(updateTaskStatus(taskApproval));
+        },
+        onTaskConversationShow: (task: TaskDTO) => {
+            dispatch(showTaskConversation(task));
         }
     }
 }

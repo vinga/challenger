@@ -1,5 +1,6 @@
 package com.kameo.challenger.utils.odb
 
+import com.kameo.challenger.odb.api.IIdentity
 import com.kameo.challenger.utils.odb.newapi.PathWrap
 import com.kameo.challenger.utils.odb.newapi.RootWrap
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,7 +31,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
         return getAll(clz.java, query);
     }
 
-    fun <E> getOne(clz: Class<E>, query: (RootWrap<E>) -> Unit): E {
+    fun <E> getFirst(clz: Class<E>, query: (RootWrap<E>) -> Unit): E? {
         val cb = em.criteriaBuilder
         val criteria = cb.createQuery(clz)
         val root = criteria.from(clz)
@@ -43,11 +44,24 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val jpaQuery = em.createQuery(criteria)
         jpaQuery.setMaxResults(1);
         var res = jpaQuery.resultList
-
-        return res.get(0);
+        if (res.isEmpty() || res.size>1)
+            return null;
+        return res.first();
+    }
+    fun <E> getOne(clz: Class<E>, query: (RootWrap<E>) -> Unit): E {
+       return getFirst(clz, query)?:throw IllegalArgumentException("Found 0 or ore than one results.");
     }
 
+    fun <E : Any> getFirst(clz: KClass<E>, query: (RootWrap<E>) -> Unit): E? {
+        return getFirst(clz.java, query);
+    }
     fun <E : Any> getOne(clz: KClass<E>, query: (RootWrap<E>) -> Unit): E {
         return getOne(clz.java, query);
     }
+
+    fun  <E: IIdentity> reload(e: E): E {
+        return em.find(e.javaClass,e.id)
+    }
 }
+
+

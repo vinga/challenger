@@ -1,4 +1,4 @@
-package com.kameo.challenger.odb;
+package com.kameo.challenger.domain.accounts.db;
 
 import java.io.Serializable;
 

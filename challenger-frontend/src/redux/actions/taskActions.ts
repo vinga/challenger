@@ -6,13 +6,14 @@ import {
     MARK_TASK_DONE_OPTIMISTIC,
     MODIFY_TASK_OPTIMISTIC,
     DELETE_TASK_OPTIMISTIC,
-    DISPLAY_REQUEST_IN_PROGRESS, MODIFY_TASK_REQUEST, TASK_PROGRESS_REQUEST
+    DISPLAY_REQUEST_IN_PROGRESS, MODIFY_TASK_REQUEST, TASK_PROGRESS_REQUEST, LOAD_CONVERSATION_RESPONSE
 } from "./actions";
 import {WebState} from "../../logic/domain/Common";
 import {ReduxState} from "../ReduxState";
 import {TaskProgressDTO} from "../../logic/domain/TaskProgressDTO";
 import {ChallengeDTO} from "../../logic/domain/ChallengeDTO";
 import {TaskApprovalDTO} from "../../logic/domain/TaskApprovalDTO";
+import {ConversationDTO} from "../../logic/domain/ConversationDTO";
 
 
 export function updateTask(task:TaskDTO) {
@@ -107,3 +108,10 @@ export function updateTaskStatus(taskApproval:TaskApprovalDTO) {
 }
 
 
+export function showTaskConversation(task:TaskDTO) {
+    return function (dispatch, getState: ()=>ReduxState) {
+        ajaxWrapper.getTaskConversation(task).then(
+            (taskConversation:ConversationDTO)=> dispatch(LOAD_CONVERSATION_RESPONSE.new(taskConversation))
+        );
+    }
+}

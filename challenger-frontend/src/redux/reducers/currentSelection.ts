@@ -1,11 +1,12 @@
 import {Action, isAction} from "../ReduxTask";
 import {
     INCREMENT_DAY, CHANGE_CHALLENGE, OPEN_EDIT_TASK, CLOSE_EDIT_TASK, DELETE_TASK_OPTIMISTIC,
-    LOGIN_USER_RESPONSE_SUCCESS
+    LOGIN_USER_RESPONSE_SUCCESS, LOAD_CONVERSATION_RESPONSE
 } from "../actions/actions";
 import {CurrentSelection} from "../ReduxState";
 import {TaskDTO} from "../../logic/domain/TaskDTO";
 import jwtDecode = require("jwt-decode");
+import {ConversationDTO} from "../../logic/domain/ConversationDTO";
 
 
 export default function currentSelection(state:CurrentSelection = { day: new Date() }, action: Action) {
@@ -33,6 +34,11 @@ export default function currentSelection(state:CurrentSelection = { day: new Dat
     } else if (isAction(action, LOGIN_USER_RESPONSE_SUCCESS)) {
         return Object.assign({}, state, {
             userId: jwtDecode(action.jwtToken).info.userId
+        })
+
+    } else if (isAction(action, LOAD_CONVERSATION_RESPONSE)) {
+        return Object.assign({}, state, {
+            displayedConversation: action
         })
 
     }

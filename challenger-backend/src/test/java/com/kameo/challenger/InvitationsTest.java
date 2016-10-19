@@ -4,12 +4,13 @@ package com.kameo.challenger;
 import com.google.common.collect.Lists;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.accounts.ConfirmationLinkLogic;
+import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
 import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.logic.ConfirmationLinkLogic;
-import com.kameo.challenger.domain.challenges.ChallengeODB;
-import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
-import com.kameo.challenger.domain.challenges.ChallengeStatus;
-import com.kameo.challenger.odb.UserODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.MailService;
 import com.kameo.challenger.utils.StringHelper;
@@ -31,6 +32,8 @@ public class InvitationsTest implements En {
     private AnyDAO anyDao;
     @Inject
     private ChallengerLogic challengerService;
+    @Inject
+    private ChallengeDAO challengerDao;
     @Inject
     private TestHelper testHelper;
     @Inject
@@ -60,7 +63,7 @@ public class InvitationsTest implements En {
 
 
 
-            challengerService.createNewChallenge(myself.getId(), cb);
+            challengerDao.createNewChallenge(myself.getId(), cb);
         });
 
 
@@ -105,7 +108,7 @@ public class InvitationsTest implements En {
             cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
 
 
-            challengerService.createNewChallenge(myself.getId(), cb);
+            challengerDao.createNewChallenge(myself.getId(), cb);
         });
 
         When("^I invite existing email contact to new challenge$", () -> {
@@ -122,7 +125,7 @@ public class InvitationsTest implements En {
             cpa2.setUser(UserODB.ofEmail(friendEmail));
             cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
 
-            challengerService.createNewChallenge(myself.getId(), cb);
+            challengerDao.createNewChallenge(myself.getId(), cb);
         });
 
         Then("^He gets email notification$", () -> {
@@ -138,7 +141,7 @@ public class InvitationsTest implements En {
 
         Given("^I received email invitation from my friend$", () -> {
             testHelper.createUsers("myFriend");
-            UserODB myFriend = anyDao.getOnlyOne(UserODB.class, u -> u.getLogin().equals("myFriend"));
+            UserODB myFriend = anyDao.getOnlyOne(UserODB.class, u -> "myFriend".equals(u.getLogin()));
             ChallengeODB cb = new ChallengeODB();
             ChallengeParticipantODB cpa1=new ChallengeParticipantODB();
             cpa1.setChallenge(cb);
@@ -148,7 +151,7 @@ public class InvitationsTest implements En {
             cpa2.setUser(UserODB.ofEmail("myself@email.em"));
             cb.setParticipants(Lists.newArrayList(cpa1, cpa2));
 
-            challengerService.createNewChallenge(myFriend.getId(), cb);
+            challengerDao.createNewChallenge(myFriend.getId(), cb);
         });
 
         When("^I accept email link$", () -> {
@@ -170,7 +173,7 @@ public class InvitationsTest implements En {
         );
 
         Then("^my friend challenge will be accepted$", () -> {
-            UserODB myself = testHelper.myself();
+
             UserODB myFriend = testHelper.myFriend();
 
             anyDao.getOnlyOne(ChallengeParticipantODB.class, cc ->

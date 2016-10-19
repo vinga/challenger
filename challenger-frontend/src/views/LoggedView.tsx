@@ -3,14 +3,17 @@ import TaskTable from "./taskTable/TaskTable.tsx";
 import {connect} from "react-redux";
 import {ReduxState} from "../redux/ReduxState";
 import ChallengeEditDialogWindow from "./taskEditWindow/ChallengeEditDialogWindow.tsx";
+import TaskConversation from "./conversation/TaskConversation.tsx";
 import {UserDTO} from "../logic/domain/UserDTO";
 import {AccountDTO} from "../logic/domain/AccountDTO";
+import {ConversationDTO} from "../logic/domain/ConversationDTO";
 
 interface Props {
     challengeSelected:boolean,
     taskIsEdited:boolean,
     userId:number,
-    accounts:Array<AccountDTO>;
+    accounts:Array<AccountDTO>,
+    displayedConversation?: ConversationDTO;
 }
 
 class LoggedView extends React.Component<Props,void> {
@@ -47,6 +50,11 @@ class LoggedView extends React.Component<Props,void> {
                 </div>
                 { this.props.taskIsEdited &&
                 <ChallengeEditDialogWindow/> }
+                {
+                    this.props.displayedConversation != null &&
+                        <TaskConversation conversation={this.props.displayedConversation}/>
+                }
+
 
             </div>);
     }
@@ -69,7 +77,8 @@ const mapStateToProps = (state:ReduxState):Props => {
         challengeSelected: state.challenges.selectedChallengeId != -1,
         taskIsEdited: state.currentSelection.editedTask != null,
         userId: state.currentSelection.userId,
-        accounts: accounts
+        accounts: accounts,
+        displayedConversation: state.currentSelection.displayedConversation
     }
 }
 

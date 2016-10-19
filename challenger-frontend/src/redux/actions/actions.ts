@@ -3,6 +3,7 @@ import {VisibleChallengesDTO} from "../../logic/domain/ChallengeDTO";
 import {ActionType} from "../ReduxTask";
 import {TaskDTOListForDay, TaskDTO} from "../../logic/domain/TaskDTO";
 import {TaskProgressDTO} from "../../logic/domain/TaskProgressDTO";
+import {ConversationDTO} from "../../logic/domain/ConversationDTO";
 
 
 export const INCREMENT_DAY: ActionType<{amount: number}> = new ActionType<any>('INCREMENT_DAY');
@@ -11,6 +12,7 @@ export const WEB_CHALLENGES_REQUEST: ActionType<{}> = new ActionType<any>('WEB_C
 export const WEB_CHALLENGES_RESPONSE: ActionType<{visibleChallenges: VisibleChallengesDTO}> = new ActionType<any>('WEB_CHALLENGES_RESPONSE');
 export const LOAD_TASKS_REQUEST: ActionType<{challengeId: number, day: Date}> = new ActionType<any>('LOAD_TASKS_REQUEST');
 export const LOAD_TASKS_RESPONSE: ActionType<TaskDTOListForDay> = new ActionType<any>('LOAD_TASKS_RESPONSE');
+export const LOAD_CONVERSATION_RESPONSE: ActionType<ConversationDTO> = new ActionType<any>('LOAD_CONVERSATION_RESPONSE');
 export const LOGIN_USER_REQUEST: ActionType<{login: string, password: string, primary:boolean}> = new ActionType<any>('LOGIN_USER_REQUEST');
 export const LOGIN_USER_RESPONSE_SUCCESS: ActionType<{login: string, jwtToken: string}> = new ActionType<any>('LOGIN_USER_RESPONSE_SUCCESS');
 export const LOGIN_USER_RESPONSE_FAILURE: ActionType<{login: string, textStatus: string, jqXHR : JQueryXHR, exception: any}> = new ActionType<any>('LOGIN_USER_RESPONSE_FAILURE');

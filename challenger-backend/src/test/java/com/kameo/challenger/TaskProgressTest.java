@@ -1,17 +1,16 @@
 package com.kameo.challenger;
 
 
-import com.google.common.collect.Sets;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.tasks.db.TaskODB;
+import com.kameo.challenger.domain.tasks.db.TaskProgressODB;
 import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.odb.*;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
-import cucumber.api.PendingException;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
-import org.apache.commons.lang.time.DateUtils;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
@@ -19,7 +18,6 @@ import org.springframework.test.context.ContextConfiguration;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @AutoConfigureDataJpa

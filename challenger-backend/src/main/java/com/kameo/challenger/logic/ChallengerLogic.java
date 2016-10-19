@@ -3,18 +3,17 @@ package com.kameo.challenger.logic;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.kameo.challenger.domain.challenges.ChallengeODB;
-import com.kameo.challenger.domain.challenges.ChallengeParticipantODB;
-import com.kameo.challenger.domain.challenges.ChallengeStatus;
-import com.kameo.challenger.odb.*;
+import com.kameo.challenger.domain.accounts.AccountDAO;
+import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
+import com.kameo.challenger.domain.tasks.db.*;
+import com.kameo.challenger.domain.tasks.*;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
-import com.kameo.challenger.utils.odb.EntityHelper;
-import lombok.Getter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jinq.jpa.JPAJinqStream;
 import org.jinq.jpa.JPQL;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
@@ -23,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -35,19 +33,16 @@ public class ChallengerLogic {
     @Inject
     private AnyDAO anyDao;
     @Inject
-    private LoginLogic loginLogic;
+    private AccountDAO accountDao;
 
-    @Inject
-    private ConfirmationLinkLogic confirmationLinkLogic;
 
     @Inject
     private TaskDAO taskDao;
 
 
     public List<TaskODB> getTasks(long callerId, long challengeId, Date date) {
-       return taskDao.getTasks(callerId, challengeId,date);
+        return taskDao.getTasks(callerId, challengeId, date);
     }
-
 
 
     // no permission checked
@@ -58,102 +53,19 @@ public class ChallengerLogic {
         if (taskIds.isEmpty())
             return Collections.emptyList();
         return anyDao.streamAll(TaskProgressODB.class)
-                     .where(tp ->
-                             taskIds.contains(tp.getTask().getId()) && tp.getProgressTime().equals(midnight)
-                     )
-                     .collect(Collectors.toList());
-    }
-
-
-
-
-    public void createNewChallenge(long userId, ChallengeODB cb) {
-
-
-        if (!cb.getParticipants().stream().anyMatch(cp -> cp.getUser().getId() == userId)) {
-            ChallengeParticipantODB cp = new ChallengeParticipantODB();
-            cp.setUser(new UserODB(userId));
-            cp.setChallenge(cb);
-            cp.setChallengeStatus(ChallengeStatus.ACTIVE);
-        }
-
-        UserODB challengeCreator = anyDao
-                .reload(cb.getParticipants().stream().filter(p -> p.getUser().getId() == userId).findAny().get()
-                          .getUser());
-        if (cb.getParticipants().size() == 1)
-            throw new IllegalArgumentException();
-        List<ChallengeParticipantODB> cpToSendEmails = Lists.newArrayList();
-        for (ChallengeParticipantODB cp : cb.getParticipants()) {
-            UserODB u = cp.getUser();
-            // creator has accepted challenge by default
-            if (u.getId() == userId) {
-                cp.setChallengeStatus(ChallengeStatus.ACTIVE);
-                continue;
-            }
-            cp.setChallengeStatus(ChallengeStatus.WAITING_FOR_ACCEPTANCE);
-            if (u.isNew()) {
-                if (u.getEmail() == null)
-                    throw new IllegalArgumentException("Either second user id or second  user email must be provided");
-                Optional<UserODB> osecond = findUserByEmail(u.getEmail());
-
-
-                if (osecond.isPresent()) {
-                    cp.setUser(osecond.get());
-
-                } else {
-                    UserODB user = loginLogic.createPendingUserWithEmailOnly(cb);
-                    cp.setUser(user);
-                }
-                cpToSendEmails.add(cp);
-            }
-        }
-        if (Strings.isNullOrEmpty(cb.getLabel())) {
-            String newLabel = cb.getParticipants().stream()
-                                .map(p -> p.getUser().getLoginOrEmail())
-                                .collect(Collectors.joining(", ")).toLowerCase();
-            cb.setLabel(newLabel);
-        }
-        cb.setChallengeStatus(ChallengeStatus.WAITING_FOR_ACCEPTANCE);
-        cb.setCreatedBy(challengeCreator);
-        anyDao.getEm().persist(cb);
-        for (ChallengeParticipantODB cp : cb.getParticipants()) {
-            anyDao.getEm().persist(cp);
-            if (cpToSendEmails.contains(cp)) {
-                confirmationLinkLogic.createAndSendChallengeConfirmationLink(cb, cp);
-            }
-        }
-
-
+                .where(tp ->
+                        taskIds.contains(tp.getTask().getId()) && tp.getProgressTime().equals(midnight)
+                )
+                .collect(Collectors.toList());
     }
 
 
     public List<ChallengeODB> getPendingChallenges(long userId) {
         return anyDao.streamAll(ChallengeParticipantODB.class).where(cp -> cp.getUser().getId() == userId && cp
                 .getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                     .select(cp -> cp.getChallenge()).collect(Collectors.toList());
+                .select(cp -> cp.getChallenge()).collect(Collectors.toList());
     }
 
-  /*  public void createNewChallengeAction(long userId, TaskODB ca) {
-        ChallengeODB cc = ca.getChallenge();
-        ChallengeODB ccDB = anyDao.reload(cc);
-        if (ca.getIcon() == null)
-            ca.setIcon("fa-car");
-        if (ca.getUser() != null && ca.getUser().getId() != ccDB.getFirst().getId() && ca.getUser().getId() != ccDB
-                .getSecond().getId())
-            throw new RuntimeException("Unauthorized");
-        if (ccDB.getFirst().getId() != userId && ccDB.getSecond().getId() != userId)
-            throw new RuntimeException("Unauthorized");
-
-        if (ca.getUser() == null || ca.getUser().getId() != userId)
-            ca.setActionStatus(ActionStatus.waiting_for_acceptance);
-        else if (ca.getActionStatus() == null)
-            ca.setActionStatus(ActionStatus.pending);
-        ca.setCreatedByUser(new UserODB(userId));
-        anyDao.getEm().persist(ca);
-
-
-    }
-*/
 
     public List<String> findUsersWithLoginsStartingWith(String friend) {
         return anyDao.streamAll(UserODB.class).where(u ->
@@ -161,35 +73,20 @@ public class ChallengerLogic {
         ).map(u -> u.getLogin()).sorted().collect(Collectors.toList());
     }
 
-    private Optional<UserODB> findUserByEmail(String email) {
-        return anyDao.getOne(UserODB.class, u -> u.getEmail().equals(email));
-    }
-
 
     public List<TaskODB> getWaitingForAcceptanceTasksForConctract(long userId, long contractId) {
         return anyDao.streamAll(TaskODB.class)
-                     .where(ca -> ca.getChallenge().getId() == contractId &&
-                             ca.getUser().getId() == userId &&
-                             ca.getTaskStatus() == TaskStatus.waiting_for_acceptance &&
-                             ca.getChallenge().getChallengeStatus() == ChallengeStatus.ACTIVE)
-                     .filter(ca ->
-                             ca.getTaskType() != TaskType.onetime ||
-                                     ca.getTaskType() == TaskType.onetime &&
-                                             new DateTime(ca.getDueDate()).isAfterNow())
-                     .collect(Collectors.toList());
+                .where(ca -> ca.getChallenge().getId() == contractId &&
+                        ca.getUser().getId() == userId &&
+                        ca.getTaskStatus() == TaskStatus.waiting_for_acceptance &&
+                        ca.getChallenge().getChallengeStatus() == ChallengeStatus.ACTIVE)
+                .filter(ca ->
+                        ca.getTaskType() != TaskType.onetime ||
+                                ca.getTaskType() == TaskType.onetime &&
+                                        new DateTime(ca.getDueDate()).isAfterNow())
+                .collect(Collectors.toList());
     }
 
-
-    private void updateChallengeLastSeen(long callerId, long challengeId) {
-
-        ChallengeParticipantODB cpa = anyDao.streamAll(ChallengeParticipantODB.class)
-                                            .where(cp -> cp.getUser().getId() == callerId && cp.getChallenge()
-                                                                                               .getId() == challengeId)
-                                            .getOnlyValue();
-        cpa.setLastSeen(new Date());
-        anyDao.getEm().merge(cpa);
-
-    }
 
     public TaskODB updateTask(long callerId, TaskODB taskODB) {
         if (taskODB.getId() > 0) {
@@ -197,7 +94,7 @@ public class ChallengerLogic {
             if (caDB.getUser().getId() != callerId && caDB.getCreatedByUser().getId() != callerId)
                 throw new IllegalArgumentException();
             boolean isSelfCreatedForMyself = caDB.getCreatedByUser().getId() == caDB.getUser().getId() && caDB.getUser()
-                                                                                                              .getId() == callerId;
+                    .getId() == callerId;
             // moge modyfikowac tylko swoje stworzone przez siebie i dla siebie
             if (!isSelfCreatedForMyself) {
                 throw new IllegalArgumentException("Cannot modify action that is not waiting for acceptance ");
@@ -246,9 +143,9 @@ public class ChallengerLogic {
             throw new IllegalArgumentException();
         System.out.println("MARK DONE " + done);
         Optional<TaskProgressODB> otp = anyDao.streamAll(TaskProgressODB.class)
-                                              .where(t -> t.getTask().getId() == taskId)
-                                              .where(t -> t.getProgressTime().equals(dayMidnight))
-                                              .findAny();
+                .where(t -> t.getTask().getId() == taskId)
+                .where(t -> t.getProgressTime().equals(dayMidnight))
+                .findAny();
 
         if (otp.isPresent()) {
             otp.get().setDone(done);
@@ -273,8 +170,8 @@ public class ChallengerLogic {
 
         long taskId = task.getId();
         anyDao.streamAll(TaskProgressODB.class)
-              .where(t -> t.getTask().getId() == taskId)
-              .forEach(tp -> anyDao.getEm().remove(tp));
+                .where(t -> t.getTask().getId() == taskId)
+                .forEach(tp -> anyDao.getEm().remove(tp));
         anyDao.getEm().remove(task);
 
     }
@@ -284,18 +181,18 @@ public class ChallengerLogic {
             throw new IllegalArgumentException();
 
         ChallengeParticipantODB cpb = anyDao.streamAll(ChallengeParticipantODB.class)
-                                            .where(cp -> cp.getUser().getId() == callerId &&
-                                                    cp.getChallenge().getId() == challengeId &&
-                                                    cp.getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                                            .findOne().get();
+                .where(cp -> cp.getUser().getId() == callerId &&
+                        cp.getChallenge().getId() == challengeId &&
+                        cp.getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE)
+                .findOne().get();
 
         cpb.setChallengeStatus(status);
         anyDao.getEm().merge(cpb);
         ChallengeODB challenge = cpb.getChallenge();
         long active = challenge.getParticipants().stream()
-                               .filter(cp -> cp.getChallengeStatus() == ChallengeStatus.ACTIVE).count();
+                .filter(cp -> cp.getChallengeStatus() == ChallengeStatus.ACTIVE).count();
         long refused = challenge.getParticipants().stream()
-                                .filter(cp -> cp.getChallengeStatus() == ChallengeStatus.REFUSED).count();
+                .filter(cp -> cp.getChallengeStatus() == ChallengeStatus.REFUSED).count();
 
 
         if (active == challenge.getParticipants().size()) {
@@ -311,8 +208,8 @@ public class ChallengerLogic {
     public TaskODB changeTaskStatus(long taskId, Set<Long> userIds, TaskStatus taskStatus, String rejectionReason) {
 //TODO check challenge permissions
         List<TaskApprovalODB> existingApprovals = anyDao.streamAll(TaskApprovalODB.class)
-                                                        .where(ta -> ta.getTask().getId() == taskId)
-                                                        .collect(Collectors.toList());
+                .where(ta -> ta.getTask().getId() == taskId)
+                .collect(Collectors.toList());
 
 
         TaskODB task = anyDao.get(TaskODB.class, taskId);
@@ -322,13 +219,13 @@ public class ChallengerLogic {
             throw new IllegalArgumentException();
         if (taskStatus == TaskStatus.rejected && Strings.isNullOrEmpty(rejectionReason))
             throw new IllegalArgumentException();
-        if (task.getTaskStatus()!=TaskStatus.waiting_for_acceptance)
+        if (task.getTaskStatus() != TaskStatus.waiting_for_acceptance)
             throw new IllegalArgumentException();
 
 
         boolean userIdsAreChallengeParticipants = challenge.getParticipants().stream().map(cp -> cp.getUser().getId())
-                                                           .collect(Collectors.toSet())
-                                                           .containsAll(userIds);
+                .collect(Collectors.toSet())
+                .containsAll(userIds);
         if (!userIdsAreChallengeParticipants)
             throw new IllegalArgumentException();
 
@@ -336,8 +233,8 @@ public class ChallengerLogic {
         challenge.getParticipants().stream().map(cp -> cp.getUser()).forEach(u -> {
             if (userIds.contains(u.getId())) {
                 Optional<TaskApprovalODB> ota = existingApprovals.stream()
-                                                                 .filter(ta -> ta.getUser().getId() == u.getId())
-                                                                 .findAny();
+                        .filter(ta -> ta.getUser().getId() == u.getId())
+                        .findAny();
                 if (ota.isPresent()) {
                     TaskApprovalODB ta = ota.get();
                     ta.setRejectionReason(rejectionReason);
@@ -355,13 +252,13 @@ public class ChallengerLogic {
 
             }
         });
-        if (taskStatus==TaskStatus.rejected) {
+        if (taskStatus == TaskStatus.rejected) {
             task.setTaskStatus(TaskStatus.rejected);
             anyDao.getEm().merge(task);
         }
 
         boolean allParticipantsAccepted = existingApprovals.stream().filter(ta -> ta.getTaskStatus() == TaskStatus.accepted)
-                                     .count() == challenge.getParticipants().size();
+                .count() == challenge.getParticipants().size();
 
         if (allParticipantsAccepted) {
             task.setTaskStatus(TaskStatus.accepted);
@@ -372,13 +269,10 @@ public class ChallengerLogic {
 
     public List<TaskApprovalODB> getTasksApprovalForRejectedTasks(List<TaskODB> tasks) {
         List<Long> rejectedTaskIds = tasks.stream().filter(t -> t.getTaskStatus() == TaskStatus.rejected).map(t -> t.getId()).collect(Collectors.toList());
-        if(rejectedTaskIds.isEmpty())
+        if (rejectedTaskIds.isEmpty())
             return Lists.newArrayList();
-        return anyDao.streamAll(TaskApprovalODB.class).where(ta->rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected).collect(Collectors.toList());
+        return anyDao.streamAll(TaskApprovalODB.class).where(ta -> rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected).collect(Collectors.toList());
     }
-
-
-
 
 
 }

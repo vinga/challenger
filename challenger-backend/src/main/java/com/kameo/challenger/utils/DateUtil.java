@@ -5,6 +5,19 @@ import java.util.Date;
 
 public class DateUtil {
 
+    public static Date addDays(Date from, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(from);
+        cal.add(Calendar.DATE, days);
+        return cal.getTime();
+    }
+    public static Date addHours(Date from, int h) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(from);
+        cal.add(Calendar.HOUR_OF_DAY, h);
+        return cal.getTime();
+    }
+
     public static java.util.Date getMidnight(Date d) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(d);

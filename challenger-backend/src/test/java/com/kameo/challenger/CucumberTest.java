@@ -8,5 +8,4 @@ import org.junit.runner.RunWith;
 @CucumberOptions(features = "classpath:cucumber")
 public class CucumberTest {
 
-
 }

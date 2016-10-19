@@ -157,6 +157,14 @@ class AjaxWrapper {
         });
     }
 
+    getTaskConversation(task: TaskDTO) {
+       return $.ajax({
+            url: this.baseUrl + "/conversation/"+task.id,
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        });
+    }
 }
 const ajaxWrapper=new AjaxWrapper();
 export default ajaxWrapper;

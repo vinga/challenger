@@ -1,4 +1,4 @@
-package com.kameo.challenger.utils;
+package com.kameo.challenger.domain.accounts;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

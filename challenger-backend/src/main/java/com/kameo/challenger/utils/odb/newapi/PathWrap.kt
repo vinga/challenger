@@ -1,5 +1,6 @@
 package com.kameo.challenger.utils.odb.newapi
 
+import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.utils.odb.AnyDAO
 import javax.persistence.criteria.CriteriaBuilder
 import javax.persistence.criteria.Path
@@ -111,14 +112,13 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
         return this;
     }
 
-    /*    fun <F> eq2(sa: KPro<E,F>, f: F): PathWrap<E> {
-            arr.add({cb.equal(root.get<Path<F>>(sa.prop.name),f)});
-            return this;
-        }*/
+
+
     fun <F> eq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E> {
         arr.add({ cb.equal(root.get<Path<F>>(sa.name), f) });
         return this;
     }
+
 
     /*    fun <F> eq4(sa: KProperty1<E,F>, f: F): PathWrap<E> {
             arr.add({cb.equal(root.get<Path<F>>(sa.name),f)});
@@ -142,12 +142,17 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
         arr.add({ cb.greaterThan(root.get(sa.name), f) });
         return this;
     }
-    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F> {
+     fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F> {
         return PathWrap(cb, root.get(sa), arr);
     }
 
     infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F> {
         return PathWrap(cb, root.get(sa.name), arr);
+    }
+
+
+    operator fun  <F> rangeTo(sa: KMutableProperty1<E, F>): PathWrap<F> {
+        return get(sa);
     }
 
     fun eqIdToPred(id: Long): Predicate {

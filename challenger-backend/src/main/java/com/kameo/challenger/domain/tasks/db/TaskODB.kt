@@ -1,21 +1,23 @@
-package com.kameo.challenger.odb
+package com.kameo.challenger.domain.tasks.db
 
-import com.kameo.challenger.domain.challenges.ChallengeODB
+import com.kameo.challenger.domain.accounts.db.UserODB
+import com.kameo.challenger.domain.challenges.db.ChallengeODB
+import com.kameo.challenger.domain.tasks.db.TaskStatus
+import com.kameo.challenger.domain.tasks.db.TaskType
 import com.kameo.challenger.odb.api.IIdentity
 import java.util.*
 import javax.persistence.*
-import javax.validation.constraints.NotNull
 
 @Entity
-data class TaskODB( @Id
-                    @GeneratedValue(strategy= javax.persistence.GenerationType.AUTO)
-                    override var id:Long=0) : IIdentity {
+data class TaskODB(@Id
+                   @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+                   override var id: Long = 0) : IIdentity {
 
 
     @Enumerated
     lateinit var taskType: TaskType;
 
-    var difficulty: Int=0;
+    var difficulty: Int = 0;
 
     lateinit var label: String;
 
@@ -31,7 +33,6 @@ data class TaskODB( @Id
 
     @ManyToOne
     lateinit var challenge: ChallengeODB;
-
 
 
     var icon: String? = null

@@ -1,12 +1,27 @@
 package com.kameo.challenger.web.rest.api;
 
-import com.kameo.challenger.odb.*;
+import com.kameo.challenger.domain.tasks.db.*;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.Optional;
 
 public interface IChallengerService {
+
+    @Data
+    class ConversationDTO {
+        long taskId;
+        PostDTO[] posts;
+
+        @Data
+        public static class PostDTO {
+            long id;
+            long authorId;
+            String content;
+            long sentDate;
+            long taskId;
+        }
+    }
 
     @Data
     class TaskProgressDTO {
@@ -57,7 +72,7 @@ public interface IChallengerService {
         Boolean deleted;
         TaskApprovalDTO taskApproval;
 
-        public TaskDTO fromOdb(TaskODB odb) {
+        public static TaskDTO fromOdb(TaskODB odb) {
             TaskDTO ca = new TaskDTO();
             ca.id = odb.getId();
             ca.label = odb.getLabel();

@@ -1,5 +1,6 @@
+@accounts
 Feature:Login
-  As an challenger user
+  As a challenger user
   I want to safely login to application
   so I can access reserved resources
 
@@ -30,3 +31,11 @@ Feature:Login
     But I not confirmed it yet
     When I register with that email
     Then I have to confirm my email before I can login succesfully
+
+  Scenario: I want to reset my password
+    Given I am existing challenger user
+    When I put my email into reset password option
+    Then I received email with password reset link
+    And I click on password reset link
+    Then I can set my new password
+

@@ -1,17 +1,14 @@
-package com.kameo.challenger.odb
+package com.kameo.challenger.domain.accounts.db
 
 import com.kameo.challenger.odb.api.IIdentity
-import javax.persistence.Entity
-import javax.persistence.Enumerated
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.validation.constraints.NotNull
+import java.util.*
+import javax.persistence.*
 
 
 @Entity
 data class ConfirmationLinkODB(@Id
                                @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
-                               override var id: Long = 0):IIdentity {
+                               override var id: Long = 0) : IIdentity {
 
 
     lateinit var uid: String;
@@ -24,4 +21,8 @@ data class ConfirmationLinkODB(@Id
     var fieldSalt: String? = null
     var email: String? = null
     var challengeId: Long? = null
+    @Temporal(TemporalType.TIMESTAMP)
+    val sysCreationDate:Date= Date();
+    @ManyToOne
+    var user: UserODB?=null;
 }

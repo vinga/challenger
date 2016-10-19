@@ -1,4 +1,4 @@
-package com.kameo.challenger.odb;
+package com.kameo.challenger.domain.accounts.db;
 
 import java.io.Serializable;
 
@@ -7,5 +7,6 @@ import java.io.Serializable;
  */
 public enum ConfirmationLinkType implements Serializable {
     EMAIL_CONFIRMATION,
-    CHALLENGE_CONTRACT_CONFIRMATION
+    CHALLENGE_CONTRACT_CONFIRMATION,
+    PASSWORD_RESET
 }

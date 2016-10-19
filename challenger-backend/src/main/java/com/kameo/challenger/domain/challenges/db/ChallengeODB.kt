@@ -1,12 +1,9 @@
-package com.kameo.challenger.domain.challenges
+package com.kameo.challenger.domain.challenges.db
 
 import com.google.common.collect.Lists
-import com.kameo.challenger.domain.challenges.ChallengeParticipantODB
-import com.kameo.challenger.domain.challenges.ChallengeStatus
-import com.kameo.challenger.odb.UserODB
+import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.odb.api.IIdentity
 import javax.persistence.*
-import javax.validation.constraints.NotNull
 
 @Entity
 data class ChallengeODB(@Id
@@ -15,11 +12,11 @@ data class ChallengeODB(@Id
 
     var label: String? = null
 
-    @ManyToOne
-    lateinit var createdBy: UserODB;
+    @ManyToOne(targetEntity = UserODB::class)
+    lateinit var createdBy: UserODB
 
     @Enumerated
-    lateinit var challengeStatus: ChallengeStatus;
+    lateinit var challengeStatus: ChallengeStatus
 
     @OneToMany(mappedBy = "challenge")
     var participants: List<ChallengeParticipantODB> = Lists.newArrayList<ChallengeParticipantODB>()
