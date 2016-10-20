@@ -13,13 +13,13 @@ data class TaskApprovalODB(@Id
                            override var id: Long = 0) : IIdentity {
 
     @ManyToOne
-    lateinit var task: TaskODB;
+    lateinit var task: TaskODB
 
     @ManyToOne
-    lateinit var user: UserODB;
+    lateinit var user: UserODB
 
     @Enumerated
-    lateinit var taskStatus: TaskStatus;
+    lateinit var taskStatus: TaskStatus
 
     var rejectionReason: String? = null
 }

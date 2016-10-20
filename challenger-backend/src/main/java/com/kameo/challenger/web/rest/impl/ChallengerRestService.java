@@ -131,7 +131,7 @@ public class ChallengerRestService implements IChallengerService {
         List<TaskDTO> taskDTOs = tasks.stream().sorted(IIdentity.Meta::compare).map(TaskDTO::fromOdb).collect(Collectors.toList());
 
 
-        taskApprovalODBs.stream().forEach(taskApprovalODB ->
+        taskApprovalODBs.forEach(taskApprovalODB ->
                 taskDTOs.stream().filter(taskDTO -> taskDTO.getId() == taskApprovalODB.getTask().getId())
                         .forEach(taskDTO ->
                                 taskDTO.setTaskApproval(TaskApprovalDTO.fromODBtoDTO(taskApprovalODB))));

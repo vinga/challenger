@@ -8,9 +8,8 @@ public class ReflectionUtils {
     /**
      * Copies properites of SRC to DST
      */
-    public static <SRC, DST> DST copy(SRC f, DST e) {
+    public static <SRC, DST> void copy(SRC f, DST e) {
         BeanUtils.copyProperties(f, e);
-        return e;
     }
 
 

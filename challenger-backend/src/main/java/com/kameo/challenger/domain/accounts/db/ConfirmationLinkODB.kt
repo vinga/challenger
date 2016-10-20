@@ -11,10 +11,10 @@ data class ConfirmationLinkODB(@Id
                                override var id: Long = 0) : IIdentity {
 
 
-    lateinit var uid: String;
+    lateinit var uid: String
 
     @Enumerated
-    lateinit var confirmationLinkType: ConfirmationLinkType;
+    lateinit var confirmationLinkType: ConfirmationLinkType
 
     var fieldLogin: String? = null
     var fieldPasswordHash: String? = null
@@ -22,7 +22,7 @@ data class ConfirmationLinkODB(@Id
     var email: String? = null
     var challengeId: Long? = null
     @Temporal(TemporalType.TIMESTAMP)
-    val sysCreationDate:Date= Date();
+    val sysCreationDate:Date= Date()
     @ManyToOne
-    var user: UserODB?=null;
+    var user: UserODB?=null
 }

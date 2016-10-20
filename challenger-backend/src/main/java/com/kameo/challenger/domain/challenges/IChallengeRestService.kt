@@ -7,7 +7,7 @@ import lombok.Data
 
 interface IChallengeRestService {
 
-    fun getVisibleChallenges(): IChallengeRestService.VisibleChallengesDTO;
+    fun getVisibleChallenges(): IChallengeRestService.VisibleChallengesDTO
 
     @Data
     class UserLabelDTO(val id: Long,
@@ -30,7 +30,7 @@ interface IChallengeRestService {
             var myId: Long = 0
 
             fun setCallerId(callerId: Long) {
-                myId=callerId;
+                myId=callerId
                 userLabels.sortBy { if (it.id==callerId) "A" else "Z"+it.label }
             }
             companion object {
@@ -42,7 +42,7 @@ interface IChallengeRestService {
                             creatorId = c.createdBy.id,
                             userLabels = c.participants.map({ cp -> cp.user })
                                     .map({ u -> UserLabelDTO(u.id, u.getLoginOrEmail(), u.login) })
-                                    .toTypedArray());
+                                    .toTypedArray())
                     return co
                 }
             }

@@ -25,9 +25,7 @@ public class ComparisionHelper {
 		boolean ok2 = a.getClass().isAssignableFrom(b.getClass());
 		if (ok1 || ok2) {
 			IIdentity bi = (IIdentity) b;
-			if (a.getId() <= 0)
-				return false;
-			return a.getId() == bi.getId();
+			return a.getId() > 0 && a.getId() == bi.getId();
 		}
 		return false;
 	}
@@ -36,12 +34,10 @@ public class ComparisionHelper {
 		if (a == b) {
 			return true;
 		}
-		if (a == null || b == null)
-			return false;		
-		return a.equals(b);
+		return !(a == null || b == null) && a.equals(b);
 	}
 
-	public static Integer compareNullSafe(Comparable a, Comparable b) {
+	public static <E extends Comparable<E>> Integer compareNullSafe(E a, E b) {
 		if (a == null)
 			return 1;
 		if (b == null)
@@ -56,18 +52,14 @@ public class ComparisionHelper {
 	}
 
 	public static Comparator<IIdentity> createComparator() {
-		return new Comparator<IIdentity>() {
-
-
-			public int compare(IIdentity arg0, IIdentity arg1) {
-				if (arg0.getId() > arg1.getId())
-					return 1;
-				else if (arg0.getId() == arg1.getId())
-					return 0;
-				else
-					return -1;
-			}
-		};
+		return (arg0, arg1) -> {
+            if (arg0.getId() > arg1.getId())
+                return 1;
+            else if (arg0.getId() == arg1.getId())
+                return 0;
+            else
+                return -1;
+        };
 	}
 
 	public static int compare(int a, int b) {
@@ -79,14 +71,6 @@ public class ComparisionHelper {
 			return 0;
 	}
 
-	public static int compare(Integer a, Integer b) {
-		if (a > b)
-			return 1;
-		else if (a < b)
-			return -1;
-		else
-			return 0;
-	}
 
 	public static int compare(long a, long b) {
 		if (a > b)
@@ -97,7 +81,7 @@ public class ComparisionHelper {
 			return 0;
 	}
 
-	public static int multiCompare(Comparable a, Comparable b, Comparable c, Comparable d) {
+	public static <E extends Comparable<E>> int multiCompare(E a, E b, E c, E d) {
 		int i = a.compareTo(b);
 		if (i == 0)
 			return c.compareTo(d);

@@ -20,9 +20,6 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Created by kmyczkowska on 2016-09-02.
- */
 @Component
 @Transactional
 public class ConfirmationLinkLogic {

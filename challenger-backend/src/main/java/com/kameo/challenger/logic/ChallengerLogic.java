@@ -49,7 +49,7 @@ public class ChallengerLogic {
     public List<TaskProgressODB> getTaskProgress(List<TaskODB> tasks, Date day) {
         Date midnight = DateUtil.getMidnight(day);
 
-        List<Long> taskIds = tasks.stream().map(t -> t.getId()).collect(Collectors.toList());
+        List<Long> taskIds = tasks.stream().map(TaskODB::getId).collect(Collectors.toList());
         if (taskIds.isEmpty())
             return Collections.emptyList();
         return anyDao.streamAll(TaskProgressODB.class)
@@ -63,14 +63,14 @@ public class ChallengerLogic {
     public List<ChallengeODB> getPendingChallenges(long userId) {
         return anyDao.streamAll(ChallengeParticipantODB.class).where(cp -> cp.getUser().getId() == userId && cp
                 .getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                .select(cp -> cp.getChallenge()).collect(Collectors.toList());
+                     .select(ChallengeParticipantODB::getChallenge).collect(Collectors.toList());
     }
 
 
     public List<String> findUsersWithLoginsStartingWith(String friend) {
         return anyDao.streamAll(UserODB.class).where(u ->
                 JPQL.like(u.getLogin(), friend + "%")
-        ).map(u -> u.getLogin()).sorted().collect(Collectors.toList());
+        ).map(UserODB::getLogin).sorted().collect(Collectors.toList());
     }
 
 
@@ -230,7 +230,7 @@ public class ChallengerLogic {
             throw new IllegalArgumentException();
 
 
-        challenge.getParticipants().stream().map(cp -> cp.getUser()).forEach(u -> {
+        challenge.getParticipants().stream().map(ChallengeParticipantODB::getUser).forEach(u -> {
             if (userIds.contains(u.getId())) {
                 Optional<TaskApprovalODB> ota = existingApprovals.stream()
                         .filter(ta -> ta.getUser().getId() == u.getId())
@@ -268,7 +268,7 @@ public class ChallengerLogic {
     }
 
     public List<TaskApprovalODB> getTasksApprovalForRejectedTasks(List<TaskODB> tasks) {
-        List<Long> rejectedTaskIds = tasks.stream().filter(t -> t.getTaskStatus() == TaskStatus.rejected).map(t -> t.getId()).collect(Collectors.toList());
+        List<Long> rejectedTaskIds = tasks.stream().filter(t -> t.getTaskStatus() == TaskStatus.rejected).map(TaskODB::getId).collect(Collectors.toList());
         if (rejectedTaskIds.isEmpty())
             return Lists.newArrayList();
         return anyDao.streamAll(TaskApprovalODB.class).where(ta -> rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected).collect(Collectors.toList());

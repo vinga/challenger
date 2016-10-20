@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.odb;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -10,13 +9,28 @@ import org.hibernate.Hibernate;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.SingularAttribute;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class EntityHelper {
 
@@ -75,14 +89,11 @@ public class EntityHelper {
 		Method gmethod = getGetterMethod(se);
 		for (E e : col) {
 			try {
-				F f = (F) gmethod.invoke(e);
+				@SuppressWarnings("unchecked") F f = (F) gmethod.invoke(e);
 				if (f != null) {
 					res.add(f);
 				}
-			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IllegalArgumentException e1) {
+			} catch (IllegalAccessException | IllegalArgumentException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (InvocationTargetException e1) {
@@ -109,9 +120,7 @@ public class EntityHelper {
 
 		try {
 			getterMethod = jt.getMethod(getterMethodString);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
+		} catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
 		}
 		return getterMethod;
@@ -123,9 +132,7 @@ public class EntityHelper {
 
 		try {
 			setterMethod = jt.getMethod(setterMethodString, parameterTypes);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
+		} catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
 		}
 		return setterMethod;
@@ -133,7 +140,7 @@ public class EntityHelper {
 
 
 	public static List<Predicate> newPredicates() {
-		return new ArrayList<Predicate>();
+		return new ArrayList<>();
 	}
 	public static <E extends IIdentity> Optional<E> get(Collection<E> col, long id ) {
 		for (E e: col) {
@@ -143,7 +150,7 @@ public class EntityHelper {
 		return Optional.<E>empty();
 	}
 	public static <E extends IIdentity> List<E> getAll(Collection<E> col,Collection<Long> ids ) {
-		List<E> list=new ArrayList<E>();
+		List<E> list= new ArrayList<>();
 		for (E e: col) {
 			if (ids.contains(e.getId()))
 				list.add(e);
@@ -303,25 +310,21 @@ public class EntityHelper {
 	}
 
 	public static Set<Long> toIdSet(Collection<? extends IIdentity> col) {
-		Set<Long> set = new HashSet<Long>();
+		Set<Long> set = new HashSet<>();
 		if (col != null)
-			for (IIdentity i : col) {
-				set.add(i.getId());
-			}
+			set.addAll(col.stream().map((Function<IIdentity, Long>) IIdentity::getId).collect(Collectors.toList()));
 		return set;
 	}
 
 	public static List<Long> toIdList(Collection<? extends IIdentity> col) {
-		List<Long> set = new ArrayList<Long>();
+		List<Long> set = new ArrayList<>();
 		if (col != null)
-			for (IIdentity i : col) {
-				set.add(i.getId());
-			}
+			set.addAll(col.stream().map((Function<IIdentity, Long>) IIdentity::getId).collect(Collectors.toList()));
 		return set;
 	}
 
 	public static <E extends IIdentity> Map<Long, E> toMap(Collection<E> col) {
-		Map<Long, E> set = new HashMap<Long, E>();
+		Map<Long, E> set = new HashMap<>();
 		for (E i : col) {
 			set.put(i.getId(), i);
 		}
@@ -329,23 +332,17 @@ public class EntityHelper {
 	}
 
 	public static <F, E> Set<F> toSet(Collection<E> col, Function<E, F> y) {
-		Set<F> set = new HashSet<F>();
-		for (E i : col) {
-			set.add(y.apply(i));
-		}
+		Set<F> set = col.stream().map(y).collect(Collectors.toSet());
 		return set;
 	}
 
 	public static <F, E> List<F> toList(Collection<E> col, Function<E, F> y) {
-		List<F> list = new ArrayList<F>();
-		for (E i : col) {
-			list.add(y.apply(i));
-		}
+		List<F> list = col.stream().map(y).collect(Collectors.toList());
 		return list;
 	}
 
 	public static <F, E> Map<F, E> toMap(Collection<E> col, Function<E, F> y) {
-		Map<F, E> set = new HashMap<F, E>();
+		Map<F, E> set = new HashMap<>();
 		for (E i : col) {
 			set.put(y.apply(i), i);
 		}
@@ -391,10 +388,7 @@ public class EntityHelper {
 	}
 
 	public static <E> Set<Long> filter(Collection<E> col, YieldLong<E> y) {
-		Set<Long> set = new HashSet<Long>();
-		for (E i : col) {
-			set.add(y.yield(i));
-		}
+		Set<Long> set = col.stream().map(y::yield).collect(Collectors.toSet());
 		return set;
 	}
 
@@ -435,12 +429,7 @@ public class EntityHelper {
 	}
 
 	public static void sort(List<? extends IIdentity> list) {
-		Collections.sort(list, new Comparator<IIdentity>() {
-
-			public int compare(IIdentity o1, IIdentity o2) {
-				return ComparisionHelper.compare(o1.getId(), o2.getId());
-			}
-		});
+		Collections.sort(list, (Comparator<IIdentity>) (o1, o2) -> ComparisionHelper.compare(o1.getId(), o2.getId()));
 	}
 
 

@@ -3,7 +3,7 @@ package com.kameo.challenger.utils;
 import java.util.Random;
 
 public class RandomUtil {
-    private static Random r=new Random();
+    private static final Random r=new Random();
 
     public static int randomInt(int min, int max) {
         return min + r.nextInt(max);

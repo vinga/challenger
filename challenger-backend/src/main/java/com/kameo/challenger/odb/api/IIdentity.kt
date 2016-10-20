@@ -5,7 +5,7 @@ import java.io.Serializable
 interface IIdentity: Serializable {
 
 
-    val id: Long; // abstract
+    val id: Long // abstract
 
     fun isNew(): Boolean {
         return id < 0

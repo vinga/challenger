@@ -39,8 +39,7 @@ public class AnyDAO {
 	}
 
 	public void removeAll(Collection<? extends IIdentity> objs) {
-		for (IIdentity obj : objs)
-			remove(obj);
+		objs.forEach(this::remove);
 	}
 
 	public void removeAll(Collection<? extends IIdentity> objs, Class clz) {
@@ -69,8 +68,7 @@ public class AnyDAO {
 		CriteriaDelete<E> delete = getEm().getCriteriaBuilder().createCriteriaDelete(clz);
 		delete.from(clz);
 		Query query = getEm().createQuery(delete);
-		int rowCount = query.executeUpdate();
-		return rowCount;
+		return query.executeUpdate();
 	}
 
 	public void remove(IIdentity obj) {
@@ -93,15 +91,15 @@ public class AnyDAO {
 	}
 
 	public <E, F> int removeByFieldPath(final F f, final SingularAttribute<?, ?>... attrs) {
-		return remove((Class)attrs[0].getDeclaringType().getJavaType(), new ISubqueryRestrictions<E>() {
+		return remove((Class<E>)attrs[0].getDeclaringType().getJavaType(), new ISubqueryRestrictions<E>() {
 			@Override
 			public Predicate apply(CriteriaBuilder cb, Subquery<?> cq, Root<E> root) {
 				
 				Path path=root;
 				for (SingularAttribute s: attrs) {
+					//noinspection unchecked
 					path=path.get(s);
 				}
-				// TODO Auto-generated method stub
 				return cb.equal(path, f);
 			}
 		});
@@ -162,8 +160,7 @@ public class AnyDAO {
 			}
 		}
 
-		E objDB = (E) em.find(clz, obj.getId());
-		return objDB;
+		return (E) em.find(clz, obj.getId());
 	}
 
 	/**
@@ -176,7 +173,7 @@ public class AnyDAO {
 	 * @return
 	 */
 	public <E extends IIdentity> List<E> reloadList(List<E> objs, Class<E> clz, Hints... hints) {
-		List<E> result = new ArrayList<E>();
+		List<E> result = new ArrayList<>();
 		Set<Long> idSet = EntityHelper.toIdSet(objs);
 		if (idSet.isEmpty())
 			return result;
@@ -198,8 +195,7 @@ public class AnyDAO {
 		Root<E> root = delete.from(clz);
 		delete.where(restr.apply(cb, delete, root));
 		Query query = getEm().createQuery(delete);
-		int rowCount = query.executeUpdate();
-		return rowCount;
+		return query.executeUpdate();
 	}
 
 	public <E> int remove(Class<E> clz, ISubqueryRestrictions<E> restr) {
@@ -215,8 +211,7 @@ public class AnyDAO {
 
 		delete.where(root.in(s));
 		Query query = getEm().createQuery(delete);
-		int rowCount = query.executeUpdate();
-		return rowCount;
+		return query.executeUpdate();
 	}
 	
 	public <E,F> int update(SingularAttribute<E,F> se, F newVal, ISubqueryRestrictions<E> restr) {
@@ -234,8 +229,7 @@ public class AnyDAO {
 
 		update.where(root.in(s));
 		Query query = getEm().createQuery(update);
-		int rowCount = query.executeUpdate();
-		return rowCount;
+		return query.executeUpdate();
 	}
 
 	public <E extends IIdentity> List<Long> getIds(Class<E> clz, Hints... hints) {
@@ -246,6 +240,7 @@ public class AnyDAO {
 		CriteriaBuilder criteriaBuilder = getEm().getCriteriaBuilder();
 		CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
 		Root<E> root = criteriaQuery.from(clz);
+		//noinspection unchecked
 		criteriaQuery.select((Selection) root.get(id_column));
 		if (restrictions != null)
 			restrictions.apply(criteriaBuilder, criteriaQuery, root);
@@ -255,106 +250,44 @@ public class AnyDAO {
 	}
 
 	public <E, F> List<E> getAll(Class<E> clz, final SingularAttribute<E, F> attr, final F obj, Hints... hints) {
-		return EntityHelper.get(getEm(), clz, new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				return cb.equal(root.get(attr), obj);
-			}
-		}, hints);
+		return EntityHelper.get(getEm(), clz, (cb, cq, root) -> cb.equal(root.get(attr), obj), hints);
 	}
 
 	
 	public <E,F> List<E> getByField(F obj, SingularAttribute<E, F> sa) {
-		return EntityHelper.get(getEm(), sa.getDeclaringType().getJavaType(), new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				return cb.equal(root.get(sa), obj);
-			}
-		});
+		return EntityHelper.get(getEm(), sa.getDeclaringType().getJavaType(), (cb, cq, root) -> cb.equal(root.get(sa), obj));
 	}
 	public <E,F> List<E> getByFieldPath(F obj, SingularAttribute<E, ?> sa, SingularAttribute<?, ?> ... sas) {
-		return EntityHelper.get(getEm(), sa.getDeclaringType().getJavaType(), new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				
-				Path path=root;
-				path=path.get(sa);
-				for (SingularAttribute s: sas) {
-					path=path.get(s);
-				}
-				
-				return cb.equal(path, obj);
-			}
-		});
-	}
-	
-	public class Crit<E> {
-		List<SingularAttribute<E, Object>> ef = Lists.newArrayList();
-		List<Object> object = Lists.newArrayList();
+		return EntityHelper.get(getEm(), sa.getDeclaringType().getJavaType(), (cb, cq, root) -> {
 
-		public <F> Crit<E> and(SingularAttribute<E, F> sa, F f) {
-			ef.add((SingularAttribute) sa);
-			object.add(f);
-			return this;
-		}
+            Path path=root;
+            //noinspection unchecked
+            path=path.get(sa);
+            for (SingularAttribute s: sas) {
+                //noinspection unchecked
+                path=path.get(s);
+            }
 
-		public List<E> getAll(Hints... hints) {
-			return EntityHelper.get(getEm(), ef.get(0).getDeclaringType().getJavaType(), new IRestrictions<E>() {
-				@Override
-				public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-					Predicates p = new Predicates(cb);
-
-					for (int i = 0; i < ef.size(); i++) {
-						p.add(cb.equal(root.get(ef.get(i)), object.get(i)));
-
-					}
-					return p.getAsOne();
-				}
-			}, hints);
-		}
-
+            return cb.equal(path, obj);
+        });
 	}
 
-	public <E, F> Crit<E> crit(SingularAttribute<E, F> sa, F f) {
-		Crit<E> c = new Crit<E>();
-		c.and(sa, f);
-		return c;
-	}
+
 
 	public <E, F> List<E> getAll(final SingularAttribute<E, F> attr, final F obj, Hints... hints) {
-		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				return cb.equal(root.get(attr), obj);
-			}
-		}, hints);
+		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), (cb, cq, root) -> cb.equal(root.get(attr), obj), hints);
 	}
 
 	public <E, F> List<E> getAll(final SingularAttribute<E, F> attr, final List<F> objList, Hints... hints) {
-		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				return root.get(attr).in(objList);
-			}
-		}, hints);
+		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), (cb, cq, root) -> root.get(attr).in(objList), hints);
 	}
 
 	public <E, F> List<E> getAll(final SingularAttribute<E, F> attr, final Collection<F> obj, Hints... hints) {
-		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				return root.get(attr).in(obj);
-			}
-		}, hints);
+		return EntityHelper.get(getEm(), attr.getDeclaringType().getJavaType(), (cb, cq, root) -> root.get(attr).in(obj), hints);
 	}
 
 	public <E, F> List<E> getAll(Class<E> clz, final SingularAttribute<E, F> attr, final Collection<F> obj, Hints... hints) {
-		return EntityHelper.get(getEm(), clz, new IRestrictions<E>() {
-			@Override
-			public Predicate apply(CriteriaBuilder cb, CriteriaQuery<?> cq, Root<E> root) {
-				return root.get(attr).in(obj);
-			}
-		}, hints);
+		return EntityHelper.get(getEm(), clz, (cb, cq, root) -> root.get(attr).in(obj), hints);
 	}
 
 	public <E> List<E> getAll(Class<E> clz, Collection<Long> ids, Hints... hints) {
@@ -391,13 +324,13 @@ public class AnyDAO {
 	}
 
 	public <E extends IIdentity, F extends IIdentity> void loadFor(Collection<? extends E> objs, SingularAttribute<E, F> se, Hints... hints) {
-		MapIdentityLoader<E, F> loader = new MapIdentityLoader<E, F>();
+		MapIdentityLoader<E, F> loader = new MapIdentityLoader<>();
 		loader.objsLoaded = EntityHelper.toMap(objs);
 		loadFor(loader, se, hints);
 	}
 
 	public <E extends IIdentity, F extends IIdentity> void loadList(Collection<E> objs, ListAttribute<E, F> res, SingularAttribute<F, E> se, Hints... hints) {
-		MapIdentityLoader<E, F> loader = new MapIdentityLoader<E, F>();
+		MapIdentityLoader<E, F> loader = new MapIdentityLoader<>();
 		loader.objsLoaded = EntityHelper.toMap(objs);
 		loadList(loader, res, se, hints);
 	}
@@ -406,14 +339,14 @@ public class AnyDAO {
 
 
 	public <E extends IIdentity, F extends IIdentity> void loadSet(Collection<E> objs, SetAttribute<E, F> res, SingularAttribute<F, E> se, Hints... hints) {
-		MapIdentityLoader<E, F> loader = new MapIdentityLoader<E, F>();
+		MapIdentityLoader<E, F> loader = new MapIdentityLoader<>();
 		loader.objsLoaded = EntityHelper.toMap(objs);
 		loadSet(loader, res, se, hints);
 	}
 
 	public <E extends IIdentity, F extends IIdentity> void loadObjWithIn(Collection<E> objs, SingularAttribute<E, F> res, SingularAttribute<F, E> se,
 			Hints... hints) {
-		CollectionIdentityLoader<E, F> loader = new CollectionIdentityLoader<E, F>();
+		CollectionIdentityLoader<E, F> loader = new CollectionIdentityLoader<>();
 		loader.objsLoaded = objs;
 		loadObjWithIn(loader, res, se, hints);
 	}
@@ -443,14 +376,8 @@ public class AnyDAO {
 			TypedQuery<Object[]> query = em.createQuery(q);
 			EntityHelper.applyHints(query, hints);
 			List<Object[]> resultList = query.getResultList();
-			Multimap<Long, F> multimap = ArrayListMultimap.create();
-			for (Object[] o : resultList) {
 
-				Long id = (Long) o[0];
-				F f = (F) o[1];
-				Collection<F> collection = multimap.get(id);
-				collection.add(f);
-			}
+			Multimap<Long, F> multimap=getResults(query);
 			for (E e : loader.objsLoaded.values()) {
 				method.invoke(e, new HashSet(multimap.get(e.getId())));
 			}
@@ -487,7 +414,7 @@ public class AnyDAO {
 			TypedQuery<Object[]> query = em.createQuery(q);
 			EntityHelper.applyHints(query, hints);
 			List<Object[]> resultList = query.getResultList();
-			Map<Long, F> multimap = new HashMap<Long, F>();
+			Map<Long, F> multimap = new HashMap<>();
 			for (Object[] o : resultList) {
 
 				Long id = (Long) o[0];
@@ -528,15 +455,8 @@ public class AnyDAO {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, List.class);
 			TypedQuery<Object[]> query = em.createQuery(q);
 			EntityHelper.applyHints(query, hints);
-			List<Object[]> resultList = query.getResultList();
-			Multimap<Long, F> multimap = ArrayListMultimap.create();
-			for (Object[] o : resultList) {
 
-				Long id = (Long) o[0];
-				F f = (F) o[1];
-				Collection<F> collection = multimap.get(id);
-				collection.add(f);
-			}
+			Multimap<Long, F> multimap=getResults(query);
 			for (E e : loader.objsLoaded.values()) {
 				method.invoke(e, new ArrayList(multimap.get(e.getId())));
 			}
@@ -544,6 +464,19 @@ public class AnyDAO {
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
+	}
+
+	private <F extends IIdentity> Multimap<Long, F> getResults(TypedQuery<Object[]> query) {
+		List<Object[]> resultList = query.getResultList();
+		Multimap<Long, F> multimap = ArrayListMultimap.create();
+		for (Object[] o : resultList) {
+
+            Long id = (Long) o[0];
+            F f = (F) o[1];
+            Collection<F> collection = multimap.get(id);
+            collection.add(f);
+        }
+        return multimap;
 	}
 
 	public static class AbstractIdentityLoader<E extends IIdentity, F extends IIdentity> {
@@ -699,14 +632,8 @@ public class AnyDAO {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, Set.class);
 			TypedQuery<Object[]> query = em.createQuery(q);
 			List<Object[]> resultList = query.getResultList();
-			Multimap<Long, F> multimap = ArrayListMultimap.create();
-			for (Object[] o : resultList) {
+			Multimap<Long, F> multimap=getResults(query);
 
-				Long id = (Long) o[0];
-				F f = (F) o[1];
-				Collection<F> collection = multimap.get(id);
-				collection.add(f);
-			}
 			for (E e : objs.values()) {
 				method.invoke(e, new HashSet(multimap.get(e.getId())));
 			}
@@ -735,7 +662,7 @@ public class AnyDAO {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, jt);
 			TypedQuery<Object[]> query = em.createQuery(q);
 			List<Object[]> resultList = query.getResultList();
-			Map<Long, F> multimap = new HashMap<Long, F>();
+			Map<Long, F> multimap = new HashMap<>();
 			for (Object[] o : resultList) {
 
 				Long id = (Long) o[0];
@@ -822,14 +749,7 @@ public class AnyDAO {
 			Method method = se.getBindableJavaType().getMethod(setterMethod, List.class);
 			TypedQuery<Object[]> query = em.createQuery(q);
 			List<Object[]> resultList = query.getResultList();
-			Multimap<Long, F> multimap = ArrayListMultimap.create();
-			for (Object[] o : resultList) {
-
-				Long id = (Long) o[0];
-				F f = (F) o[1];
-				Collection<F> collection = multimap.get(id);
-				collection.add(f);
-			}
+			Multimap<Long, F> multimap=getResults(query);
 			for (E e : objs.values()) {
 				method.invoke(e, new ArrayList(multimap.get(e.getId())));
 			}
@@ -921,8 +841,7 @@ public class AnyDAO {
 
 		update.where(root.in(s));
 		Query query = getEm().createQuery(update);
-		int rowCount = query.executeUpdate();
-		return rowCount;
+		return query.executeUpdate();
 	}
 
 	public <E> Optional<E> getSafeSingleResult(CriteriaQuery<E> criteria) {
@@ -960,6 +879,7 @@ public class AnyDAO {
 		JPAJinqStream<E> ws = streams.streamAll(em, clz);
 		ws=ws.where(ww);
 		for (JinqStream.Where w: where) {
+			//noinspection unchecked
 			ws=ws.where(w);
 		}
 		return ws.getOnlyValue();

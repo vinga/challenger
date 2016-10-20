@@ -1,8 +1,7 @@
 package com.kameo.challenger.utils.odb;
 
-import com.google.common.base.Optional;
-
 import javax.persistence.TypedQuery;
+import java.util.Optional;
 
 public interface IQueryPage {
 	class Rows {
@@ -44,7 +43,7 @@ public interface IQueryPage {
 		}
 
 		public Optional<Integer> getMaxRows() {
-			return Optional.fromNullable(maxRows);
+			return Optional.ofNullable(maxRows);
 		}
 
 		public void prevPage() {
@@ -52,7 +51,7 @@ public interface IQueryPage {
 		}
 
 		public void nextPage() {
-			firstRow = firstRow += maxRows;
+			firstRow += maxRows;
 		}
 
 		public Integer getFirstRow() {

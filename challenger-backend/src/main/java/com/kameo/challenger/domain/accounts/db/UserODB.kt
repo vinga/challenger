@@ -26,15 +26,15 @@ data class UserODB(@Id
     var failedLoginsNumber: Int = 0
 
     fun getLoginOrEmail(): String {
-        return login ?: email;
+        return login ?: email
 
     }
 
     companion object {
         @JvmStatic fun ofEmail(email: String): UserODB {
-            val u: UserODB = UserODB(-1);
-            u.email = email;
-            return u;
+            val u: UserODB = UserODB(-1)
+            u.email = email
+            return u
         }
     }
 

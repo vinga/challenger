@@ -15,24 +15,24 @@ data class TaskODB(@Id
 
 
     @Enumerated
-    lateinit var taskType: TaskType;
+    lateinit var taskType: TaskType
 
-    var difficulty: Int = 0;
+    var difficulty: Int = 0
 
-    lateinit var label: String;
+    lateinit var label: String
 
     @Enumerated
     lateinit var taskStatus: TaskStatus
 
 
     @ManyToOne
-    lateinit var user: UserODB;
+    lateinit var user: UserODB
 
     @ManyToOne
-    lateinit var createdByUser: UserODB;
+    lateinit var createdByUser: UserODB
 
     @ManyToOne
-    lateinit var challenge: ChallengeODB;
+    lateinit var challenge: ChallengeODB
 
 
     var icon: String? = null

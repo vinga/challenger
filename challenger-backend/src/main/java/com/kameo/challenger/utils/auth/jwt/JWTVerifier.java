@@ -26,15 +26,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * Created by kmyczkowska on 2016-09-01.
- */
+
 public class JWTVerifier<E extends TokenInfo> {
 
     final String issuer;
     final Class<E> clzE;
 
-    JWTServiceConfig sc;
+    final JWTServiceConfig sc;
 
     public JWTVerifier(JWTServiceConfig sc, Class<E> e) {
         this.issuer = sc.getIssuer();
@@ -56,20 +54,11 @@ public class JWTVerifier<E extends TokenInfo> {
 
         System.out.println("verify "+tokenString);
         Verifier hmacVerifier = new HmacSHA256Verifier(sc.getSigningKey());
-        VerifierProvider hmacLocator = new VerifierProvider() {
-            @Override
-            public List<Verifier> findVerifier(String id, String key) {
-                return Lists.newArrayList(hmacVerifier);
-            }
-        };
+        VerifierProvider hmacLocator = (id, key) -> Lists.newArrayList(hmacVerifier);
         VerifierProviders locators = new VerifierProviders();
         locators.setVerifierProvider(SignatureAlgorithm.HS256, hmacLocator);
-        net.oauth.jsontoken.Checker checker = new net.oauth.jsontoken.Checker() {
-            @Override
-            public void check(JsonObject payload) throws SignatureException {
-                // don't throw - allow anything
-            }
-
+        net.oauth.jsontoken.Checker checker = payload -> {
+            // don't throw - allow anything
         };
         Clock clock = new SystemClock();
         String[] pieces = tokenString.split(Pattern.quote("."));
@@ -137,20 +126,11 @@ public class JWTVerifier<E extends TokenInfo> {
     public E verifyToken(String token) {
         try {
             Verifier hmacVerifier = new HmacSHA256Verifier(sc.getSigningKey());
-            VerifierProvider hmacLocator = new VerifierProvider() {
-                @Override
-                public List<Verifier> findVerifier(String id, String key) {
-                    return Lists.newArrayList(hmacVerifier);
-                }
-            };
+            VerifierProvider hmacLocator = (id, key) -> Lists.newArrayList(hmacVerifier);
             VerifierProviders locators = new VerifierProviders();
             locators.setVerifierProvider(SignatureAlgorithm.HS256, hmacLocator);
-            net.oauth.jsontoken.Checker checker = new net.oauth.jsontoken.Checker() {
-                @Override
-                public void check(JsonObject payload) throws SignatureException {
-                    // don't throw - allow anything
-                }
-
+            net.oauth.jsontoken.Checker checker = payload -> {
+                // don't throw - allow anything
             };
             final Gson gson = new Gson();
             JsonTokenParser parser = new JsonTokenParser(locators,

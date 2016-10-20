@@ -17,8 +17,8 @@ class JoinWrap<E> constructor(cb: CriteriaBuilder,
 
     @Suppress("UNCHECKED_CAST")
     fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F> {
-        val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>;
-        return JoinWrap(cb, join, arr);
+        val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
+        return JoinWrap(cb, join, arr)
     }
 
 

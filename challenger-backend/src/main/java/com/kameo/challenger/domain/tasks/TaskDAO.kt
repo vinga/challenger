@@ -32,7 +32,7 @@ open class TaskDAO {
                     it get ChallengeParticipantODB::user eqId callerId
                     it get ChallengeParticipantODB::challengeStatus eq ChallengeStatus.ACTIVE
                 })
-        updateSeendDateOfChallegeContract(callerPermission0);
+        updateSeendDateOfChallegeContract(callerPermission0)
 
 
         val tasks = anyDaoNew.getAll(TaskODB::class,

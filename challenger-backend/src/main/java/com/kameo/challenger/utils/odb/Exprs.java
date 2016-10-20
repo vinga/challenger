@@ -82,13 +82,13 @@ public class Exprs {
 		return res;
 	}
 	public static <E, F> CheckObjectInCollection<E, F> object(F object) {
-		CheckObjectInCollection<E, F> ee = new CheckObjectInCollection<E, F>();
+		CheckObjectInCollection<E, F> ee = new CheckObjectInCollection<>();
 		ee.object = object;
 		return ee;
 	}
 
 	public static <E, F> CheckFieldInCollection<E, F> object(F object, SingularAttribute<F, E> fieldAccessor) {
-		CheckFieldInCollection<E, F> ee = new CheckFieldInCollection<E, F>();
+		CheckFieldInCollection<E, F> ee = new CheckFieldInCollection<>();
 		ee.object = object;
 		ee.sa = fieldAccessor;
 		return ee;

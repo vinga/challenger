@@ -11,7 +11,7 @@ public class PasswordUtil {
         return (int) (Math.random() * (max - min) + min);
     }
 
-    private static String randomString(int min, int max) {
+    static String randomString(int min, int max) {
         int num = randomInt(min, max);
         byte b[] = new byte[num];
         for (int i = 0; i < num; i++)

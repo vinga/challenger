@@ -7,15 +7,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 
 
@@ -25,10 +22,11 @@ class DatabaseConfig {
     Provider<EntityManager> em;
 
     @Bean
-    @Scope(proxyMode= ScopedProxyMode.TARGET_CLASS)
+    @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
     public JinqJPAStreamProvider jinqJPAStreamProvider() {
         return new JinqJPAStreamProvider(anyDao().getEm().getMetamodel());
     }
+
     @Bean
     public AnyDAO anyDao() {
         return new AnyDAO();
@@ -49,8 +47,8 @@ class DatabaseConfig {
 
         return builder
                 .setType(EmbeddedDatabaseType.HSQL) //.H2 or .DERBY
-               // .addScript("db/sql/create-db.sql")
-               // .addScript("db/sql/insert-data.sql")
+                // .addScript("db/sql/create-db.sql")
+                // .addScript("db/sql/insert-data.sql")
                 .build();
     }
 }

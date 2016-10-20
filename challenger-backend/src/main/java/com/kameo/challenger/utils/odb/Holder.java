@@ -20,12 +20,12 @@ public class Holder<E> implements Serializable, IHolderImmutable<E> {
 	}
 
 	public static <E> Holder<E> absent() {
-		return new Holder<E>(null);
+		return new Holder<>(null);
 	}
 
 	public static <E> Holder<E> of(E e) {
 		if (e == null)
 			throw new IllegalArgumentException("Cannot be null");
-		return new Holder<E>(e);
+		return new Holder<>(e);
 	}
 }

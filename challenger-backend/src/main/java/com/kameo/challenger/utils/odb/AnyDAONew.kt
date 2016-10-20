@@ -19,16 +19,16 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val root = criteria.from(clz)
         criteria.select(root)
 
-        val pw = RootWrap(cb, root, ArrayList());
-        query.invoke(pw);
-        criteria.where(pw.getPredicate());
+        val pw = RootWrap(cb, root, ArrayList())
+        query.invoke(pw)
+        criteria.where(pw.getPredicate())
 
         val jpaQuery = em.createQuery(criteria)
         return jpaQuery.resultList
     }
 
     fun <E : Any> getAll(clz: KClass<E>, query: (RootWrap<E>) -> Unit): List<E> {
-        return getAll(clz.java, query);
+        return getAll(clz.java, query)
     }
 
     fun <E> getFirst(clz: Class<E>, query: (RootWrap<E>) -> Unit): E? {
@@ -37,26 +37,26 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val root = criteria.from(clz)
         criteria.select(root)
 
-        val pw = RootWrap(cb, root, ArrayList());
-        query.invoke(pw);
-        criteria.where(pw.getPredicate());
+        val pw = RootWrap(cb, root, ArrayList())
+        query.invoke(pw)
+        criteria.where(pw.getPredicate())
 
         val jpaQuery = em.createQuery(criteria)
-        jpaQuery.setMaxResults(1);
+        jpaQuery.setMaxResults(1)
         var res = jpaQuery.resultList
         if (res.isEmpty() || res.size>1)
-            return null;
-        return res.first();
+            return null
+        return res.first()
     }
     fun <E> getOne(clz: Class<E>, query: (RootWrap<E>) -> Unit): E {
-       return getFirst(clz, query)?:throw IllegalArgumentException("Found 0 or ore than one results.");
+       return getFirst(clz, query)?:throw IllegalArgumentException("Found 0 or ore than one results.")
     }
 
     fun <E : Any> getFirst(clz: KClass<E>, query: (RootWrap<E>) -> Unit): E? {
-        return getFirst(clz.java, query);
+        return getFirst(clz.java, query)
     }
     fun <E : Any> getOne(clz: KClass<E>, query: (RootWrap<E>) -> Unit): E {
-        return getOne(clz.java, query);
+        return getOne(clz.java, query)
     }
 
     fun  <E: IIdentity> reload(e: E): E {

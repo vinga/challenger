@@ -75,9 +75,6 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 onTokenValidated(tokensList, httpReq, httpRes, chain);
 
 
-            } catch (IllegalAccessException ex) {
-                 ex.printStackTrace();
-                unauthorized(httpRes);
             } catch (Exception ex) {
                 ex.printStackTrace();
                 unauthorized(httpRes);
