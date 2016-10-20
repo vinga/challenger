@@ -5,9 +5,9 @@ import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.accounts.db.UserStatus
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
+import com.kameo.challenger.utils.DateUtil
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter
 import com.kameo.challenger.utils.odb.AnyDAONew
-import org.apache.commons.lang.time.DateUtils
 import org.joda.time.DateTime
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -50,7 +50,7 @@ internal open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                 u.failedLoginsNumber = u.failedLoginsNumber + 1
                 if (u.failedLoginsNumber > 10) {
                     u.userStatus = UserStatus.SUSPENDED
-                    u.suspendedDueDate = DateUtils.addMinutes(Date(), 20)
+                    u.suspendedDueDate = DateUtil.addMinutes(Date(), 20)
                 }
                 anyDaoNew.em.merge(u)
                 throw AbstractAuthFilter.AuthException("Wrong credentials")

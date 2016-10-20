@@ -16,16 +16,14 @@ data class UserODB(@Id
                    override val id: Long = 0) : IIdentity {
 
 
-    var login: String? = null;
-    lateinit var email: String;
-    lateinit var salt: String;
-    lateinit var passwordHash: String;
-    lateinit var userStatus: UserStatus;
-    lateinit var suspendedDueDate: Date;
-    var userRegistrationType = UserRegistrationType.NORMAL;
-    var failedLoginsNumber: Int = 0;
-    @ManyToMany(targetEntity = ChallengeODB::class)
-    lateinit var contracts: MutableList<ChallengeODB>;
+    var login: String? = null
+    lateinit var email: String
+    lateinit var salt: String
+    lateinit var passwordHash: String
+    lateinit var userStatus: UserStatus
+    lateinit var suspendedDueDate: Date
+    var userRegistrationType = UserRegistrationType.NORMAL
+    var failedLoginsNumber: Int = 0
 
     fun getLoginOrEmail(): String {
         return login ?: email;

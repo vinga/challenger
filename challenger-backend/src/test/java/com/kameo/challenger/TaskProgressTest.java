@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AutoConfigureDataJpa
+//@AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class TaskProgressTest implements En {
     @Inject
@@ -49,7 +49,7 @@ public class TaskProgressTest implements En {
             List<TaskProgressODB> taskProgress = challengerService.getTaskProgress(res, new Date());
 
             if (doneUndone.equals("undone")) {
-                taskProgress.stream().forEach(tp -> {
+                taskProgress.forEach(tp -> {
                     if (tp.getTask().getId()==taskODB.getId()) {
                         Assert.assertEquals(false,tp.getDone());
                     }
@@ -57,7 +57,7 @@ public class TaskProgressTest implements En {
             } else if (doneUndone.equals("done")) {
                 TaskProgressODB tpODB = taskProgress.stream()
                                                               .filter(tp -> tp.getTask().getId() == taskODB.getId())
-                                                              .findAny().get();
+                                                              .findAny().orElse(null);
                 Assert.assertEquals(true,tpODB.getDone());
             } else throw new IllegalArgumentException(doneUndone +" should be done or undone");
 
@@ -67,11 +67,16 @@ public class TaskProgressTest implements En {
             UserODB user1 = testHelper.resolveUserByLogin(login);
             TaskODB taskODB = testHelper.resolveTask(task);
             boolean done=false;
-            if (doneUndone.equals("undone")) {
-                done=false;
-            } else if (doneUndone.equals("done")) {
-                done=true;
-            } else throw new IllegalArgumentException(doneUndone +" should be done or undone");
+            switch (doneUndone) {
+                case "undone":
+                    done = false;
+                    break;
+                case "done":
+                    done = true;
+                    break;
+                default:
+                    throw new IllegalArgumentException(doneUndone + " should be done or undone");
+            }
             try {
                 challengerService.markTaskDone(user1.getId(), taskODB.getId(),new Date(), done);
             } catch (Exception ex) {
@@ -79,9 +84,7 @@ public class TaskProgressTest implements En {
             }
         });
 
-        Then("^I get an exception$", () -> {
-           testHelper.popException();
-        });
+        Then("^I get an exception$", () -> testHelper.popException());
 
         Then("^I don't get an exception$", () -> {
             try {

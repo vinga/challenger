@@ -24,7 +24,7 @@ import org.springframework.test.context.ContextConfiguration;
 import javax.inject.Inject;
 import java.util.List;
 
-@AutoConfigureDataJpa
+//@AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class InvitationsTest implements En {
 

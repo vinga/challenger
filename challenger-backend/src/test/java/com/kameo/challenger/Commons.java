@@ -3,24 +3,20 @@ package com.kameo.challenger;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.domain.accounts.db.UserODB;
-import com.kameo.challenger.logic.ChallengerLogic;
-import com.kameo.challenger.logic.FakeDataLogic;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
+import com.kameo.challenger.logic.ChallengerLogic;
+import com.kameo.challenger.logic.FakeDataLogic;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java8.En;
 import org.junit.Assert;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.inject.Inject;
 import java.util.List;
 
-/**
- * Created by kmyczkowska on 2016-09-02.
- */
-@AutoConfigureDataJpa
+
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class Commons implements En {
 
@@ -35,12 +31,10 @@ public class Commons implements En {
 
 
     public Commons() {
-        Given("^I am existing challenger user$", () -> {
-            cmd.createUsers("myself");
-        });
-        Given("^my friend is existing challenger user$", () -> {
-            cmd.createUsers("myFriend");
-        });
+        Given("^I am existing challenger user$", () -> cmd.createUsers("myself"));
+        Given("^my friend is existing challenger user$", () ->
+                cmd.createUsers("myFriend")
+        );
 
         Given("^\"([^\"]*)\" (?:have|has) accepted challenge \"([^\"]*)\" with \"([^\"]*)\"$", (String person1, String challengeName, String person2) -> {
             List<UserODB> users = testHelper.createUsers(testHelper.resolveLogins(person1, person2));
@@ -57,14 +51,19 @@ public class Commons implements En {
         });
 
         Then("^challenge \"([^\"]*)\" has status \"([^\"]*)\"$", (String arg1, String arg2) -> {
-            ChallengeStatus stat=null;
-            if (arg2.equals("active"))
-                stat=ChallengeStatus.ACTIVE;
-            else  if (arg2.equals("refused"))
-                stat=ChallengeStatus.REFUSED;
-            else  if (arg2.equals("waiting for acceptance"))
-                stat=ChallengeStatus.WAITING_FOR_ACCEPTANCE;
-                Assert.assertEquals(testHelper.resolveChallenge(arg1).getChallengeStatus(), stat);
+            ChallengeStatus stat = null;
+            switch (arg2) {
+                case "active":
+                    stat = ChallengeStatus.ACTIVE;
+                    break;
+                case "refused":
+                    stat = ChallengeStatus.REFUSED;
+                    break;
+                case "waiting for acceptance":
+                    stat = ChallengeStatus.WAITING_FOR_ACCEPTANCE;
+                    break;
+            }
+            Assert.assertEquals(testHelper.resolveChallenge(arg1).getChallengeStatus(), stat);
 
         });
 

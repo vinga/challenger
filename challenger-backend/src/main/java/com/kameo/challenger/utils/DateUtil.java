@@ -1,5 +1,7 @@
 package com.kameo.challenger.utils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -33,4 +35,11 @@ public class DateUtil {
     }
 
 
+    @NotNull
+    public static Date addMinutes(@NotNull Date date, int m) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.MINUTE, m);
+        return cal.getTime();
+    }
 }

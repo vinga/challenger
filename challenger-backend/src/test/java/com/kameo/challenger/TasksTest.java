@@ -12,10 +12,10 @@ import com.kameo.challenger.domain.tasks.db.TaskStatus;
 import com.kameo.challenger.domain.tasks.db.TaskType;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.util.TestHelper;
+import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
-import org.apache.commons.lang.time.DateUtils;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@AutoConfigureDataJpa
+//@AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class TasksTest implements En {
     @Inject
@@ -66,7 +66,7 @@ public class TasksTest implements En {
 
             ca.setUser(testHelper.myself());
             ca.setChallenge(cc);
-            ca.setDueDate(DateUtils.addDays(new Date(), -1));
+            ca.setDueDate(DateUtil.addDays(new Date(), -1));
             ca.setTaskType(TaskType.onetime);
             challengerService.updateTask(testHelper.myFriend().getId(), ca);
         });
@@ -164,7 +164,7 @@ public class TasksTest implements En {
             ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
             List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(), new Date())
-                    .stream().filter(t->t.getUser().getId()==myself.getId()).collect(Collectors.toList());;
+                    .stream().filter(t->t.getUser().getId()==myself.getId()).collect(Collectors.toList());
             Assert.assertFalse(actions.isEmpty());
         });
         Then("^I should see my friend's actions$", () -> {

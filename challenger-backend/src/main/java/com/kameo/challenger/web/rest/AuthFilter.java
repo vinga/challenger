@@ -2,10 +2,10 @@ package com.kameo.challenger.web.rest;
 
 import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.domain.accounts.AccountDAO;
+import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.ReflectionUtils;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
-import org.apache.commons.lang.time.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +68,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         long userId = accountDao.login(login, pass);
         ChallengerSess td = new ChallengerSess();
         td.setUserId(userId);
-        td.setExpires(new DateTime(DateUtils.addMinutes(new Date(), 15)));
+        td.setExpires(new DateTime(DateUtil.addMinutes(new Date(), 15)));
         return td;
     }
 

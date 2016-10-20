@@ -11,13 +11,13 @@ import com.kameo.challenger.domain.tasks.db.*;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.domain.accounts.PasswordUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
-import org.apache.commons.lang.time.DateUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.metamodel.EntityType;
 import java.util.*;
 
 
@@ -142,7 +142,7 @@ public class FakeDataLogic implements CommandLineRunner {
         ac5.setDifficulty(2);
         ac5.setIcon("fa-shopping-basket");
         ac5.setTaskType(TaskType.onetime);
-        ac5.setDueDate(DateUtils.addDays(new Date(),10));
+        ac5.setDueDate(DateUtil.addDays(new Date(),10));
         em.persist(ac5);
         approveTaskForCreator(ac5);
 
@@ -261,7 +261,7 @@ public class FakeDataLogic implements CommandLineRunner {
     public List<UserODB> createUsers(String... logins) {
         List<UserODB> res = Lists.newArrayList();
         for (String login : logins) {
-            Optional<UserODB> us = anyDao.getOne(UserODB.class, u -> u.getLogin().equals(login));
+            Optional<UserODB> us = anyDao.getOne(UserODB.class, u -> login.equals(u.getLogin()));
             if (us.isPresent()) {
                 res.add(us.get());
                 continue;

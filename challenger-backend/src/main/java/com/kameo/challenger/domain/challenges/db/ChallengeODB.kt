@@ -4,6 +4,7 @@ import com.google.common.collect.Lists
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.odb.api.IIdentity
 import javax.persistence.*
+import javax.persistence.Entity
 
 @Entity
 data class ChallengeODB(@Id

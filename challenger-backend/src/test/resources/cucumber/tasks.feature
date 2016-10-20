@@ -1,4 +1,4 @@
-Feature: Challenger list access
+Feature: Challenger tasks
   As a challenger user
   I want to have access to challenger actions
   So that I can mark them as done

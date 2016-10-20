@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 
-@AutoConfigureDataJpa
+//@AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class ChallengesTest implements En {
     @Inject
@@ -111,7 +111,7 @@ public class ChallengesTest implements En {
 
             long chalId = chall.getId();
 
-            Assert.assertTrue(challengerService.getPendingChallenges(user2.getId()).stream().anyMatch(cha -> cha.getLabel().equals(ch)));
+            Assert.assertTrue(challengerService.getPendingChallenges(user2.getId()).stream().anyMatch(cha -> ch.equals(cha.getLabel())));
 
             long user2Id = user2.getId();
             Assert.assertEquals(ChallengeStatus.WAITING_FOR_ACCEPTANCE, chall.getChallengeStatus());

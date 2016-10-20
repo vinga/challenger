@@ -10,20 +10,24 @@ import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.util.TestHelper;
+import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
-import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.engine.spi.Managed;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.inject.Inject;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.ManagedType;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 
-@AutoConfigureDataJpa
+//@AutoConfigureDataJpa
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class AccountsTest implements En {
     @Inject
@@ -83,8 +87,8 @@ public class AccountsTest implements En {
             Assert.assertEquals(UserStatus.SUSPENDED, testHelper.myself().getUserStatus());
             Date dueDate = testHelper.myself().getSuspendedDueDate();
 
-            Assert.assertTrue(dueDate.after(DateUtils.addMinutes(new Date(), 19)));
-            Assert.assertTrue(dueDate.before(DateUtils.addMinutes(new Date(), 21)));
+            Assert.assertTrue(dueDate.after(DateUtil.addMinutes(new Date(), 19)));
+            Assert.assertTrue(dueDate.before(DateUtil.addMinutes(new Date(), 21)));
 
         });
 
@@ -96,6 +100,7 @@ public class AccountsTest implements En {
 
         Given("^I no invitation has been sent to me email$", () -> {
             String myEmail = "myself@email.em";
+
             Optional<ChallengeParticipantODB> cco = anyDao.streamAll(ChallengeParticipantODB.class)
                     .where(cc -> !cc.getChallenge().getCreatedBy().equals(cc.getUser()) && cc.getUser().getEmail().equals(myEmail) || cc
                             .getUser().getEmail().equals(myEmail)).findAny();
@@ -145,9 +150,7 @@ public class AccountsTest implements En {
 
 
 
-        When("^I put my email into reset password option$", () -> {
-            accountDao.sendResetMyPasswordLink(testHelper.myself().email);
-        });
+        When("^I put my email into reset password option$", () -> accountDao.sendResetMyPasswordLink(testHelper.myself().email));
 
         Then("^I received email with password reset link$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
@@ -183,7 +186,7 @@ public class AccountsTest implements En {
                 accountDao.login("myself", "myselfpass");
                 Assert.fail();
             } catch (AbstractAuthFilter.AuthException e) {
-
+                //its OK
             }
             try {
                 accountDao.login("myself", "newPass");

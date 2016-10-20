@@ -25,11 +25,11 @@ class LoginPanel extends React.Component<Props & PropsFunc, void> {
         var login = this.loginField.state.fieldValue;
         var pass = this.passwordField.state.fieldValue;
         this.props.onLoginFunc(login,pass);
-    }
+    };
 
 
     render() {
-        var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200) + "px";
+        //var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200) + "px";
         return (
             <div id="main" className="container " >
                 <div className="section ">
@@ -48,7 +48,7 @@ class LoginPanel extends React.Component<Props & PropsFunc, void> {
                     <div className="row">
                         <div className="col s3 offset-s4">
                             <TextFieldExt
-                                style={{width: '100%'}}
+
                                 floatingLabelText="Login"
                                 fieldValue="kami"
                                 ref={(c)=>{this.loginField=c}}/>
@@ -96,18 +96,20 @@ const mapStateToProps = (state) => {
         loginFailed: errorDescription!=null
 
     }
-}
+};
+
 const mapDispatchToProps = (dispatch) => {
     return {
         onLoginFunc: (login, pass) => {
             dispatch(loginUserAction(login, pass, true))
         }
     }
-}
+};
+
 import { connect } from 'react-redux'
 const Ext = connect(
         mapStateToProps,
         mapDispatchToProps
-    )(LoginPanel)
+    )(LoginPanel);
 
 export default Ext;
