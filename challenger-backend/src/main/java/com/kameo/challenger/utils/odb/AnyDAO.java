@@ -110,9 +110,9 @@ public class AnyDAO {
 
 	public <E extends IIdentity> void reload(Holder<E> holder) {
 
-		if (holder.getHold() == null || holder.getHold().getId()<=0)
-			return;
-		else {
+		if (holder.getHold() == null || holder.getHold().getId()<=0) {
+			//do nothing
+		} else {
 			Optional<E> reloaded = Optional.ofNullable(reload(holder.getHold()));
 			holder.setHolded(reloaded.orElse(null));
 		}
@@ -894,7 +894,7 @@ public class AnyDAO {
 		return EntityHelper.getFieldSumAsDouble(em, field, rest);
 	}
 
-	public <E extends Object> int update(Class<E> clz, IUpdateRestrictions<E> restr) {
+	public <E> int update(Class<E> clz, IUpdateRestrictions<E> restr) {
 		CriteriaBuilder cb = getEm().getCriteriaBuilder();
 		CriteriaUpdate<E> update = cb.createCriteriaUpdate(clz);
 		Root<E> root = update.from(clz);

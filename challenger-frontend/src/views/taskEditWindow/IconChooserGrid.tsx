@@ -29,7 +29,7 @@ const icons = [
     "fa-bomb",
     "fa-cube"
 
-]
+];
 
 
 export default class IconChooserGrid extends React.Component<{ onClick: (icon: string)=> void},void> {

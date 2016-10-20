@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(loginUserAction(login, password, false));
         }
     }
-}
+};
 
 //@connect(mapStateToProps, mapDispatchToProps)
 class SecondUserAuthorizePopover extends React.Component<{}& Props&PropsFunc,void> {
@@ -50,7 +50,7 @@ class SecondUserAuthorizePopover extends React.Component<{}& Props&PropsFunc,voi
     handleLogin = () => {
         this.props.doLoginFunc(this.props.user.login, this.passwordField.getValue());
         this.props.handleRequestClose();
-    }
+    };
 
     render() {
 
@@ -99,6 +99,6 @@ class SecondUserAuthorizePopover extends React.Component<{}& Props&PropsFunc,voi
     }
 }
 
-let Ext = connect(mapStateToProps, mapDispatchToProps)(SecondUserAuthorizePopover)
+let Ext = connect(mapStateToProps, mapDispatchToProps)(SecondUserAuthorizePopover);
 export default Ext;
 

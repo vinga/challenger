@@ -18,10 +18,10 @@ export default class TextInputDialog extends React.Component<Props, void> {
     handleYes = (str) => {
         this.props.closeYes(this.textField.state.fieldValue);
         this.props.closeDialog();
-    }
+    };
     handleClose= () => {
        this.props.closeDialog();
-    }
+    };
 
     render() {
         const actions = [

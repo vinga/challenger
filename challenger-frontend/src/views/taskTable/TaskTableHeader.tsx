@@ -60,7 +60,7 @@ class TaskTableHeader extends React.Component<Props & ReduxPropsFunc & PropsFunc
             done: false,
             createdByUserId: this.props.user.userId,
 
-        }
+        };
         return taskDTO;
     }
 
@@ -121,7 +121,7 @@ class TaskTableHeader extends React.Component<Props & ReduxPropsFunc & PropsFunc
 
 const mapStateToProps = (state, ownProps:Props & PropsFunc):{} => {
     return {};
-}
+};
 const mapDispatchToProps = (dispatch):ReduxPropsFunc => {
     return {
         onAddNewTaskFunc: (task:TaskDTO) => {
@@ -131,9 +131,9 @@ const mapDispatchToProps = (dispatch):ReduxPropsFunc => {
             dispatch(ON_LOGOUT_SECOND_USER.new({userId}));
         }
     }
-}
+};
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskTableHeader)
+const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskTableHeader);
 
 export default Ext;
 

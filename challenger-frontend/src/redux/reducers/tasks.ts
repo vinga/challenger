@@ -10,14 +10,14 @@ import {WebState} from "../../logic/domain/Common";
 export default function tasks(state:Map<string,TaskDTOListForDay> = new Map<string,TaskDTOListForDay>(), action:Action) {
     if (isAction(action, LOAD_TASKS_RESPONSE)) {
         var key:string = createTaskDTOListKey(action.challengeId, action.day);
-        var newState:Map<string,TaskDTOListForDay> = Object.assign({}, state)
+        var newState:Map<string,TaskDTOListForDay> = Object.assign({}, state);
         var newAction:TaskDTOListForDay = Object.assign({}, action);
         newState[key] = Object.assign({}, action);
         console.log(newAction);
         return newState;
     } else if (isAction(action, MARK_TASK_DONE_OPTIMISTIC)) {
         var key:string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));
-        var newState:Map<string,TaskDTOListForDay> = Object.assign({}, state)
+        var newState:Map<string,TaskDTOListForDay> = Object.assign({}, state);
         var task:TaskDTO = newState[key].taskList.filter((t:TaskDTO)=>t.id == action.taskProgress.taskId).pop();
         task.done = action.taskProgress.done;
         markTaskDayInvalid(newState[key], action.taskProgress.taskId);
@@ -29,7 +29,7 @@ export default function tasks(state:Map<string,TaskDTOListForDay> = new Map<stri
         markTaskListInvalid(newState, action.id);
         $.map(newState, (taskListForDayDTO:TaskDTOListForDay)=> {
             taskListForDayDTO.taskList = taskListForDayDTO.taskList.map((t:TaskDTO)=>t.id != action.id ? t : taskCopy);
-        })
+        });
         return newState;
     } else if (isAction(action, DELETE_TASK_OPTIMISTIC)) {
         var newState:Map<string,TaskDTOListForDay> = Object.assign({}, state);

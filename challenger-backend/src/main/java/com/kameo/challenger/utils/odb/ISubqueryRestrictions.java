@@ -6,6 +6,6 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 public interface ISubqueryRestrictions<E> {
-	public Predicate apply(CriteriaBuilder cb, Subquery<?> cq, Root<E> root);  
+	Predicate apply(CriteriaBuilder cb, Subquery<?> cq, Root<E> root);
 
 }

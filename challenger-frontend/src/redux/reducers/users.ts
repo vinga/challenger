@@ -100,5 +100,5 @@ const getErrorDescriptionForLogin = (data, jqXHR, textStatus, exception) => {
         console.log("Error unexpected... " + jqXHR.status + " " + jqXHR.responseText);
         return "Unexpected problem"
     }
-}
+};
 

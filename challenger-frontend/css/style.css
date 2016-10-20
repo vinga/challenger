@@ -133,8 +133,8 @@ html {
     font-family: Roboto, sans-serif;
     cursor: default;
     text-decoration: none;
-    margin: 0px 15px 0px 0px;
-    padding: 0px;
+    margin: 0 15px 0 0;
+    padding: 0;
     outline: medium none;
     font-size: inherit;
     font-weight: inherit;

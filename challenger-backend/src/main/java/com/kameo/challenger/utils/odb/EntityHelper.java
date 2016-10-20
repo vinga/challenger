@@ -23,8 +23,8 @@ public class EntityHelper {
 
 
 
-	public static interface IUpdater<E> {
-		public void applyUpdateChanges(E toBeUpdated, E incoming);
+	public interface IUpdater<E> {
+		void applyUpdateChanges(E toBeUpdated, E incoming);
 	}
 	public static <E extends IIdentity> void applyUpdateChanges(Collection<E> toBeUpdated, Collection<E> incoming, IUpdater<E> updater) {
 		Map<Long, E> map = EntityHelper.toMap(incoming);
@@ -378,15 +378,15 @@ public class EntityHelper {
 		}
 		return emax;
 	}
-	public static interface MultimapYield<E, F, G> {
-		public void put(E e, Multimap<F, G> map);
+	public interface MultimapYield<E, F, G> {
+		void put(E e, Multimap<F, G> map);
 	}
 
-	public static interface YieldList<E, F> {
+	public interface YieldList<E, F> {
 		List<F> yield(E e);
 	}
 
-	public static interface YieldLong<E> {
+	public interface YieldLong<E> {
 		Long yield(E e);
 	}
 

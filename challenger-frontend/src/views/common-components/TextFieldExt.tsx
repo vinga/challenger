@@ -24,7 +24,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
 
     handleFieldChange = (event) => {
         this.setState({fieldValue: event.target.value});
-    }
+    };
 
     render() {
         return (<TextField

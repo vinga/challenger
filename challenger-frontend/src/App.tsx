@@ -32,10 +32,10 @@ const mapStateToProps = (state:ReduxState):Props => {
     return {
         logged: logged,
     }
-}
+};
 
 
-let ConnectedApp = connect(mapStateToProps)(App)
+let ConnectedApp = connect(mapStateToProps)(App);
 
 let ProvidedApp = () => {
     return (
@@ -43,7 +43,7 @@ let ProvidedApp = () => {
             <ConnectedApp/>
         </Provider>
     )
-}
+};
 export default ProvidedApp;
 
 

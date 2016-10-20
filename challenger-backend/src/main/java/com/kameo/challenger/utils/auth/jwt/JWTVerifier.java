@@ -36,7 +36,7 @@ public class JWTVerifier<E extends TokenInfo> {
 
     JWTServiceConfig sc;
 
-    public JWTVerifier(JWTServiceConfig sc, Class e) {
+    public JWTVerifier(JWTServiceConfig sc, Class<E> e) {
         this.issuer = sc.getIssuer();
         this.clzE = e;
         this.sc = sc;
@@ -112,7 +112,6 @@ public class JWTVerifier<E extends TokenInfo> {
                             break;
                         } catch (SignatureException var24) {
                             var24.printStackTrace();
-                            ;
                         }
                     }
 

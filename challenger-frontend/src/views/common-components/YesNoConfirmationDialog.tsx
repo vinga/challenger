@@ -16,10 +16,10 @@ export default class YesNoConfirmationDialog extends React.Component<Props, void
     handleYes = () => {
         this.props.closeYes();
         this.props.closeDialog();
-    }
+    };
     handleClose= () => {
        this.props.closeDialog();
-    }
+    };
 
     render() {
         const actions = [

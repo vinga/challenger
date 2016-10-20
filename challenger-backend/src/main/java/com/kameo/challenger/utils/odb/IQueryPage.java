@@ -5,11 +5,11 @@ import com.google.common.base.Optional;
 import javax.persistence.TypedQuery;
 
 public interface IQueryPage {
-	public static class Rows {
+	class Rows {
 		private Integer firstRow;
 		private Integer maxRows;
 
-		public static final Rows none() {
+		public static Rows none() {
 			return new Rows(null, null);
 		}
 
@@ -60,6 +60,6 @@ public interface IQueryPage {
 		}
 	}
 
-	public Rows getRows();
+	Rows getRows();
 
 }

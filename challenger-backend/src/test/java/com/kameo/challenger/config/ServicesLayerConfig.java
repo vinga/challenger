@@ -27,5 +27,5 @@ public class ServicesLayerConfig {
               testHelper().getSentMessagesList().add(m);
           }
       };
-    };
+    }
 }

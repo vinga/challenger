@@ -37,12 +37,12 @@ export default class IconChooserButton extends React.Component<Props, State> {
             icon: this.state.icon,
             open: false,
         });
-    }
+    };
     onIconChoosen = (icon: string) => {
 
         this.props.onClick(icon);
         this.handleRequestClose();
-    }
+    };
 
     render() {
         return (<div><IconButton style={{width: 70, height: 70}}

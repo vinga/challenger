@@ -11,4 +11,4 @@ injectTapEventPlugin();
 ReactDOM.render(<App />, document.getElementById('root'));
 
 
-ReactDOM.render(<Footer/>,document.getElementById('footer'))
+ReactDOM.render(<Footer/>,document.getElementById('footer'));

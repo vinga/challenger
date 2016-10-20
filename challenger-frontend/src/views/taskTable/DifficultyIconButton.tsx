@@ -24,7 +24,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
 
     onEditTask = () => {
         this.props.onEditTask(this.props.task);
-    }
+    };
 
 
     render() {
@@ -54,7 +54,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
             </div>
         </IconButton>//;
 
-    }
+    };
 
 };
 

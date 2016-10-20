@@ -69,15 +69,15 @@ const mapStateToProps = (state:ReduxState) => {
     return {
         logged: logged,
     }
-}
+};
 const mapDispatchToProps = (dispatch) => {
     return {
         onLogout: () => {
             dispatch(LOGOUT.new({}))
         }
     }
-}
+};
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(Header)
+const Ext = connect(mapStateToProps, mapDispatchToProps)(Header);
 
 export default Ext;

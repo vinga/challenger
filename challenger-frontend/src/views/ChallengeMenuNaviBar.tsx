@@ -51,7 +51,7 @@ class ChallengeMenuNaviBar extends React.Component<Props & PropsFunc & {  style:
         if (iconText != undefined)
             return <FontIcon
                 style={menuIconStyle}
-                className={"fa " + iconText + " cyan-text"}/>
+                className={"fa " + iconText + " cyan-text"}/>;
         else return null;
 
     }
@@ -116,7 +116,7 @@ const mapStateToProps = (state:ReduxState):Props => {
         visibleChallengesDTO: state.challenges,
         day: state.currentSelection.day
     }
-}
+};
 const mapDispatchToProps = (dispatch):PropsFunc => {
     return {
         onChangeChallenge: (challengeId:number) => {
@@ -126,7 +126,7 @@ const mapDispatchToProps = (dispatch):PropsFunc => {
             dispatch(incrementDayAction(amount))
         }
     }
-}
+};
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeMenuNaviBar)
+const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeMenuNaviBar);
 export default Ext;

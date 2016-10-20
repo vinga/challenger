@@ -10,13 +10,13 @@ const colors={
     easyColors:['#FFEBCE','#CEF2F7'],
 
 
-}
+};
 export default colors;
 
 export const getColorLightenForUser = (userId:number):String => {
   return colors.userColorsLighten[userId % colors.userColorsLighten.length];
-}
+};
 
 export const getColorSuperlightenForUser = (userId:number|Number):String => {
     return colors.userColorsSuperlighten[<number>userId % colors.userColorsLighten.length];
-}
+};

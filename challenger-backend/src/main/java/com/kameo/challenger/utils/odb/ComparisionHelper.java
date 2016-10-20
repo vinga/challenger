@@ -24,11 +24,10 @@ public class ComparisionHelper {
 		boolean ok1 = b.getClass().isAssignableFrom(a.getClass());
 		boolean ok2 = a.getClass().isAssignableFrom(b.getClass());
 		if (ok1 || ok2) {
-			IIdentity ai = a;
 			IIdentity bi = (IIdentity) b;
-			if (ai.getId() <= 0)
+			if (a.getId() <= 0)
 				return false;
-			return ai.getId() == bi.getId();
+			return a.getId() == bi.getId();
 		}
 		return false;
 	}

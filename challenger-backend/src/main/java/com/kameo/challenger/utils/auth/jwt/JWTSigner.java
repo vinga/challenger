@@ -54,8 +54,7 @@ public class JWTSigner {
             JsonObject payload = token.getPayloadAsJsonObject();
             payload.add("info", request);
 
-            String generatedToken = token.serializeAndSign();
-            return generatedToken;
+            return token.serializeAndSign();
         } catch (SignatureException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

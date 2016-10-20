@@ -9,7 +9,7 @@ export const rootReducer = combineReducers({
     challenges,
     tasks,
     users
-})
+});
 
 
 

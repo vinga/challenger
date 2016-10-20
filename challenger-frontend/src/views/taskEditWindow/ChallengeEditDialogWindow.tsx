@@ -48,7 +48,7 @@ class ChallengeEditDialogWindow extends React.Component<Props & PropsFunc, State
     handleActionNameFieldChange = (event) => {
         this.state.task.label = event.target.value;
         this.setState(this.state);
-    }
+    };
 
 
     handleSubmit = () => {
@@ -81,11 +81,11 @@ class ChallengeEditDialogWindow extends React.Component<Props & PropsFunc, State
     handleIconChange = (icon) => {
         this.state.task.icon = icon;
         this.setState(this.state);
-    }
+    };
     handleTaskDelete = () => {
         this.state.taskDeleteConfirmation = true;
         this.setState(this.state);
-    }
+    };
 
 
     render() {
@@ -231,7 +231,7 @@ const mapStateToProps = (state:ReduxState, ownProps):Props => {
     return {task: state.currentSelection.editedTask,
         creatorUserLabel: state.challenges.visibleChallenges.filter(ch=>ch.id==state.challenges.selectedChallengeId).pop().userLabels.filter(u=>u.id==state.currentSelection.editedTask.createdByUserId).pop().label
     }
-}
+};
 const mapDispatchToProps = (dispatch):PropsFunc => {
     return {
         onTaskSuccessfullyUpdatedFunc: (task:TaskDTO)=> {
@@ -245,9 +245,9 @@ const mapDispatchToProps = (dispatch):PropsFunc => {
         },
 
     }
-}
+};
 
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeEditDialogWindow)
+const Ext = connect(mapStateToProps, mapDispatchToProps)(ChallengeEditDialogWindow);
 
 export default Ext;

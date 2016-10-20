@@ -22,7 +22,7 @@ export function updateTask(task:TaskDTO) {
         dispatch(MODIFY_TASK_REQUEST.new(task));
         ajaxWrapper.updateTask(task,(task: TaskDTO)=> {
             dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-        })
+        });
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }
@@ -34,7 +34,7 @@ export function deleteTask(task:TaskDTO) {
         dispatch(MODIFY_TASK_REQUEST.new(task));
         ajaxWrapper.updateTask(task,(task: TaskDTO)=> {
             dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-        })
+        });
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }
@@ -102,7 +102,7 @@ export function updateTaskStatus(taskApproval:TaskApprovalDTO) {
 
         ajaxWrapper.updateTaskStatus(taskApproval,jwtTokensOfApprovingUsers, (task: TaskDTO)=> {
             dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-        })
+        });
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }

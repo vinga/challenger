@@ -21,7 +21,7 @@ const styles = {
         cursor: 'pointer'
     },
 
-}
+};
 
 interface PropsFunc {
     onTaskAccept:(task:TaskDTO)=>void;
@@ -96,7 +96,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
                     cursor: 'pointer',
                     backgroundColor: 'white',
                     color: 'red!important'
-                }
+                };
                 return (<div style={styles.wrapper}>
                     <div className="taskLabel" style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
                     <Chip style={chipWaiting} className="clickableChip">
@@ -117,7 +117,7 @@ export class TaskLabel extends React.Component<TaskProps & PropsFunc,State> {
                 cursor: 'pointer',
                 backgroundColor: 'white',
                 color: 'red!important'
-            }
+            };
             return (<div style={styles.wrapper}>
                 <div className="taskLabel">{this.props.taskDTO.label}</div>
                 <Chip style={chipWaiting} className="clickableChip">
@@ -187,7 +187,7 @@ const mapStateToProps = (state:ReduxState, ownprops:any):any => {
     //state.challenges.visibleChallenges.filter(ch=>ch.id==state.challenges.selectedChallengeId).pop();
 
     return {isTaskCreatorLogged: isTaskCreatorLogged, taskCreatorOrdinal: taskCreatorOrdinal}
-}
+};
 
 const mapDispatchToProps = (dispatch):any => {
 
@@ -198,7 +198,7 @@ const mapDispatchToProps = (dispatch):any => {
                 userId: -1,
                 taskId: task.id,
                 taskStatus: TaskStatus.accepted
-            }
+            };
             dispatch(updateTaskStatus(taskApproval));
         },
         onTaskReject: (task:TaskDTO, rejectionReason:string) => {
@@ -207,16 +207,16 @@ const mapDispatchToProps = (dispatch):any => {
                 taskId: task.id,
                 taskStatus: TaskStatus.rejected,
                 rejectionReason: rejectionReason
-            }
+            };
             dispatch(updateTaskStatus(taskApproval));
         },
         onTaskConversationShow: (task: TaskDTO) => {
             dispatch(showTaskConversation(task));
         }
     }
-}
+};
 
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskLabel)
+const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskLabel);
 
 export default Ext;

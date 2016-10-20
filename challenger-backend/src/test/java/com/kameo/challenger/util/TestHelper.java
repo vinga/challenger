@@ -118,8 +118,7 @@ public class TestHelper {
         String res = resolveLogin(login);
         try {
 
-            UserODB user = anyDao.getOnlyOne(UserODB.class, p -> p.getLogin().equals(res));
-            return user;
+            return anyDao.getOnlyOne(UserODB.class, p -> p.getLogin().equals(res));
         } catch (NoSuchElementException ex) {
             throw new RuntimeException("More than one or zero users found with login '"+res+"'");
         }

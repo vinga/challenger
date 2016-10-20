@@ -48,4 +48,4 @@ export const TaskType = {
     daily: "daily",
     weekly: "weekly",
     monthly: "monthly"
-}
+};

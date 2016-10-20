@@ -33,7 +33,7 @@ const styles = {
         fontSize: '11px'
     },
 
-}
+};
 
 
 interface Props {
@@ -66,7 +66,7 @@ class TaskTable extends React.Component<Props & PropsFunc, State> {
 
     handleResize = (e) => {
         this.setState(this.state);
-    }
+    };
 
     onTaskCheckedStateChangedFunc = (taskDTO) => {
         var taskProgressDTO = {
@@ -75,7 +75,7 @@ class TaskTable extends React.Component<Props & PropsFunc, State> {
             progressTime: this.props.currentDate.getTime()
         };
         this.props.onTaskCheckedStateChangedFunc(this.props.selectedChallengeDTO.id, taskProgressDTO);
-    }
+    };
 
 
 
@@ -94,7 +94,7 @@ class TaskTable extends React.Component<Props & PropsFunc, State> {
             return true;
         }
         return false;
-    }
+    };
     showAuthorizePanelFunc = (anchor, isInputChecked) => {
         if (this.props.user.jwtToken==null) {
             this.state.authorizePanel = true;
@@ -109,7 +109,7 @@ class TaskTable extends React.Component<Props & PropsFunc, State> {
             return true;
         }
         return false;
-    }
+    };
 
     render() {
         var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 400) + "px";
@@ -201,7 +201,7 @@ const mapStateToProps = (state:ReduxState, ownprops:any):any => {
         tasksList: tasksList,
         busy: busy
     }
-}
+};
 
 const mapDispatchToProps = (dispatch):PropsFunc => {
 
@@ -213,10 +213,10 @@ const mapDispatchToProps = (dispatch):PropsFunc => {
             dispatch(OPEN_EDIT_TASK.new(task))
         }
     }
-}
+};
 
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(ResizeAware(TaskTable))
+const Ext = connect(mapStateToProps, mapDispatchToProps)(ResizeAware(TaskTable));
 
 export default Ext;
 

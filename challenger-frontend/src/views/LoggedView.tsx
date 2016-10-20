@@ -32,7 +32,7 @@ class LoggedView extends React.Component<Props,void> {
                 comps.push(<div className="col s12 m6">
                     <TaskTable no={i++} user={u}/>
                 </div>);
-            })
+            });
 
             for (i = 0; i < comps.length; i += 2) {
                 rows.push(<div className="row" key={i}>{comps[i]}{i + 1 < comps.length && comps[i + 1]}</div>)
@@ -80,7 +80,7 @@ const mapStateToProps = (state:ReduxState):Props => {
         accounts: accounts,
         displayedConversation: state.currentSelection.displayedConversation
     }
-}
+};
 
-let Ext = connect(mapStateToProps)(LoggedView)
+let Ext = connect(mapStateToProps)(LoggedView);
 export default Ext;
