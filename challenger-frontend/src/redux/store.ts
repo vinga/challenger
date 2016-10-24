@@ -1,4 +1,4 @@
-import {rootReducer} from "./reducers/reducers";
+import {rootReducer} from "./reducers";
 import thunkMiddleware from "redux-thunk";
 import {createStore, applyMiddleware} from "redux";
 import {hotReloadIfNeeded} from "./utils/utilsjs";

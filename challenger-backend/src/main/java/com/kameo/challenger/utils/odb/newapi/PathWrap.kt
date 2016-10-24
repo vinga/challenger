@@ -1,23 +1,16 @@
 package com.kameo.challenger.utils.odb.newapi
 
-import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.utils.odb.AnyDAO
-import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.Path
-import javax.persistence.criteria.Predicate
+import javax.persistence.criteria.*
 import javax.persistence.metamodel.SingularAttribute
 import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.KProperty
 
+open class PathWrap<E> constructor(val pc: PathContext, val root: Path<E>, var arr: MutableList<() -> Predicate?>, val parent: PathWrap<E>? = null) {
 
-
-open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, var arr: MutableList<() -> Predicate?>, val parent: PathWrap<E>? = null) {
-
+    val cb=pc.cb;
 
     infix fun eqId(id: Long): PathWrap<E> {
-
-
-        arr.add({ cb.equal(root.get<Path<Long>>(AnyDAO.id_column), id) })
+        arr.add({ pc.cb.equal(root.get<Path<Long>>(AnyDAO.id_column), id) })
         return this
     }
 
@@ -30,7 +23,7 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
         var list = mutableListOf<() -> Predicate?>()
 
 
-        var pw = PathWrap(cb, root, list, this)
+        var pw = PathWrap(pc, root, list, this)
 
 
         arr.add({ calculateOr(list) })
@@ -41,7 +34,7 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
         var list = mutableListOf<() -> Predicate?>()
 
 
-        var pw = PathWrap(cb, root, list, this)
+        var pw = PathWrap(pc, root, list, this)
 
 
         arr.add({ calculateAnd(list) })
@@ -120,10 +113,6 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
     }
 
 
-    /*    fun <F> eq4(sa: KProperty1<E,F>, f: F): PathWrap<E> {
-            arr.add({cb.equal(root.get<Path<F>>(sa.name),f)});
-            return this;
-        }*/
     fun <F> notEq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E> {
         arr.add({ cb.notEqual(root.get<F>(sa.name), f) })
         return this
@@ -142,13 +131,6 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
         arr.add({ cb.greaterThan(root.get(sa.name), f) })
         return this
     }
-     fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F> {
-        return PathWrap(cb, root.get(sa), arr)
-     }
-
-    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F> {
-        return PathWrap(cb, root.get(sa.name), arr)
-    }
 
 
     operator fun  <F> rangeTo(sa: KMutableProperty1<E, F>): PathWrap<F> {
@@ -164,7 +146,40 @@ open class PathWrap<E> constructor(val cb: CriteriaBuilder, val root: Path<E>, v
         return this
     }
 
+    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F> {
+        return PathWrap(pc, root.get(sa), arr)
+    }
 
+    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F> {
+        return PathWrap(pc, root.get(sa.name), arr)
+    }
+
+    fun <F> get(sa: KMutableProperty1<E, List<F>>): UseGetListOnJoinInstead {
+        val join=(root as Join<Any, E>).join<E,F>(sa.name) as Join<Any, F>
+        return UseGetListOnJoinInstead();
+    }
+    infix fun orderByAsc(sa: KMutableProperty1<E,*>):PathWrap<E> {
+        pc.addOrder(cb.asc(root.get<Any>(sa.name)));
+        return this;
+    }
+    infix fun orderByDesc(sa: KMutableProperty1<E,*>): PathWrap<E> {
+        pc.addOrder(cb.desc(root.get<Any>(sa.name)));
+        return this;
+    }
+    infix fun orderBy(pw: Pair<PathWrap<*>,Boolean>) {
+        var (pathWrap, asc)=pw;
+        pc.addOrder(if (asc) cb.asc(pathWrap.root) else cb.desc(pathWrap.root));
+    }
+    fun orderBy(vararg pw: Pair<PathWrap<*>,Boolean>) {
+        for ((pathWrap, asc) in pw) {
+            pc.addOrder(if (asc) cb.asc(pathWrap.root) else cb.desc(pathWrap.root));
+        }
+    }
+
+    // type safety class to not use get with lists paremters
+    class UseGetListOnJoinInstead {
+
+    }
 
 
 }

@@ -2,6 +2,8 @@ package com.kameo.challenger.web.rest.impl;
 
 
 import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
+import com.kameo.challenger.domain.challenges.IChallengeRestService;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.tasks.db.TaskApprovalODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
@@ -37,6 +39,8 @@ public class ChallengerRestService implements IChallengerService {
 
     @Inject
     private ChallengerLogic challengerLogic;
+
+
 
     @GET
     @Path("ping")
@@ -99,21 +103,6 @@ public class ChallengerRestService implements IChallengerService {
 
 
 
-    @GET
-    @Path("conversation/{taskId}")
-    public ConversationDTO getConversation(@PathParam("taskId") long taskId) {
-        long callerId = session.getUserId();
-        ConversationDTO rest=new ConversationDTO();
-        rest.setTaskId(taskId);
-        ConversationDTO.PostDTO post=new ConversationDTO.PostDTO();
-        post.setAuthorId(0);
-        post.setTaskId(taskId);
-        post.setSentDate(new Date().getTime());
-        post.setContent("blaaah adsfa;ldsfkja ;sjdfpa sdfads fadjf ads f");
-
-        rest.setPosts(new ConversationDTO.PostDTO[]{post});
-        return rest;
-    }
 
     //TODO get all tasks, not only assigned to one person
     @GET

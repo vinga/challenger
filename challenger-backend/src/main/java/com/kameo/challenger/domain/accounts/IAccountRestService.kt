@@ -1,10 +1,19 @@
 package com.kameo.challenger.domain.accounts
 
-import com.kameo.challenger.domain.accounts.db.UserRegistrationType
-
 
 interface IAccountRestService {
 
-    fun registerUser(login:String, email: String, userRegistrationType: UserRegistrationType)
+    data class RegisterRequestDTO(val email: String="",
+                                  val login: String="",
+                                  val password: String="");
+
+    data class RegisterResponseDTO(
+            val registerSuccess: Boolean,
+            val needsEmailConfirmation: Boolean,
+            val registerError: String? = null
+
+    );
+
+    fun registerUser(registerRequest: RegisterRequestDTO):RegisterResponseDTO
 
 }

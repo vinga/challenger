@@ -35,8 +35,8 @@ Array.prototype.contains = function(obj) {
 
 export function hotReloadIfNeeded (store, reducerPath) {
     if (module.hot) {
-        module.hot.accept("../reducers/reducers", () => {
-            const nextRootReducer = require("../reducers/reducers");
+        module.hot.accept("../reducers", () => {
+            const nextRootReducer = require("../reducers");
             store.replaceReducer(nextRootReducer);
         });
     }

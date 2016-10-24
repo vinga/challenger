@@ -43,7 +43,6 @@ open class TaskDAO {
                             .after(TaskODB::dueDate, date)
                 })
 
-
         getTaskProgress(tasks, date).forEach { tp ->
             tasks.filter({ t -> t.id == tp.task.id })
                     .forEach { it.done = (tp.done) }

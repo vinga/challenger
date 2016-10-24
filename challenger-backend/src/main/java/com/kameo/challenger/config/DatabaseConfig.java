@@ -1,5 +1,6 @@
 package com.kameo.challenger.config;
 
+//import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import com.kameo.challenger.utils.odb.AnyDAONew;
 import org.jinq.jpa.JinqJPAStreamProvider;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 
@@ -26,6 +28,8 @@ class DatabaseConfig {
     public JinqJPAStreamProvider jinqJPAStreamProvider() {
         return new JinqJPAStreamProvider(anyDao().getEm().getMetamodel());
     }
+
+
 
     @Bean
     public AnyDAO anyDao() {

@@ -82,7 +82,16 @@ Date.prototype.addDays = function(days)
     return dat;
 };
 
-
+Date.prototype.yy_mm_dd = function() {
+    var mm = this.getMonth() + 1;
+    var dd = this.getDate();
+    return [this.getFullYear().toString().substr(2,2),  mm, dd].join('-');
+};
+Date.prototype.yyyy_mm_dd = function() {
+    var mm = this.getMonth() + 1;
+    var dd = this.getDate();
+    return [this.getFullYear(),  mm, dd].join('-');
+};
 export {
     DiffHardIcon as DiffHardIcon,
     DiffMediumIcon as DiffMediumIcon,

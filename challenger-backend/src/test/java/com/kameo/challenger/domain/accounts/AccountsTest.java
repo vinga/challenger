@@ -108,7 +108,7 @@ public class AccountsTest implements En {
         });
 
         When("^I register with that email$", () ->
-                registerResult = accountDao.registerUser("myself", "myselfpass", "myself@email.em")
+                registerResult = accountDao.registerUser("myself", "myselfpass", "myself@email.em").getError()==null
         );
 
         Then("^I don't have to confirm my email before I can login succesfully$", () -> {

@@ -1,8 +1,9 @@
 //import * as Rx from 'rxjs/Rx'; /*   "rxjs": "^5.0.0-beta.12"*/
-import {VisibleChallengesDTO} from "./domain/ChallengeDTO";
-import {TaskDTO} from "./domain/TaskDTO";
-import {TaskProgressDTO} from "./domain/TaskProgressDTO";
-import {TaskApprovalDTO} from "./domain/TaskApprovalDTO";
+import {VisibleChallengesDTO} from "../module_challenges/ChallengeDTO";
+import {TaskDTO, TaskProgressDTO, TaskApprovalDTO} from "../module_tasks/TaskDTO";
+import {RegisterResponseDTO} from "../module_accounts/RegisterResponseDTO";
+import {EventGroupDTO} from "./domain/EventGroupDTO";
+import {EventDTO} from "./domain/EventDTO";
 
 
 
@@ -39,7 +40,7 @@ class AjaxWrapper {
     webToken: string;
 
 
-    login(login: string, pass: string) {
+    login(login: string, pass: string): JQueryPromise<string> {
         return $.ajax({
             url: this.baseUrl + "/newToken",
             type: 'POST',
@@ -49,6 +50,21 @@ class AjaxWrapper {
             },
         });
     }
+
+    register(email: string, login: string, pass: string): JQueryPromise<RegisterResponseDTO> {
+        return $.ajax({
+            url: this.baseUrl + "/accounts/register",
+            type: 'POST',
+            contentType:  "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({
+                'email':email,
+                'login': login,
+                'pass': pass
+            })
+        });
+    }
+
     renewToken(login: string, jwtToken: string) {
         return $.ajax({
             url: this.baseUrl + "/renewToken",
@@ -80,8 +96,17 @@ class AjaxWrapper {
         });
     }
 
+   yymmdd(d: Date):string {
+        var mm = d.getMonth() + 1; // getMonth() is zero-based
+        var dd = d.getDate();
+
+        return [d.getFullYear().toString().substr(2,2),  mm, dd].join('-'); // padding
+    };
+
+
     loadTasks(challengeId: number, date: Date) {
-        var formattedDate = date.toISOString().slice(0, 10);
+
+        var formattedDate = date.yy_mm_dd();//date.toISOString().slice(0, 10);
         return $.ajax({
             url: this.baseUrl+ "/tasks"+"/"+challengeId +"/"+formattedDate ,
             headers: {
@@ -156,15 +181,40 @@ class AjaxWrapper {
             callback(task);
         });
     }
-
-    getTaskConversation(task: TaskDTO) {
-       return $.ajax({
-            url: this.baseUrl + "/conversation/"+task.id,
+    loadPostsForChallenge(challengeId: number): JQueryPromise<EventGroupDTO> {
+        return $.ajax({
+            url: this.baseUrl + "/events/challenge/"+challengeId,
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
         });
     }
+
+    loadPostsForTask(task: TaskDTO) {
+       return $.ajax({
+            url: this.baseUrl + "/events/"+task.id,
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        });
+    }
+
+
+    sendEvent(event: EventDTO):  JQueryPromise<EventDTO>  {
+        return $.ajax({
+            url: this.baseUrl+ "/events/sendEvent",
+            data: JSON.stringify(event),
+            contentType:  "application/json; charset=utf-8",
+            dataType: "json",
+            type: "POST",
+            headers: {
+                "Authorization": "Bearer " + this.webToken
+            }
+        });
+    }
+
+
+
 }
 const ajaxWrapper=new AjaxWrapper();
 export default ajaxWrapper;

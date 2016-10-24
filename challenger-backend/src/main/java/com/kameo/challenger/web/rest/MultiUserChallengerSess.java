@@ -4,6 +4,7 @@ package com.kameo.challenger.web.rest;
 import com.google.common.collect.Sets;
 import lombok.Data;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -13,7 +14,6 @@ import java.util.Set;
 @RequestScope
 @Component
 @Lazy
-@Data
 public class MultiUserChallengerSess {
     Set<Long> userIds;
 
@@ -24,5 +24,9 @@ public class MultiUserChallengerSess {
         if (userIds==null)
             return Sets.newHashSet(challengerSess.getUserId());
         return userIds;
+    }
+
+    public void setUserIds(Set<Long> userIds) {
+        this.userIds = userIds;
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.servlet.*;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -54,6 +55,10 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         super.doFilter(req, res, chain);
     }
 
+    @Override
+    protected boolean isResourceAuthorizationRequired(HttpServletRequest req) {
+        return !req.getPathInfo().startsWith("/api/accounts/register");
+    }
 
     @Override
     protected JWTServiceConfig getJWTServiceConfig(FilterConfig fc) {

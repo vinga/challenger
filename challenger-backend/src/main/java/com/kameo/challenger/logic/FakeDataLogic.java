@@ -8,6 +8,8 @@ import com.kameo.challenger.domain.accounts.db.UserStatus;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
+import com.kameo.challenger.domain.events.EventODB;
+import com.kameo.challenger.domain.events.EventType;
 import com.kameo.challenger.domain.tasks.db.TaskApprovalODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.domain.tasks.db.TaskProgressODB;
@@ -166,6 +168,24 @@ public class FakeDataLogic implements CommandLineRunner {
         ac6.setTaskType(TaskType.monthly);
         em.persist(ac6);
         approveTaskForCreator(ac6);
+
+
+        EventODB p1=new EventODB();
+        p1.setChallenge(contract1);
+        p1.setCreateDate(new Date());
+        p1.setAuthor(data.userKami);
+        p1.setContent("It't time to finish this project, isn't it?");
+        p1.setEventType(EventType.POST);
+        em.persist(p1);
+
+        EventODB p2=new EventODB();
+        p2.setChallenge(contract1);
+        p2.setCreateDate(new Date());
+        p2.setAuthor(data.userJack);
+        p2.setContent("Totally agree.");
+        p2.setEventType(EventType.POST);
+        em.persist(p2);
+
 
         ChallengeODB contract2 = new ChallengeODB();
         contract2.setLabel("kami vs milena");

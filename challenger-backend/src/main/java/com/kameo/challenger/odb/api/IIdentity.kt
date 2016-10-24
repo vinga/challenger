@@ -8,7 +8,7 @@ interface IIdentity: Serializable {
     val id: Long // abstract
 
     fun isNew(): Boolean {
-        return id < 0
+        return id <= 0
     }
 
     companion object Meta {

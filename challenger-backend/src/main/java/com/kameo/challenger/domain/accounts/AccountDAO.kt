@@ -3,11 +3,13 @@ package com.kameo.challenger.domain.accounts
 import com.google.common.base.Strings
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.accounts.db.UserStatus
+import com.kameo.challenger.domain.challenges.ChallengeDAO
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.utils.DateUtil
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter
 import com.kameo.challenger.utils.odb.AnyDAONew
+import com.sun.org.apache.xpath.internal.operations.Bool
 import org.joda.time.DateTime
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -16,7 +18,7 @@ import javax.inject.Inject
 
 @Component
 @Transactional
-internal open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
+open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                                @Inject val confirmationLinkLogic: ConfirmationLinkLogic) {
 
 
@@ -78,12 +80,28 @@ internal open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         return user
     }
 
-    open fun registerUser(login: String, password: String, email: String): Boolean {
+    class InternalRegisterResponseDTO(val error:String?=null, val requireEmailConfirmation:Boolean=false);
+
+    open fun registerUser(login: String, password: String, email: String):InternalRegisterResponseDTO  {
         val challengeParticipant = anyDaoNew.getFirst(ChallengeParticipantODB::class, {
-            it get ChallengeParticipantODB::user get UserODB::email eq email
+            it.get(ChallengeParticipantODB::user).get(UserODB::email) eq email
         })
 
         if (challengeParticipant == null) {
+
+            val existingUser = anyDaoNew.getFirst(UserODB::class, {
+                it.get(UserODB::login) eq login
+            })
+            if (existingUser!=null)
+                return InternalRegisterResponseDTO("Login "+login+" is already registered.")
+            val existingEmail = anyDaoNew.getFirst(UserODB::class, {
+                it.get(UserODB::email) eq email
+            })
+            if (existingEmail!=null)
+                return InternalRegisterResponseDTO("Email "+email+" is already registered.")
+
+
+
             val user = UserODB()
             user.login = login
             user.email = email
@@ -91,13 +109,16 @@ internal open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
             user.salt = PasswordUtil.createSalt()
             user.passwordHash = PasswordUtil.getPasswordHash(password, user.salt)
             anyDaoNew.em.persist(user)
-            return true
+            return InternalRegisterResponseDTO(requireEmailConfirmation = false)
+
+
+
         } else if (challengeParticipant.user.userStatus == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
             confirmationLinkLogic.createAndSendEmailConfirmationLink(login, password, email)
-            return true
+            return InternalRegisterResponseDTO(requireEmailConfirmation = true)
         } else
 
-            return false
+            return InternalRegisterResponseDTO("Cannot register")
     }
 
     open fun sendResetMyPasswordLink(email: String) {
@@ -112,4 +133,6 @@ internal open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun createAndSendChallengeConfirmationLink(cb: ChallengeODB, cp: ChallengeParticipantODB) {
         confirmationLinkLogic.createAndSendChallengeConfirmationLink(cb, cp)
     }
+
+
 }

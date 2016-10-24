@@ -3,6 +3,7 @@ package com.kameo.challenger.config;
 import com.kameo.challenger.domain.challenges.IChallengeRestService;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.MailService;
+import com.kameo.challenger.web.rest.ChallengerSess;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,6 +20,10 @@ public class ServicesLayerConfig {
         return new TestHelper();
     }
 
+    @Bean
+    ChallengerSess sess() {
+        return new ChallengerSess();
+    }
     @Bean
     MailService mailService() {
       return new MailService() {

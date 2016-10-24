@@ -79,6 +79,8 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 ex.printStackTrace();
                 unauthorized(httpRes);
             }
+        } else {
+            chain.doFilter(req, res);
         }
     }
 

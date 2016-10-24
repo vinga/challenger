@@ -8,20 +8,7 @@ import java.util.Optional;
 
 public interface IChallengerService {
 
-    @Data
-    class ConversationDTO {
-        long taskId;
-        PostDTO[] posts;
 
-        @Data
-        public static class PostDTO {
-            long id;
-            long authorId;
-            String content;
-            long sentDate;
-            long taskId;
-        }
-    }
 
     @Data
     class TaskProgressDTO {

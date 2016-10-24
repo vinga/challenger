@@ -1,21 +1,50 @@
-
-import {VisibleChallengesDTO} from "../logic/domain/ChallengeDTO";
-import {TaskDTOListForDay, TaskDTO} from "../logic/domain/TaskDTO";
-import {AccountDTO} from "../logic/domain/AccountDTO";
-import {ConversationDTO} from "../logic/domain/ConversationDTO";
+import {connect} from "react-redux";
+import {VisibleChallengesDTO} from "../module_challenges/index";
+import {TaskDTOState} from "../module_tasks/index";
+import {AccountDTO} from "../module_accounts/index";
 
 export interface CurrentSelection {
     day: Date,
-    editedTask?: TaskDTO;
-    userId?:number;
-    displayedConversation?:ConversationDTO;
+    //userId?:number;
+    showChallengeConversation:boolean
+}
+
+export interface RegisterState {
+    registerInProgress?: boolean;
+    registerError?: string;
+    registeredSuccessfully?: boolean;
+
 }
 export interface ReduxState {
     challenges: VisibleChallengesDTO,
-    tasks: Map<string,TaskDTOListForDay>,
-    users:Array<AccountDTO>,
+    registerState?: RegisterState,
+    tasksState: TaskDTOState,
+    accounts:Array<AccountDTO>,
     currentSelection: CurrentSelection
 }
 
 
+function steal(result: any, data: any): any {
+    for (var key in data) {
+        if (data.hasOwnProperty(key)) {
+            result[key] = data[key];
+        }
+    }
+    return result;
+}
 
+export class SameAs<a> {
+    constructor(public result: a) { }
+    public andMore<b>(value: b): SameAs<a & b> {
+        return new SameAs<a & b>(steal(this.result, value));
+    }
+    public and<b>(value: b): a {
+        return new SameAs<a & b>(steal(this.result, value)).result;
+    }
+}
+export function copy<a>(value: a): SameAs<a> {
+    return new SameAs(steal({}, value));
+}
+
+
+export {connect};

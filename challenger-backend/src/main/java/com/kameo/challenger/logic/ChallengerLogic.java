@@ -141,7 +141,6 @@ public class ChallengerLogic {
         TaskODB task = anyDao.get(TaskODB.class, taskId);
         if (task.getUser().getId() != callerId)
             throw new IllegalArgumentException();
-        System.out.println("MARK DONE " + done);
         Optional<TaskProgressODB> otp = anyDao.streamAll(TaskProgressODB.class)
                 .where(t -> t.getTask().getId() == taskId)
                 .where(t -> t.getProgressTime().equals(dayMidnight))

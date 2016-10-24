@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @Component
 @Transactional
-internal open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao: AccountDAO) {
+open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao: AccountDAO) {
 
 
     open fun createNewChallenge(userId: Long, cb: ChallengeODB) {
@@ -63,7 +63,7 @@ internal open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val a
 
     }
 
-    internal class ChallengeInfoDTO {
+    class ChallengeInfoDTO {
         @Getter
         var defaultChallengeId: Long? = null
             internal set
