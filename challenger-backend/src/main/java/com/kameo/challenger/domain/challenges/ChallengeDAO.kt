@@ -80,11 +80,12 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
             it get ChallengeParticipantODB::user eqId callerId
             it.get(ChallengeParticipantODB::challenge)
                     .newOr()
-                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.ACTIVE)
-                    .newAnd()
-                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.REFUSED)
-                    .get(ChallengeODB::createdBy) eqId callerId
+                        .eq(ChallengeODB::challengeStatus, ChallengeStatus.WAITING_FOR_ACCEPTANCE)
+                        .eq(ChallengeODB::challengeStatus, ChallengeStatus.ACTIVE)
+                        .newAnd({
+                             it.eq(ChallengeODB::challengeStatus, ChallengeStatus.REFUSED)
+                            .get(ChallengeODB::createdBy).eqId(callerId) })
+                    .finish();
         })
 
         res.visibleChallenges = challengeParticipantsForThisUser.map { it.challenge }

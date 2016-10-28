@@ -5,12 +5,10 @@ import kotlin.reflect.KMutableProperty1
 
 class RootWrapUpdate<E,G> constructor(val pw: PathContext,
                                       pathSelect: SelectWrap<G>,
-                                      root: Root<E>,
+                                      root: Root<E>
+                                     )
 
-                                      arr: MutableList<() -> Predicate?>,
-                                      parent: PathWrap<E,G>? = null)
-
-: PathWrap<E,G>(pw, pathSelect, root, arr, parent) {
+: PathWrap<E,G>(pw, pathSelect, root) {
 
     fun <F> set(sa: KMutableProperty1<E, F>, f: F): RootWrapUpdate<E,G> {
         val criteriaUpdate=pw.criteria as? CriteriaUpdate<F> ?: throw IllegalArgumentException();

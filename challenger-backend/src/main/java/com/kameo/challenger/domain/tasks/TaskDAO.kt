@@ -26,7 +26,6 @@ open class TaskDAO {
     lateinit var anyDaoNew: AnyDAONew
 
 
-
     open fun createTask(callerId: Long, taskODB: TaskODB): TaskODB {
         val cc = anyDao.get(ChallengeODB::class.java, taskODB.challenge.id)
         if (!cc.participants.any({ cp -> cp.user.id == callerId }))
@@ -55,7 +54,8 @@ open class TaskDAO {
 
     open fun getTasks(callerId: Long, challengeId: Long, date: Date): List<TaskODB> {
 
-//anyDaoNew.test();
+
+        //anyDaoNew.test();
 
         val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class.java,
                 {
@@ -72,6 +72,7 @@ open class TaskDAO {
                     it.newOr()
                             .notEq(TaskODB::taskType, TaskType.onetime)
                             .after(TaskODB::dueDate, date)
+                    it.finish()
                 })
 
         getTaskProgress(tasks, date).forEach { tp ->
@@ -84,16 +85,17 @@ open class TaskDAO {
     }
 
     open fun deleteTask(callerId: Long, taskId: Long) {
-        val task=anyDaoNew.getOne(TaskODB::class, {it eqId  taskId});
+        val task = anyDaoNew.getOne(TaskODB::class, { it eqId taskId });
         if (task.user.id != callerId)
             throw IllegalArgumentException()
 
-        anyDaoNew.remove(TaskProgressODB::class, {it get TaskProgressODB::task eqId taskId});
-        anyDaoNew.remove(TaskApprovalODB::class, {it get TaskApprovalODB::task eqId taskId});
+        anyDaoNew.remove(TaskProgressODB::class, { it get TaskProgressODB::task eqId taskId });
+        anyDaoNew.remove(TaskApprovalODB::class, { it get TaskApprovalODB::task eqId taskId });
 
         anyDao.getEm().remove(task)
 
     }
+
     open fun getTaskProgress(tasks: List<TaskODB>, day: Date): List<TaskProgressODB> {
         val midnight = DateUtil.getMidnight(day)
 

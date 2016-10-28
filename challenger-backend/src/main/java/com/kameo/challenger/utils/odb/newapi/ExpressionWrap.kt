@@ -6,7 +6,7 @@ import javax.persistence.criteria.Path
 /**
  * Created by Kamila on 2016-10-27.
  */
-open class ExpressionWrap<E> constructor (val root: Expression<E>): ISelectWrap<E> {
+open class ExpressionWrap<E> constructor (val root: Expression<E>): ISugarQuerySelect<E> {
     override val select: Expression<E>
         get() = root;
 }

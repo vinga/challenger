@@ -4,7 +4,15 @@ import {isAction, Action} from "../redux/ReduxTask";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
 
-export function tasksState(state: TaskDTOState = {tasks: new Map<string,TaskDTOListForDay>()}, action: Action) {
+
+const getInitialState = (): TaskDTOState => {
+    return {tasks: new Map<string,TaskDTOListForDay>()};
+}
+
+export function tasksState(state: TaskDTOState = getInitialState(), action: Action) {
+    if (isAction(action, 'LOGOUT')) {
+        return getInitialState();
+    }
     if (isAction(action, OPEN_EDIT_TASK)) {
         var taskCopy: TaskDTO = Object.assign({}, action);
         return Object.assign({}, state, {
@@ -76,7 +84,7 @@ function tasks(state: Map<string,TaskDTOListForDay>, action) {
         var newState: Map<string,TaskDTOListForDay> = Object.assign({}, state);
 
         $.map(newState, (taskListForDayDTO: TaskDTOListForDay)=> {
-           if (taskListForDayDTO.webState == WebState.FETCHING || taskListForDayDTO.webState == WebState.NEED_REFETCH)
+            if (taskListForDayDTO.webState == WebState.FETCHING || taskListForDayDTO.webState == WebState.NEED_REFETCH)
                 taskListForDayDTO.webState = WebState.FETCHING_VISIBLE;
         });
         return newState;

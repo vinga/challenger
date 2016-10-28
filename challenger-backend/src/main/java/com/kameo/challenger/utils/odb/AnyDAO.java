@@ -1,13 +1,21 @@
 package com.kameo.challenger.utils.odb;
 
 import com.google.common.base.Function;
+import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.odb.api.IIdentity;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.kameo.challenger.utils.odb.newapi.ISugarQuerySelect;
+import com.kameo.challenger.utils.odb.newapi.RootWrap;
+import javafx.util.Callback;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jinq.jpa.JPAJinqStream;
 import org.jinq.jpa.JinqJPAStreamProvider;
 import org.jinq.orm.stream.JinqStream;
+import org.jinq.orm.stream.JinqStream.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.inject.Inject;
@@ -19,8 +27,16 @@ import javax.persistence.criteria.*;
 import javax.persistence.metamodel.ListAttribute;
 import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.DoubleUnaryOperator;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
+import static org.springframework.core.env.PropertySource.named;
 
 public class AnyDAO {
 	// @Autowired
@@ -52,13 +68,13 @@ public class AnyDAO {
 		return em;
 	}
 
+
+
 	public <E extends IIdentity, F> int update(E obj, SingularAttribute<E, F> set, final F newValue) {
 		if (obj == null) {
 			return 0;
 		}
-
-
-		Class<E> clz = set.getDeclaringType().getJavaType();
+		Class < E > clz = set.getDeclaringType().getJavaType();
 		CriteriaBuilder cb = getEm().getCriteriaBuilder();
 		CriteriaUpdate<E> update = cb.createCriteriaUpdate(clz);
 		Root<E> root = update.from(clz);
