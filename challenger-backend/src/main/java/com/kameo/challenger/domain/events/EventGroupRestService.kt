@@ -99,7 +99,7 @@ class EventGroupRestService : IEventGroupRestService {
             });
         }
 
-        asyncResponse.setTimeout(5, TimeUnit.SECONDS);
+        asyncResponse.setTimeout(500, TimeUnit.SECONDS);
         asyncResponse.setTimeoutHandler({
 
 

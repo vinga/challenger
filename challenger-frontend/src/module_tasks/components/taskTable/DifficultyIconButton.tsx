@@ -10,7 +10,8 @@ interface Props {
 }
 
 interface PropsFunc {
-    onEditTask:(task:TaskDTO)=>void;
+    onEditTask?:(task:TaskDTO)=>void;
+    onShowTaskEvents?:(task:TaskDTO, no:number)=>void;
 }
 
 export default class DifficultyIconButton extends React.Component<Props & PropsFunc,void> {
@@ -19,7 +20,10 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
     }
 
     onEditTask = () => {
-        this.props.onEditTask(this.props.task);
+        if (this.props.onEditTask!=null)
+            this.props.onEditTask(this.props.task);
+        if (this.props.onShowTaskEvents!=null)
+            this.props.onShowTaskEvents(this.props.task, this.props.no);
     };
 
 

@@ -66,7 +66,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun getOrCreateUserForEmail(email: String?): UserODB {
         if (email == null)
             throw IllegalArgumentException("Either second user id or second  user email must be provided")
-        val u = anyDaoNew.getFirst(UserODB::class.java, { it.eq(UserODB::email, email) })
+        val u = anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, email) }
         return u ?: createPendingUserWithEmailOnly(email)
     }
 

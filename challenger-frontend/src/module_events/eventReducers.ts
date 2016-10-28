@@ -1,4 +1,4 @@
-import {EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC} from "./eventActionTypes";
+import {EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC, SHOW_TASK_EVENTS} from "./eventActionTypes";
 import {copy, copyAndReplace} from "../redux/ReduxState";
 import {isAction} from "../redux/ReduxTask";
 import {EventState, EventDTO, EventGroupDTO} from "./EventDTO";
@@ -7,7 +7,9 @@ const getInitialState = (): EventState => {
     return {
         eventWindowVisible: true,
         expandedEventWindow: false,
-        eventGroups: new Array<EventGroupDTO>()
+        eventGroups: new Array<EventGroupDTO>(),
+        selectedTask: null,
+        selectedNo: null
     }
 }
 
@@ -38,6 +40,11 @@ export function eventsState(state: EventState = getInitialState(), action): Even
         eg = eventGroup(eg, action);
         return copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == action.challengeId)});
 
+    } else if (isAction(action, SHOW_TASK_EVENTS)) {
+        return copy(state).and({
+            selectedTask: action.task,
+            selectedNo: action.no,
+        })
     }
     return state;
 }

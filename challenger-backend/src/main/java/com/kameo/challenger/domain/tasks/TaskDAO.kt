@@ -55,9 +55,10 @@ open class TaskDAO {
     open fun getTasks(callerId: Long, challengeId: Long, date: Date): List<TaskODB> {
 
 
-        //anyDaoNew.test();
 
-        val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class.java,
+        anyDaoNew.test();
+
+        val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class,
                 {
                     it get ChallengeParticipantODB::challenge eqId challengeId
                     it get ChallengeParticipantODB::user eqId callerId
@@ -66,18 +67,26 @@ open class TaskDAO {
         updateSeendDateOfChallegeContract(callerPermission0)
 
 
+
         val tasks = anyDaoNew.getAll(TaskODB::class,
                 {
-                    it.get(TaskODB::challenge) eqId challengeId
-                    it.newOr()
-                            .notEq(TaskODB::taskType, TaskType.onetime)
-                            .after(TaskODB::dueDate, date)
-                    it.finish()
-                })
 
-        getTaskProgress(tasks, date).forEach { tp ->
-            tasks.filter({ t -> t.id == tp.task.id })
-                    .forEach { it.done = (tp.done) }
+                    it.get(TaskODB::challenge) eqId challengeId
+                    it.newOr({
+                        it get TaskODB::taskType notEq TaskType.onetime
+                        it.after(TaskODB::dueDate, date)
+                    })
+
+
+                });
+
+
+
+        getTaskProgress(tasks, date).forEach {
+            tp ->
+                tasks
+                    .filter({ it.id == tp.task.id })
+                    .forEach { it.done = tp.done }
         }
 
         return tasks
@@ -99,7 +108,7 @@ open class TaskDAO {
     open fun getTaskProgress(tasks: List<TaskODB>, day: Date): List<TaskProgressODB> {
         val midnight = DateUtil.getMidnight(day)
 
-        val taskIds = tasks.map({ t -> t.id })
+        val taskIds = tasks.map({ it.id })
         if (taskIds.isEmpty())
             return emptyList()
 

@@ -11,6 +11,7 @@ import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {ResizeAware} from "../../../views/Constants";
 import {TaskLabel} from "../TaskLabel";
 import {TaskTableHeader} from "./TaskTableHeader";
+import {SHOW_TASK_EVENTS} from "../../../module_events/eventActionTypes";
 
 const styles = {
     icon: {
@@ -46,6 +47,8 @@ interface ReduxProps {
 interface ReduxPropsFunc {
     onTaskCheckedStateChangedFunc: (caller: TaskUserDTO, challengeId: number, taskProgress: TaskProgressDTO)=>void;
     onEditTask: (task: TaskDTO)=>void;
+    onShowTaskEvents:(task:TaskDTO, no:number) => void;
+
 }
 
 class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsFunc, void> {
@@ -96,6 +99,7 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                                 no={this.props.no}
                                                 task={task}
                                                 onEditTask={this.props.onEditTask}
+                                                onShowTaskEvents={this.props.onShowTaskEvents}
                                             />
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.label}>
@@ -159,6 +163,9 @@ const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
         onEditTask: (task: TaskDTO) => {
             dispatch(OPEN_EDIT_TASK.new(task))
         },
+        onShowTaskEvents: (task: TaskDTO, no:number) => {
+            dispatch(SHOW_TASK_EVENTS.new({task, no}))
+        }
 
     }
 };

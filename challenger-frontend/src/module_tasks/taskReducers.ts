@@ -14,7 +14,7 @@ export function tasksState(state: TaskDTOState = getInitialState(), action: Acti
         return getInitialState();
     }
     if (isAction(action, OPEN_EDIT_TASK)) {
-        var taskCopy: TaskDTO = Object.assign({}, action);
+        var taskCopy: TaskDTO = Object.assign({}, action as TaskDTO);
         return Object.assign({}, state, {
             tasks: tasks(state.tasks, action),
             editedTask: taskCopy

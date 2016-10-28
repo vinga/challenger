@@ -1,147 +1,141 @@
 package com.kameo.challenger.utils.odb
 
 import com.kameo.challenger.domain.accounts.db.UserODB
+import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.odb.api.IIdentity
 import com.kameo.challenger.utils.odb.newapi.*
-import java.util.*
 import javax.inject.Inject
 import javax.persistence.EntityManager
+import javax.persistence.Tuple
 import javax.persistence.TypedQuery
-import javax.persistence.criteria.*
+import javax.persistence.criteria.Path
 import kotlin.reflect.KClass
 
 
-interface ISugarQuery<E,F> {
-    fun query(it: RootWrap<E,E>): (ISugarQuerySelect<F>?);
+interface ISugarQuery<E, F> {
+    fun query(it: RootWrap<E, E>): (ISugarQuerySelect<F>?)
 }
 
 
 class AnyDAONew(@Inject val em: EntityManager) {
 
-    class PathPairSelect<E, F>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>);
-    class PathTripleSelect<E, F, G>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val third: ISugarQuerySelect<G>);
-
+    class PathPairSelect<E, F>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>)
+    class PathTripleSelect<E, F, G>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val third: ISugarQuerySelect<G>)
 
 
     fun test() {
-        var res = getAll(TaskODB::class, {
+        val res = getAll(TaskODB::class, {
             it.eqId(12L)
-            it.get<UserODB>(TaskODB::user).eqId(8)
+            it.get(TaskODB::user).eqId(8)
 
 
             val or = it.newOr()
             or.get(TaskODB::user).eqId(10)
-            or.ref(it.like(TaskODB::label, "A"));
-            val user = or.get(TaskODB::user);
+            or.ref(it.like(TaskODB::label, "A"))
+            val user = or.get(TaskODB::user)
 
 
-            val or2 = it.newAnd();
+            val or2 = it.newAnd()
             or2.get(TaskODB::user).eqId(100)
             or2.get(TaskODB::user).eqId(200)
-            or2.ref(it.like(TaskODB::label, "A"));
-            or2.ref(it.like(TaskODB::label, "B"));
-            val or3 = it.newOr();
+            or2.ref(it.like(TaskODB::label, "A"))
+            or2.ref(it.like(TaskODB::label, "B"))
+            val or3 = it.newOr()
+                    .ref(user).get(UserODB::email).like("aa")
+                    .ref(user).get(UserODB::login).like("hehe")
+                    .ref(it.get(TaskODB::challenge).get(ChallengeODB::label).like("FF"))
+                    .ref(it.get(TaskODB::challenge)).eqId(5)
+                    .ref(it).eqId(5)
+
+                    .ref(it.get(TaskODB::user), {
+                        it.get(UserODB::login).like("login")
+                        it.get(UserODB::email).like("email")
+                    })
+                    .finish()
+
+
+
             or3.get(TaskODB::challenge) eqId 4
             or3.get(TaskODB::challenge) eqId 5
-            or3.finish()
+
 
             it.newAnd({
                 it.eqId(99)
                 user.eq(UserODB::email, "AA")
-            });
-            or2.finish();
+            })
+            or2.finish()
             or.finish()
 
 
-        });
-        println("SUCCESS.. " + res);
+        })
+        println("SUCCESS.. " + res)
 
-      var one=getOne(TaskODB::class.java, {
-
+        val one = getOne(TaskODB::class.java) {
             it.select(it.max(TaskODB::id))
-        });
+        }
 
-        println("ONE HEHAAAAAAAAAAAAAA "+one);
+        println("Get max user id: " + one)
 
-       var two=getOne(TaskODB::class.java, {
-           it limit 1
+        val two = getOne(TaskODB::class.java) {
+            it limit 1
             it.select(it.get(TaskODB::user))
-        });
+        }
 
-        println("ONE HE................................ "+two);
+        println("TaskODB -> UserODB " + two)
 
 
-        var three:UserODB=getOne(TaskODB::class.java, {
+        val three: List<UserODB> = getAllSingles(TaskODB::class, {
+            it limit 3
+            it.select(it.get(TaskODB::user))
+        })
 
-            it eqId 1
+        println("TaskODBs -> UserODBs " + three)
 
-            it limit 1
+        val threep: List<Pair<TaskODB,UserODB>> = getAllPairs(TaskODB::class, {
+            it skip 4
+            it limit 3
+            it.select(it,it.get(TaskODB::user))
+        })
 
-            //it.select(it eqId  8)
-           // it.select(it.get(TaskODB::user))
-            it.select(it.get(TaskODB::user));
-        });
+        println("TaskODBs -> UserODBs " + threep)
 
-        println("ONE HEH itqiii "+three);
-
-if (true)
-    return;
-        var four:TaskODB=getOne(TaskODB::class.java, {
+        val four: TaskODB? = getFirst(TaskODB::class) {
             it eqId 8
             it limit 1
-            //var itt:RootWrap<TaskODB,Any> = it;
-
-            //var ps: IPathSelect<TaskODB> = it;
-            //it.select(it eqId  8)
-
-        });
-
-        var four2:TaskODB=getOne(TaskODB::class.java, {
-
+        }
+        println("ONE HEH " + four)
+        val four2: TaskODB = getOne(TaskODB::class.java) {
             it eqId 8
             it limit 1
-            //var itt:RootWrap<TaskODB,Any> = it;
+        }
 
-            //var ps: IPathSelect<TaskODB> = it;
-            //it.select(it eqId  8)
+        println("ONE HEH " + four2)
 
-        });
-
-        println("ONE HEH "+four);
-
-
-        var users3: List<Long> = getAllSingles(TaskODB::class.java, {
-
+        val users3: List<Long> = getAllSingles(TaskODB::class) {
             it.select(it.max(TaskODB::id))
-        });
+        }
 
-        println("users3 "+users3);
-        users3.forEach { println( " "+it); }
-        if (true)
-            return;
+        println("users3 " + users3)
+        users3.forEach { println(" " + it) }
 
-        update(TaskODB::class, {
+
+        update(TaskODB::class) {
             it.set(TaskODB::label, "new label")
             it eqId 1
-        });
+        }
 
-        var users: List<Pair<TaskODB, String>> = getAllPairs(TaskODB::class.java, {
+        val users: List<Pair<TaskODB, String>> = getAllPairs(TaskODB::class.java, {
             it eqId 1
-
             it limit 100
             it.select(it, it get TaskODB::createdByUser get UserODB::email)
-        });
+        })
 
-        var users2: List<String> = getAllSingles(TaskODB::class.java, {
+        val users2: List<String> = getAllSingles(TaskODB::class) {
             it eqId 1
-
             it limit 100
-
             it.select(it get TaskODB::createdByUser get UserODB::email)
-        });
-
-
+        }
 
         for (p in users) {
             println("FIRST " + p.first)
@@ -153,288 +147,136 @@ if (true)
         }
     }
 
-    inline fun <E : Any, reified F : Any> getAllSingles(clz: KClass<E>, query: (RootWrap<E,F>) -> (SelectWrap<F>)): List<F> {
-        return getAllSingles(clz.java, query);
+
+
+    fun <E : Any> getAll(clz: Class<E>, query: (RootWrap<E, E>) -> ISugarQuerySelect<E>): List<E> {
+        var pc = PathContext.createSelectQuery(clz, clz, em);
+        return pc.invokeSingle(query).resultList
     }
 
-    inline fun <E : Any, reified F : Any> getAllSingles(clz: Class<E>, query: (RootWrap<E,F>) -> (ISugarQuerySelect<F>)): List<F> {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createQuery(F::class.java)
-        val root = criteria.from(clz)
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc, SelectWrap(root) as SelectWrap<F>, root)
-        val selector = query.invoke(pw)
-
-        criteria.select(selector.select)
-
-        criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-
-        applyPage(jpaQuery, pc);
-
-
-        return jpaQuery.resultList;
+    fun <E : Any, RESULT : Any> getAllSingles(clz: Class<E>, resultClass: Class<RESULT>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
+        var pc = PathContext.createSelectQuery(clz, resultClass, em);
+        return pc.invokeSingle(query).resultList
     }
 
 
+    fun <E : Any, F : Any, G : Any> getAllPairs(clz: Class<E>, query: (RootWrap<E, *>) -> (PathPairSelect<F, G>)): List<Pair<F, G>> {
+        val criteria = em.criteriaBuilder.createTupleQuery()
+        val pc = PathContext(clz, em, criteria);
+        val selector = query.invoke(pc.rootWrap as RootWrap<E, *>)
 
-
-    public fun applyPage(jpaQuery: TypedQuery<*>, pc: PathContext) {
-        val skip = pc.skip;
-        if (skip != null)
-            jpaQuery.firstResult = skip;
-        val take = pc.take;
-        if (take != null)
-            jpaQuery.maxResults = take;
-    }
-
-
-    inline fun <E : Any, reified F : Any, reified G : Any> getAllPairs(clz: KClass<E>, query: (RootWrap<E,*>) -> (PathPairSelect<F, G>)): List<Pair<F, G>> {
-        return getAllPairs(clz.java, query);
-    }
-
-    inline fun <E : Any, reified F : Any, reified G : Any> getAllPairs(clz: Class<E>, query: (RootWrap<E,*>) -> (PathPairSelect<F, G>)): List<Pair<F, G>> {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createTupleQuery();
-        val root = criteria.from(clz)
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc, SelectWrap(root), root)
-        val selector = query.invoke(pw)
-
-        criteria.select(cb.tuple(selector.first.select, selector.second.select))
-
-        criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery, pc);
-
+        criteria.select(em.criteriaBuilder.tuple(selector.first.select, selector.second.select))
+        val jpaQuery = pc.calculateWhere(em) as TypedQuery<Tuple>
         return jpaQuery.resultList.map { Pair(it.get(0) as F, it.get(1) as G) }
     }
 
-    inline fun <E : Any, reified F : Any, reified G : Any, reified H : Any>
-            getAllTriples(clz: KClass<E>, query: (RootWrap<E,*>) -> (PathTripleSelect<F, G, H>)): List<Triple<F, G, H>> {
-        return getAllTriples(clz.java, query);
 
-    }
+    fun <E : Any, F : Any, G : Any, H : Any>
+            getAllTriples(clz: Class<E>, query: (RootWrap<E, *>) -> (PathTripleSelect<F, G, H>)): List<Triple<F, G, H>> {
+        val criteria = em.criteriaBuilder.createTupleQuery()
+        val pc = PathContext(clz, em, criteria)
+        val selector = query.invoke(pc.rootWrap as RootWrap<E, *>)
+        criteria.select(em.criteriaBuilder.tuple(selector.first.select, selector.second.select, selector.third.select))
 
-    inline fun <E : Any, reified F : Any, reified G : Any, reified H : Any>
-
-            getAllTriples(clz: Class<E>, query: (RootWrap<E,*>) -> (PathTripleSelect<F, G, H>)): List<Triple<F, G, H>> {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createTupleQuery();
-        val root = criteria.from(clz)
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc,SelectWrap(root), root)
-        val selector = query.invoke(pw)
-
-        criteria.select(cb.tuple(selector.first.select, selector.second.select, selector.third.select))
-
-        criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery, pc);
+        val jpaQuery = pc.calculateWhere(em) as TypedQuery<Tuple>
 
         return jpaQuery.resultList.map { Triple(it.get(0) as F, it.get(1) as G, it.get(2) as H) }
     }
 
-    fun <E : Any> getAll(clz: Class<E>, query: (RootWrap<E,E>) -> ISugarQuerySelect<E>): List<E> {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createQuery(clz)
-        val root = criteria.from(clz)
-        criteria.select(root)
 
-        val jpaQuery = prepareQuery<E, E>(cb, criteria, query, root)
 
-        return jpaQuery.resultList
+
+    fun <E : Any> update(clz: Class<E>, query: (RootWrapUpdate<E, E>) -> Unit): Int {
+        val criteria = em.criteriaBuilder.createCriteriaUpdate(clz)
+        val pc = PathContext(clz, em, criteria);
+        pc.calculateUpdate(query);
+        pc.calculateWhere(criteria);
+        return em.createQuery(criteria).executeUpdate();
+
     }
 
 
-    private fun <E, F : Any> prepareQuery(cb: CriteriaBuilder, criteria: CriteriaQuery<F>, query: (RootWrap<E,F>) -> ISugarQuerySelect<F>, root: Root<E>): TypedQuery<F> {
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc,SelectWrap(root) as SelectWrap<F>, root)
-        query.invoke(pw)
-
-
-        criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery, pc);
-        return jpaQuery
+    fun <E : Any> remove(clz: Class<E>, query: (RootWrap<E, E>) -> Unit): Int {
+        val criteria = em.criteriaBuilder.createCriteriaDelete(clz)
+        val pc = PathContext(clz, em, criteria);
+        pc.calculateDelete(query);
+        pc.calculateWhere(criteria);
+        return em.createQuery(criteria).executeUpdate();
     }
 
-    fun <E : Any> remove(clz: KClass<E>, query: (RootWrap<E,E>) -> Unit): Int {
-        return remove(clz.java, query);
-    }
-
-    /**
-     * Works with updatable=false fields
-     */
-    fun <E : Any> update(clz: KClass<E>, query: (RootWrapUpdate<E,E>) -> Unit): Int {
-        return update(clz.java, query);
-    }
-
-    fun <E : Any> update(clz: Class<E>, query: (RootWrapUpdate<E,E>) -> Unit): Int {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createCriteriaUpdate(clz)
-        val root = criteria.from(clz)
-        //criteria.select(root)
-        val result = prepareAndExecuteUpdateQuery<E, E>(cb, criteria, query, root)
-        return result
-    }
-
-    private fun <E, F : Any> prepareAndExecuteUpdateQuery(cb: CriteriaBuilder, criteria: CriteriaUpdate<F>, query: (RootWrapUpdate<E,F>) -> Unit, root: Root<E>):
-            Int {
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrapUpdate(pc,SelectWrap(root) as SelectWrap<F>, root)
-        query.invoke(pw)
-        criteria.where(pc.getPredicate())
-        val jpaQuery = em.createQuery(criteria)
-        return jpaQuery.executeUpdate();
-    }
-
-
-    fun <E : Any> remove(clz: Class<E>, query: (RootWrap<E,E>) -> Unit): Int {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createCriteriaDelete(clz)
-        val root = criteria.from(clz)
-        //criteria.select(root)
-        val result = prepareAndExecuteDeleteQuery<E,E>(cb, criteria, query, root)
-        return result
-    }
-
-    fun <E> exists(clz: Class<E>, query: (RootWrap<E,Long>) -> ISugarQuerySelect<Long>): Boolean {
-
-        val cb = em.criteriaBuilder
-        val criteria = cb.createQuery(Long::class.java)
-        val root = criteria.from(clz)
-        criteria.select(cb.count(root))
-
-        val jpaQuery = prepareQuery<E, Long>(cb, criteria, query, root);
-        jpaQuery.maxResults = 1;
-
-        return jpaQuery.resultList.size == 1;
-    }
-
-
-    private fun <E,F> prepareAndExecuteDeleteQuery(cb: CriteriaBuilder, criteria: CriteriaDelete<F>, query: (RootWrap<E,E>) -> Unit, root: Root<E>):
-            Int {
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc,SelectWrap(root), root)
-        query.invoke(pw)
-        criteria.where(pc.getPredicate())
-
-        val jpaQuery = em.createQuery(criteria)
-        return jpaQuery.executeUpdate();
-    }
-
-    fun <E : Any> getAll(clz: KClass<E>, query: (RootWrap<E,E>) -> ISugarQuerySelect<E>): List<E> {
-        return getAll(clz.java, query)
+    fun <E> exists(clz: Class<E>, query: (RootWrap<E, Long>) -> ISugarQuerySelect<Long>): Boolean {
+        val criteria = em.criteriaBuilder.createQuery(Long::class.java)
+        val pc = PathContext(clz, em, criteria)
+        pc.calculateSelect(query as (RootWrap<E, *>) -> ISugarQuerySelect<*>)
+        criteria.select(em.criteriaBuilder.count(pc.root))
+        val jpaQuery = pc.calculateWhere(em) as TypedQuery<Long>
+        jpaQuery.maxResults = 1
+        return jpaQuery.resultList.size == 1
     }
 
 
 
-    inline fun <E : Any, reified F : Any> getOne(clz: KClass<E>, query: (RootWrap<E,E>) -> (ISugarQuerySelect<F>?)): F {
-        return getOne(clz.java,query);
-    }
 
 
-    fun <E : Any, F : Any> getOne(clz: Class<E>, query: ISugarQuery<E,F>, outClz: Class<F>): F {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createQuery(outClz)
-        var root=criteria.from(clz);
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc,SelectWrap(root), root)
+    fun <E : Any, F : Any> getOne(clz: Class<E>, query: ISugarQuery<E, F>, outClz: Class<F>): F {
+        val criteria = em.criteriaBuilder.createQuery(outClz)
+
+        val pc = PathContext(clz, em, criteria);
+        val root = pc.root;
+        val pw = RootWrap(pc, SelectWrap(root), root)
         val selector = query.query(pw as RootWrap<E, E>)
 
-        if (selector!=null )
+        if (selector != null)
             criteria.select(selector.select)
         else
             criteria.select(pw.root as Path<F>)
 
-        criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery, pc);
+        val jpaQuery = pc.calculateWhere(em) as TypedQuery<F>
 
 
         return ensureIsOnlyOne(jpaQuery.resultList as List<F>);
     }
 
-    inline fun <E : Any, reified F : Any> getOne(clz: Class<E>, query: (RootWrap<E,E>) -> (ISugarQuerySelect<F>?)): F {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createQuery(F::class.java)
-        var root=criteria.from(clz);
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc,SelectWrap(root), root)
-        val selector = query.invoke(pw as RootWrap<E, E>)
-
-        if (selector!=null )
+    inline fun <E : Any, reified F : Any> getOne(clz: Class<E>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<F>?)): F {
+        val criteria = em.criteriaBuilder.createQuery(F::class.java)
+        val pc = PathContext(clz, em, criteria)
+        val selector = query.invoke(pc.rootWrap as RootWrap<E, E>)
+        if (selector != null)
             criteria.select(selector.select)
         else
-            criteria.select(pw.root as Path<F>)
-
-            criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery, pc);
+            criteria.select(pc.rootWrap.root as Path<F>)
+        val jpaQuery = pc.calculateWhere(em) as TypedQuery<F>
 
 
-        return ensureIsOnlyOne(jpaQuery.resultList as List<F>);
+        return ensureIsOnlyOne(jpaQuery.resultList as List<F>)
     }
-    inline fun <E : Any, reified F : Any> getFirst(clz: KClass<E>, query: (RootWrap<E,E>) -> (ISugarQuerySelect<F>?)): F? {
-        return getFirst(clz.java,query);
-    }
-    inline fun <E : Any, reified F : Any> getFirst(clz: Class<E>, query: (RootWrap<E,E>) -> (ISugarQuerySelect<F>?)): F? {
-        val cb = em.criteriaBuilder
-        val criteria = cb.createQuery(F::class.java)
-        var root=criteria.from(clz);
-        val pc = PathContext(cb, criteria);
-        val pw = RootWrap(pc,SelectWrap(root), root)
-        val selector = query.invoke(pw as RootWrap<E, E>)
 
-        if (selector!=null )
+
+
+     fun < E : Any, F : Any> getFirst(clz: Class<E>, resultClz: Class<F>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<F>?)): F? {
+        val criteria = em.criteriaBuilder.createQuery(resultClz)
+
+        val pc = PathContext(clz, em, criteria);
+
+        val selector = query.invoke(pc.rootWrap as RootWrap<E, E>)
+        if (selector != null)
             criteria.select(selector.select)
         else
-            criteria.select(pw.root as Path<F>)
+            criteria.select(pc.rootWrap.root as Path<F>)
 
-        criteria.where(pc.getPredicate())
-        if (pc.orders.isNotEmpty())
-            criteria.orderBy(pc.orders)
-        val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery, pc);
+        val jpaQuery = pc.calculateWhere(em) as TypedQuery<F>
 
-        jpaQuery.maxResults=1;
-        var res=jpaQuery.resultList;
+        jpaQuery.maxResults = 1
+        var res = jpaQuery.resultList
         if (res.isEmpty() || res.size > 1)
             return null
         return res.first()
 
     }
-/*    fun <E : Any> getFirst(clz: Class<E>, query: (RootWrap<E,E>) -> ISugarQuerySelect<E>): E? {
-        val queryLimitWrapper: (RootWrap<E,E>) -> ISugarQuerySelect<E> = {
-            query.invoke(it)
-            it limit 1
-        }
-        var res = getAll(clz, queryLimitWrapper);
-        if (res.isEmpty() || res.size > 1)
-            return null
-        return res.first()
-    }*/
-/*
-    fun <E : Any> getFirst(clz: KClass<E>, query: (RootWrap<E,E>) -> ISugarQuerySelect<E>): E? {
-        return getFirst(clz.java, query)
-    }*/
 
     fun <E : Any> ensureIsOnlyOne(res: List<E>): E {
         if (res.isEmpty() || res.size > 1)
-            throw IllegalArgumentException("Expected exactly 1 result but query returned ${res.size} results.");
+            throw IllegalArgumentException("Expected exactly 1 result but query returned ${res.size} results.")
         return res.first()
     }
 
@@ -442,11 +284,42 @@ if (true)
     fun <E : IIdentity> reload(e: E): E {
         return em.find(e.javaClass, e.id)
     }
-
-
-    fun <E : Any> exists(clz: KClass<E>, query: (RootWrap<E,Long>) -> ISugarQuerySelect<Long>): Boolean {
-        return exists(clz.java, query);
+    fun <E : Any> exists(clz: KClass<E>, query: (RootWrap<E, Long>) -> ISugarQuerySelect<Long>): Boolean {
+        return exists(clz.java, query)
     }
+
+    fun <E : Any> getAll(clz: KClass<E>, query: (RootWrap<E, E>) -> ISugarQuerySelect<E>): List<E> {
+        return getAll(clz.java, query)
+    }
+    inline fun <E : Any, reified F : Any> getOne(clz: KClass<E>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<F>?)): F {
+        return getOne(clz.java, query)
+    }
+    inline fun <reified E : Any, reified F : Any> getFirst(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<F>?)): F? {
+        return getFirst(clz.java, F::class.java, query)
+    }
+
+    inline fun <E : Any, reified RESULT : Any> getAllSingles(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
+        return getAllSingles(clz.java, RESULT::class.java, query)
+    }
+
+    inline fun <E : Any, reified F : Any, reified G : Any> getAllPairs(clz: KClass<E>, noinline query: (RootWrap<E, *>) -> (PathPairSelect<F, G>)): List<Pair<F, G>> {
+        return getAllPairs(clz.java, query)
+    }
+
+    inline fun <E : Any, reified F : Any, reified G : Any, reified H : Any>
+            getAllTriples(clz: KClass<E>, noinline query: (RootWrap<E, *>) -> (PathTripleSelect<F, G, H>)): List<Triple<F, G, H>> {
+        return getAllTriples(clz.java, query)
+    }
+    fun <E : Any> remove(clz: KClass<E>, query: (RootWrap<E, E>) -> Unit): Int {
+        return remove(clz.java, query);
+    }
+    /**
+     * Works with updatable=false fields
+     */
+    fun <E : Any> update(clz: KClass<E>, query: (RootWrapUpdate<E, E>) -> Unit): Int {
+        return update(clz.java, query);
+    }
+
 }
 
 

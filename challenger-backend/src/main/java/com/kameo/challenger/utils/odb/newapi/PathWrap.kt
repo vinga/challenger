@@ -23,7 +23,7 @@ import kotlin.reflect.KProperty1.Getter
 import kotlin.reflect.KType
 
 open class PathWrap<E, G> constructor(
-        val pc: PathContext,
+        val pc: PathContext<E>,
         val pathSelect: ISugarQuerySelect<G>,
         val root: Path<E>
         ) :  ISelectExpressionProvider <E>,  ISugarQuerySelect<G>  by pathSelect   {
@@ -47,10 +47,6 @@ open class PathWrap<E, G> constructor(
 
     infix fun <F,G> select(pw: PathWrap<F,G>): ISugarQuerySelect<F> {
         return SelectWrap(pw.root);
-
-
-       // var pww:PathWrap<F,F> = PathWrap<F,F>(arr=pw.arr,pc=pw.pc,pathSelect = SelectWrap(pw.root), root=pw.root, parent=pw.parent as? PathWrap<F, F>);
-        //return pww;
     }
     infix fun <F> select(pw: ExpressionWrap<F>): ISugarQuerySelect<F> {
         return pw;
@@ -77,7 +73,7 @@ open class PathWrap<E, G> constructor(
 
 
     class ClousureWrap<E,G>(//var innerList:MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>(),
-                             pc: PathContext,
+                             pc: PathContext<E>,
                              pathSelect: ISugarQuerySelect<G>,
                              root: Path<E>,
 
@@ -88,11 +84,7 @@ open class PathWrap<E, G> constructor(
     ): PathWrap<E,G>(pc,  pathSelect, root) {
 
 
-        fun <I,J> ref(ref : PathWrap<I,J>): PathWrap<I,J> {
 
-            var pw = PathWrap(ref.pc, ref.pathSelect, ref.root)
-            return pw;
-        }
 
      /*fun   fun finish(): PathWrap<E,G> {
             pc.unstackArray();
@@ -102,6 +94,15 @@ open class PathWrap<E, G> constructor(
         }*/
     }
 
+    fun <I,J> ref(ref : PathWrap<I,J>, clause: (PathWrap<I,J>)-> Unit): PathWrap<E,G> {
+        clause.invoke(ref);
+        return this;
+    }
+
+
+    fun <I,J> ref(ref : PathWrap<I,J>): PathWrap<I,J> {
+        return ref;
+    }
 
     fun finish(): PathWrap<E,G> {
         pc.unstackArray();
@@ -269,13 +270,16 @@ open class PathWrap<E, G> constructor(
         return this
     }
 
-    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F,G> {
-        return PathWrap(pc, pathSelect, root.get(sa))
+    fun isInOrForceNoResults(list: List<E>): PathWrap<E,G> {
+
+        if (list.isEmpty()) {
+           pc.forceNoResultsInQuery();
+        } else
+            pc.add({ root.`in`(list) })
+
+        return this
     }
 
-    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F,G> {
-        return PathWrap(pc, pathSelect, root.get(sa.name))
-    }
 
 
     fun <F:Number> max(sa: KMutableProperty1<E, F>): ExpressionWrap<F> {
@@ -311,11 +315,46 @@ open class PathWrap<E, G> constructor(
         }
     }
 
+
     // type safety class to not use get with lists paremters
     class UseGetListOnJoinInstead {
 
     }
+    infix fun like(f: String): PathWrap<String,G> {
+        pc.add({ pc.cb.like(root as (Expression<String>), f) })
+        return this as PathWrap<String, G>;
+    }
 
+    infix fun notEq(f: E): PathWrap<E,G> {
+        pc.add({ cb.notEqual(root, f) })
+        return this
+    }
+
+
+    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F,G> {
+        return PathWrap(pc as PathContext<F>, pathSelect, root.get(sa))
+    }
+    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F,G> {
+        return PathWrap(pc as PathContext<F>, pathSelect, root.get(sa.name))
+    }
+ /*   @JvmName("getAsString") infix fun get(sa: KMutableProperty1<E, String>): PathWrap<String,G> {
+        var res= object : Wrap(10), IStringPathWrap<G> {
+            override fun like(f: String): PathWrap<String, G> {
+                return PathWrap(pc as PathContext<String>, pathSelect, root.get(sa.name));
+            }
+
+        }
+
+        return PathWrap(pc as PathContext<String>, pathSelect, root.get(sa.name));
+    }*/
+
+
+}
+
+interface IStringPathWrap<G> {
+    infix fun like(f: String): PathWrap<String,G>;
+}
+open class Wrap(val a: Long) {
 
 }
 

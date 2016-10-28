@@ -3,7 +3,7 @@ package com.kameo.challenger.utils.odb.newapi
 import javax.persistence.criteria.*
 import kotlin.reflect.KMutableProperty1
 
-class RootWrapUpdate<E,G> constructor(val pw: PathContext,
+class RootWrapUpdate<E,G> constructor(val pw: PathContext<E>,
                                       pathSelect: SelectWrap<G>,
                                       root: Root<E>
                                      )

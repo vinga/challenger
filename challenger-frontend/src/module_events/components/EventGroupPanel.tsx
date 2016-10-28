@@ -8,6 +8,8 @@ import {EXPAND_EVENTS_WINDOW} from "../eventActionTypes";
 import {connect} from "react-redux";
 import {sendEvent} from "../eventActions";
 import {EventType} from "../EventDTO";
+import DifficultyIconButton from "../../module_tasks/components/taskTable/DifficultyIconButton";
+import {TaskDTO} from "../../module_tasks/TaskDTO";
 
 
 interface Props {
@@ -16,7 +18,9 @@ interface Props {
 interface ReduxProps {
     displayedEvents: Array<DisplayedEventUI>,
     eventWindowVisible: boolean,
-    expandedEventWindow: boolean
+    expandedEventWindow: boolean,
+    task?: TaskDTO,
+    no?: number
 
 }
 interface PropsFunc {
@@ -37,7 +41,9 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
     return {
         displayedEvents: eventsSelector(state),
         eventWindowVisible: state.eventsState.eventWindowVisible,
-        expandedEventWindow: state.eventsState.expandedEventWindow
+        expandedEventWindow: state.eventsState.expandedEventWindow,
+        task: state.eventsState.selectedTask,
+        no: state.eventsState.selectedNo
     }
 };
 
@@ -112,6 +118,13 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         else return <span><i> {ev.postContent}</i></span>;
     }
 
+    renderTaskName = () => {
+        if(this.props.task != null)
+            return this.props.task.label;
+        else
+            return "";
+    }
+
     render() {
         if (!this.props.eventWindowVisible)
             return null;
@@ -123,7 +136,17 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         }
 
         return <Paper style={st}>
-            <div style={{position:"absolute",right:"10px",top:"10px", fontSize:'10px'}}>
+            <div style={{position:"absolute",left:"10px",top:"10px", height:"26px", verticalAlign:"center"}}>
+               { this.props.task != null &&
+
+                   <DifficultyIconButton
+                    no={this.props.no}
+                    task={this.props.task}
+                    />
+               }
+                {this.renderTaskName()}
+            </div>
+            <div style={{position:"absolute",right:"10px",top:"10px", fontSize:'10px', height:'26px'}}>
                 {this.props.expandedEventWindow
                     ?
                     <FontIcon className="fa fa-compress" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onCompressFunc}/>
@@ -131,7 +154,7 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                     <FontIcon className="fa fa-expand" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onExpandFunc}/> }
             </div>
             <div style={{display:"flex", flexDirection:"column", justifyContent: "space-between", height:"100%"}}>
-                <div id="eventGroupChatContent" style={{overflowY:"auto", marginTop:'15px'}}>
+                <div id="eventGroupChatContent" style={{overflowY:"auto", marginTop:'26px'}}>
                     {
 
                         this.props.displayedEvents.map(p =>

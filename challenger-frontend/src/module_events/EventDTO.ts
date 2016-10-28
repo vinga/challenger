@@ -1,3 +1,4 @@
+import {TaskDTO} from "../module_tasks/TaskDTO";
 export const EventType = {
     POST:"POST",
     CREATE_TASK:"CREATE_TASK",
@@ -26,5 +27,7 @@ export interface EventGroupDTO {
 export interface EventState {
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
-    eventGroups: Array<EventGroupDTO>
+    eventGroups: Array<EventGroupDTO>,
+    selectedTask: TaskDTO,
+    selectedNo: number
 }

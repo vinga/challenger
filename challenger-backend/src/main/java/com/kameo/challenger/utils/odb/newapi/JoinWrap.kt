@@ -7,7 +7,7 @@ import javax.persistence.criteria.*
 import kotlin.reflect.KMutableProperty1
 
 
-class JoinWrap<E,G> constructor(val pw: PathContext,
+class JoinWrap<E,G> constructor(val pw: PathContext<E>,
                                 pathSelect: ISugarQuerySelect<G>,
                                 root: Join<Any, E>
 
@@ -19,14 +19,14 @@ class JoinWrap<E,G> constructor(val pw: PathContext,
     @Suppress("UNCHECKED_CAST")
     fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F,G> {
         val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
-        return JoinWrap(pw, pathSelect, join)
+        return JoinWrap(pw as PathContext<F>, pathSelect, join)
     }
 
 
     // perhaps we want to create here dedicated class
     fun <F> joinList(sa: KMutableProperty1<E, List<F>>): JoinWrap<F,G> {
         val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
-        return JoinWrap(pw, pathSelect, join)
+        return JoinWrap(pw as PathContext<F>, pathSelect, join)
     }
 
 
