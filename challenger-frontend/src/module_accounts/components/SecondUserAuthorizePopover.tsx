@@ -1,103 +1,100 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
-import Popover from "material-ui/Popover";
-import TextField from "material-ui/TextField";
-import FlatButton from "material-ui/FlatButton";
-import ComponentDecorator = ReactRedux.ComponentDecorator;
 import {AccountDTO} from "../AccountDTO";
-import ChallengeIcon from "../../views/common-components/ChallengeIcon";
+import {SecondUserAuthorizePopoverDialog} from "./SecondUserAuthorizePopoverDialog";
 import {loginUserAction} from "../accountActions";
+import ComponentDecorator = ReactRedux.ComponentDecorator;
 
-interface Props {
-    user:AccountDTO,
-    anchorEl?:React.ReactInstance;
-    handleRequestClose:()=>void;
-
-}
 interface PropsFunc {
-    doLoginFunc:(login:string, password:string)=>(any); // shouldn't be optional
+    showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>JQueryPromise<boolean>
+}
+interface Props {
+    challengeAccounts: Array<AccountDTO>
+
+}
+interface ReduxProps {
+    anchorComponentId?: string
+    authorizingUser?: AccountDTO,
+}
+interface ReduxPropsFunc {
+    doLoginFunc: (login: string, password: string)=>(any);
+
+}
+interface State {
+    authorizingUser?: AccountDTO,
+    popoverAnchorEl?: any,//React.ReactInstance,
+    deferred?: JQueryDeferred<boolean>
 }
 
+//@connect(mapStateToProps, mapDispatchToProps)
+class SecondUserAuthorizePopoverInternal extends React.Component<Props& ReduxProps &PropsFunc & ReduxPropsFunc,State> {
+    constructor(props) {
+        super(props);
+        this.state = {
+            authorizingUser: null
+        };
+    }
 
-const mapStateToProps = (state:ReduxState, ownprops:Props)=> {
+    // this method is referenced by refs, do not modify
+    showAuthorizeFuncIfNeeded = (eventTarget: any, userId: number): JQueryPromise<boolean> => {
+
+        this.state.deferred = null;
+        if (this.props.challengeAccounts.some(a=>a.userId == userId && a.jwtToken != null)) {
+            var dfd = $.Deferred();
+            dfd.resolve(true);
+            return dfd.promise();
+        } else {
+            this.state.popoverAnchorEl = eventTarget;
+            this.state.authorizingUser = this.props.challengeAccounts.find(a=>a.userId == userId);
+            var dfd = $.Deferred();
+            this.state.deferred = dfd;
+            this.setState(this.state);
+            return dfd.promise();
+        }
+    }
+
+    closeAuthorizePopup = () => {
+        this.state.popoverAnchorEl = null;
+        this.setState(this.state);
+    }
+
+
+    componentDidUpdate() {
+
+        if (this.state.deferred != null && this.state.authorizingUser != null
+            && this.props.challengeAccounts.find(a=>a.jwtToken != null && a.userId == this.state.authorizingUser.userId)) {
+
+
+            this.state.deferred.resolve(true);
+            this.state.deferred = null;
+            this.setState(this.state);
+        }
+    }
+
+    render() {
+        return <SecondUserAuthorizePopoverDialog
+            close={this.closeAuthorizePopup}
+            user={this.state.authorizingUser}
+            popoverAnchorEl={this.state.popoverAnchorEl}
+            doLoginFunc={this.props.doLoginFunc}
+
+        />
+    }
+
+
+}
+
+const mapStateToProps = (state: ReduxState, ownProps: Props): any => {
     return {}
 };
-const mapDispatchToProps = (dispatch) => {
+
+
+const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
-        doLoginFunc: (login:string, password:string) => {
+        doLoginFunc: (login: string, password: string) => {
             dispatch(loginUserAction(login, password, false));
         }
     }
 };
-
-//@connect(mapStateToProps, mapDispatchToProps)
-class SecondUserAuthorizePopoverInternal extends React.Component<{}& Props&PropsFunc,void> {
-    passwordField:TextField;
-    po:Popover;
-
-    constructor(props) {
-        super(props);
-
-
-    }
-
-    /*   handleRequestClose = (event) => {
-     event.preventDefault();
-     this.props.handleRequestClose();
-     };
-     */
-    handleLogin = () => {
-        this.props.doLoginFunc(this.props.user.login, this.passwordField.getValue());
-        this.props.handleRequestClose();
-    };
-
-    render() {
-
-        return (<Popover
-            open={this.props.anchorEl!=null}
-            anchorEl={this.props.anchorEl}
-            anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-            targetOrigin={{horizontal: 'left', vertical: 'top'}}
-            onRequestClose={this.props.handleRequestClose}
-            ref={c=>this.po=c}
-        >
-            <div className="margined10">
-                <div>
-                    <ChallengeIcon icon="fa-key" style={{marginRight: '5px'}}/>
-                    Please authorize as <b>{this.props.user.label}</b>:
-                </div>
-
-                <div style={{display: 'block'}} className="noShadow">
-                    <TextField
-                        autoFocus={true}
-                        ref={(c)=>{this.passwordField=c;}}
-                        defaultValue="jackpass"
-                        hintText="Password Field"
-                        floatingLabelText="Password"
-                        type="password"
-                    />
-                    <br/>
-                </div>
-
-                <div style={{marginBottom: '10px'}} className="right">
-
-                    <FlatButton
-
-                        onTouchTap={this.handleLogin}
-                        label="OK"
-                    />
-                    <FlatButton
-
-                        onTouchTap={this.props.handleRequestClose}
-                        label="Cancel"
-                    />
-
-                </div>
-            </div>
-        </Popover>);
-    }
-}
-
-export const SecondUserAuthorizePopover = connect(mapStateToProps, mapDispatchToProps)(SecondUserAuthorizePopoverInternal);
-
+export const SecondUserAuthorizePopover = connect(mapStateToProps, mapDispatchToProps, null, {withRef: true})(SecondUserAuthorizePopoverInternal);
 

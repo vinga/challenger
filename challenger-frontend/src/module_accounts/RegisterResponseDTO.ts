@@ -7,3 +7,11 @@ export interface RegisterResponseDTO {
 
 
 }
+
+
+export interface RegisterState {
+    registerInProgress?: boolean;
+    registerError?: string;
+    registeredSuccessfully?: boolean;
+
+}

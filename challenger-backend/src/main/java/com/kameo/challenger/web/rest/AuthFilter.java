@@ -26,23 +26,22 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     private final ChallengerSess myTokenInfo;
     private final Provider<MultiUserChallengerSess> multiTokenInfos;
     private final AccountDAO accountDao;
+    private ServerConfig serverConfig;
 
     @Inject
-    public AuthFilter(ChallengerSess myTokenInfo, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao) {
+    public AuthFilter(ChallengerSess myTokenInfo, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao, ServerConfig serverConfig) {
         this.myTokenInfo = myTokenInfo;
         this.multiTokenInfos = multiTokenInfos;
         this.accountDao = accountDao;
+        this.serverConfig = serverConfig;
     }
 
 
-    @Override
-    protected boolean isResourceANewTokenGenerator(HttpServletRequest req) {
-        return req.getPathInfo().equals("/api/newToken");
-    }
+
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
-        if (ServerConfig.isCrossDomain()) {
+        if (serverConfig.isCrossDomain()) {
             HttpServletResponse resp = (HttpServletResponse) res;
             resp.addHeader("Access-Control-Allow-Origin", "http://localhost:3000");
             resp.addHeader("Access-Control-Allow-Credentials", "true");
@@ -54,10 +53,20 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         }
         super.doFilter(req, res, chain);
     }
+    @Override
+    protected boolean isResourceANewTokenGenerator(HttpServletRequest req) {
+        return "/accounts/newToken".equals(req.getPathInfo());
+    }
 
     @Override
     protected boolean isResourceAuthorizationRequired(HttpServletRequest req) {
-        return !req.getPathInfo().startsWith("/api/accounts/register");
+        if (req.getPathInfo()==null)
+            return false;
+
+        System.out.println(req.getPathInfo());
+        return
+
+                !(req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().contains("swagger"));
     }
 
     @Override

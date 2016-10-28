@@ -1,9 +1,20 @@
-import {ChallengeDTO, VisibleChallengesDTO} from "./ChallengeDTO";
+import {ChallengeDTO, VisibleChallengesDTO, ChallengeParticipantDTO} from "./ChallengeDTO";
 import {ChallengeMenuNaviBar} from "./components/ChallengeMenuNaviBar";
-import {selectedChallengeParticipantIds, selectedChallengeSelector, challengeAccountsSelector, challengeEventsSelector}  from './challengeSelectors';
-import {fetchWebChallenges, sendEvent}  from './challengeActions';
+import {selectedChallengeParticipantIds, challengeAccountsSelector, selectedChallengeIdSelector} from "./challengeSelectors";
+import {fetchWebChallenges} from "./challengeActions";
 
 
+export {
+    ChallengeDTO, VisibleChallengesDTO, ChallengeParticipantDTO,
 
-export { ChallengeDTO, VisibleChallengesDTO, selectedChallengeParticipantIds, challengeAccountsSelector, selectedChallengeSelector,challengeEventsSelector, ChallengeMenuNaviBar,
-    fetchWebChallenges, sendEvent}
+
+    selectedChallengeParticipantIds, selectedChallengeIdSelector,
+
+    challengeAccountsSelector,//temporary
+
+
+    ChallengeMenuNaviBar,
+
+
+    fetchWebChallenges
+}

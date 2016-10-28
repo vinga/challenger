@@ -4,16 +4,13 @@ import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import Paper from "material-ui/Paper";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import ChallengeTableCheckbox from "./ChallengeTableCheckbox.tsx";
-import TaskTableHeader from "./TaskTableHeader.tsx";
-import {TaskDTO, TaskProgressDTO, createTaskDTOListKey, TaskDTOListForDay} from "../../TaskDTO";
+import {TaskDTO, TaskProgressDTO, createTaskDTOListKey, TaskDTOListForDay, TaskUserDTO} from "../../TaskDTO";
 import {WebState} from "../../../logic/domain/Common";
 import {markTaskDoneOrUndone} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {ResizeAware} from "../../../views/Constants";
 import {TaskLabel} from "../TaskLabel";
-import {AccountDTO, SecondUserAuthorizePopover} from "../../../module_accounts/index";
-import {selectedChallengeSelector} from "../../../module_challenges/index";
-
+import {TaskTableHeader} from "./TaskTableHeader";
 
 const styles = {
     icon: {
@@ -31,38 +28,31 @@ const styles = {
     },
 
 };
-
-
 interface Props {
-    no:number,
-    challengeId:number,
-    currentDate:Date,
-    user:AccountDTO,
-    tasksList:Array<TaskDTO>,
-    busy:boolean,
-
-
-
-}
-interface PropsFunc {
-    onTaskCheckedStateChangedFunc:(challengeId:number, taskProgress:TaskProgressDTO)=>void;
-    onEditTask:(task:TaskDTO)=>void;
-}
-interface State {
-    popoverAnchorEl?: React.ReactInstance;
-    authorizePanel:boolean
+    challengeId: number
+    user: TaskUserDTO,
+    userIsAuthorized: boolean,
+    no: number,
+    showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>JQueryPromise<boolean>
 }
 
-class TaskTableInternal extends React.Component<Props & PropsFunc, State> {
-    constructor(props) {
-        super(props);
-        this.state = {
-            authorizePanel: false
-        }
-    }
+interface ReduxProps {
+    currentDate: Date,
+    tasksList: Array<TaskDTO>,
+    busy: boolean,
+}
+
+
+interface ReduxPropsFunc {
+    onTaskCheckedStateChangedFunc: (caller: TaskUserDTO, challengeId: number, taskProgress: TaskProgressDTO)=>void;
+    onEditTask: (task: TaskDTO)=>void;
+}
+
+class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsFunc, void> {
+
 
     handleResize = (e) => {
-        this.setState(this.state);
+        this.forceUpdate();
     };
 
     onTaskCheckedStateChangedFunc = (taskDTO) => {
@@ -71,37 +61,9 @@ class TaskTableInternal extends React.Component<Props & PropsFunc, State> {
             done: taskDTO.done,
             progressTime: this.props.currentDate.getTime()
         };
-        this.props.onTaskCheckedStateChangedFunc(this.props.challengeId, taskProgressDTO);
+        this.props.onTaskCheckedStateChangedFunc(this.props.user, this.props.challengeId, taskProgressDTO);
     };
 
-
-
-    showAuthorizePanelFuncFromHeader = (anchor) => {
-        if (this.props.user.jwtToken==null) {
-            this.state.authorizePanel = true;
-        }
-        if (this.state.authorizePanel) {
-            this.state.popoverAnchorEl=anchor;
-           /* this.authPopover.setState({
-                anchorEl: anchor,
-                open: true
-            });*/
-            this.setState(this.state);
-            return true;
-        }
-        return false;
-    };
-    showAuthorizePanelFunc = (anchor, isInputChecked) => {
-        if (this.props.user.jwtToken==null) {
-            this.state.authorizePanel = true;
-        }
-        if (this.state.authorizePanel) {
-            this.state.popoverAnchorEl=anchor;
-            this.setState(this.state);
-            return true;
-        }
-        return false;
-    };
 
     render() {
         var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 400) + "px";
@@ -118,7 +80,8 @@ class TaskTableInternal extends React.Component<Props & PropsFunc, State> {
                                  user={this.props.user}
                                  tasksList={this.props.tasksList }
                                  challengeId={this.props.challengeId}
-                                 onOpenDialogForLoginSecondUser={(eventTarget:EventTarget)=>this.showAuthorizePanelFuncFromHeader(eventTarget)}
+                                 onOpenDialogForLoginSecondUser=
+                                     {(eventTarget:EventTarget)=>this.props.showAuthorizeFuncIfNeeded(eventTarget, this.props.user.id)}
                 />
                 <Paper style={{padding: '10px', display: "inline-block"}}>
                     <div style={other}>
@@ -148,59 +111,55 @@ class TaskTableInternal extends React.Component<Props & PropsFunc, State> {
                                         <TableRowColumn style={{width: '45px', padding: '10px'}}>
                                             <ChallengeTableCheckbox
                                                 no={this.props.no}
+                                                userId={this.props.user.id}
                                                 taskDTO={task}
-                                                showAuthorizePanelFunc={this.showAuthorizePanelFunc}
+                                                showAuthorizeFuncIfNeeded={this.props.showAuthorizeFuncIfNeeded}
                                                 onTaskCheckedStateChangedFunc={this.onTaskCheckedStateChangedFunc}
-                                                authorized={this.props.user.jwtToken!=null}
+                                                authorized={this.props.userIsAuthorized}
                                             />
                                         </TableRowColumn>
                                     </TableRow>
                                 )}
-                           </TableBody>
+                            </TableBody>
                         </Table>
                     </div>
                 </Paper>
 
-                <SecondUserAuthorizePopover
-                    user={this.props.user}
-                    anchorEl={this.state.popoverAnchorEl}
-                    handleRequestClose={()=>{this.state.popoverAnchorEl=null; this.setState(this.state);}}/>
+
             </div>
         );
     }
 }
 
 
-const mapStateToProps = (state:ReduxState, ownprops:any):any => {
-    var challengeId:number =selectedChallengeSelector(state).id;
-    var key:string = createTaskDTOListKey(challengeId, state.currentSelection.day);
-    var currentTaskListDTO:TaskDTOListForDay=state.tasksState.tasks[key];
+const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
+    var key: string = createTaskDTOListKey(ownprops.challengeId, state.currentSelection.day);
+    var currentTaskListDTO: TaskDTOListForDay = state.tasksState.tasks[key];
     var tasksList;
     var busy = false;
     if (currentTaskListDTO != null) {
-        tasksList = currentTaskListDTO.taskList.filter((t:TaskDTO)=>t.userId == ownprops.user.userId);
+        tasksList = currentTaskListDTO.taskList.filter((t: TaskDTO)=>t.userId == ownprops.user.id);
         busy = currentTaskListDTO.webState == WebState.FETCHING_VISIBLE;
         if (busy) {
-            busy=tasksList.filter((t:TaskDTO)=>currentTaskListDTO.invalidTasksIds.contains(t.id)).length>0;
+            busy = tasksList.filter((t: TaskDTO)=>currentTaskListDTO.invalidTasksIds.contains(t.id)).length > 0;
         }
     } else tasksList = [];
     return {
-        user: ownprops.user,
-        challengeId: challengeId,
         currentDate: state.currentSelection.day,
         tasksList: tasksList,
         busy: busy
     }
 };
 
-const mapDispatchToProps = (dispatch):PropsFunc => {
+const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
-        onTaskCheckedStateChangedFunc: (challengeId:number, taskProgress:TaskProgressDTO)=> {
-            dispatch(markTaskDoneOrUndone(challengeId, taskProgress));
+        onTaskCheckedStateChangedFunc: (caller: TaskUserDTO, challengeId: number, taskProgress: TaskProgressDTO)=> {
+            dispatch(markTaskDoneOrUndone(caller, challengeId, taskProgress));
         },
-        onEditTask: (task:TaskDTO) => {
+        onEditTask: (task: TaskDTO) => {
             dispatch(OPEN_EDIT_TASK.new(task))
-        }
+        },
+
     }
 };
 

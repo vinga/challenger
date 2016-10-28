@@ -2,6 +2,7 @@ import {WebState} from "../logic/domain/Common";
 
 export interface TaskDTO {
     id: number,
+    challengeId: number,
     label: string,
     dueDate?: number,
     taskType: string,
@@ -67,3 +68,11 @@ export interface TaskProgressDTO {
     done: boolean;
     progressTime: number
 };
+
+export interface TaskUserDTO {
+    id: number,
+    label: string,
+    login?: string,
+    jwtToken?: string
+
+}

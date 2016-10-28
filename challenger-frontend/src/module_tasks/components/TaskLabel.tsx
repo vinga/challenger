@@ -2,11 +2,10 @@ import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import Chip from "material-ui/Chip";
 import colors, {getColorSuperlightenForUser} from "../../views/common-components/Colors.ts";
-import {TaskStatus, TaskDTO, TaskApprovalDTO} from "../TaskDTO";
+import {TaskStatus, TaskDTO, TaskApprovalDTO, TaskUserDTO} from "../TaskDTO";
 import TextInputDialog from "../../views/common-components/TextInputDialog";
-import {updateTaskStatus, showTaskConversation} from "../taskActions";
-import {AccountDTO, loggedAccountByIdSelector} from "../../module_accounts/index";
-import {selectedChallengeParticipantIds} from "../../module_challenges/index";
+import {updateTaskStatus} from "../taskActions";
+import {showTaskEvents} from "../../module_events/index";
 
 
 const styles = {
@@ -34,7 +33,7 @@ interface ReduxProps {
 
 interface Props {
     taskDTO: TaskDTO,
-    user: AccountDTO,
+    user: TaskUserDTO,
     no: number,
 
 
@@ -108,7 +107,7 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
             }
 
             //  return <div style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
-        } else if (this.props.user.jwtToken == null && this.props.taskDTO.createdByUserId != this.props.user.userId) {
+        } else if (this.props.user.jwtToken == null && this.props.taskDTO.createdByUserId != this.props.user.id) {
 
             var chipWaiting = {
                 marginRight: '5px',
@@ -175,8 +174,8 @@ const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
     //var taskCreatorOrdinal: Number = us.findIndex(u=>u.id == task.createdByUserId);
 
     return {
-        isTaskCreatorLogged: loggedAccountByIdSelector(state, task.createdByUserId) != null,
-        taskCreatorOrdinal: selectedChallengeParticipantIds(state).indexOf(task.createdByUserId)
+        isTaskCreatorLogged: ownprops.user.jwtToken != null,
+        taskCreatorOrdinal: ownprops.no
     }
 };
 
@@ -189,7 +188,7 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
                 taskId: task.id,
                 taskStatus: TaskStatus.accepted
             };
-            dispatch(updateTaskStatus(taskApproval));
+            dispatch(updateTaskStatus(task.challengeId, taskApproval));
         },
         onTaskReject: (task: TaskDTO, rejectionReason: string) => {
             var taskApproval: TaskApprovalDTO = {
@@ -198,10 +197,10 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
                 taskStatus: TaskStatus.rejected,
                 rejectionReason: rejectionReason
             };
-            dispatch(updateTaskStatus(taskApproval));
+            dispatch(updateTaskStatus(task.challengeId, taskApproval));
         },
         onTaskConversationShow: (task: TaskDTO) => {
-            dispatch(showTaskConversation(task));
+            dispatch(showTaskEvents(task.challengeId, task.id));
         }
     }
 };

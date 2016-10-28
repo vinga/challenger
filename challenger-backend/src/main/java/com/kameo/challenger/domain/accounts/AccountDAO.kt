@@ -85,6 +85,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun registerUser(login: String, password: String, email: String):InternalRegisterResponseDTO  {
         val challengeParticipant = anyDaoNew.getFirst(ChallengeParticipantODB::class, {
             it.get(ChallengeParticipantODB::user).get(UserODB::email) eq email
+
         })
 
         if (challengeParticipant == null) {

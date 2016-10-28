@@ -27,6 +27,8 @@ public class ConfirmationLinkLogic {
     private AnyDAO anyDao;
     @Inject
     private MailService mailService;
+    @Inject
+    private ServerConfig serverConfig;
 
     public void confirmLinkByUid(String uid) {
 
@@ -172,7 +174,7 @@ public class ConfirmationLinkLogic {
 
 
     private String toActionLink(ConfirmationLinkODB cl) {
-        return ServerConfig.getConfirmEmailInvitationPattern(cl.getUid());
+        return serverConfig.getConfirmEmailInvitationPattern(cl.getUid());
     }
 
     public void createAndSendPasswordResetLink(UserODB u) {

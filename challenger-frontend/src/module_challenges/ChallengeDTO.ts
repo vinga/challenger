@@ -1,5 +1,3 @@
-import {UserDTO} from "./UserDTO";
-import {EventGroupDTO} from "../logic/domain/EventGroupDTO";
 
 export interface ChallengeDTO {
     id: number,
@@ -7,8 +5,8 @@ export interface ChallengeDTO {
     challengeStatus: string;
     creatorId: number;
     myId: number;
-    userLabels: Array<UserDTO>;
-    displayedConversation?:EventGroupDTO;
+    userLabels: Array<ChallengeParticipantDTO>
+
 }
 
 export interface VisibleChallengesDTO {
@@ -22,3 +20,11 @@ export const ChallengeStatus = {
     WAITING_FOR_ACCEPTANCE: "WAITING_FOR_ACCEPTANCE",
     REFUSED: "REFUSED"
 };
+
+
+export interface ChallengeParticipantDTO {
+    id: number,
+    label: string,
+    login?: string
+}
+

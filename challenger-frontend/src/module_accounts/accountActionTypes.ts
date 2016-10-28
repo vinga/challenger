@@ -1,5 +1,7 @@
 
 import {ActionType} from "../redux/ReduxTask";
+
+
 import {RegisterResponseDTO} from "./RegisterResponseDTO";
 
 
@@ -12,4 +14,7 @@ export const LOGOUT: ActionType<{}> = new ActionType<any>('LOGOUT');
 export const REGISTER_USER_REQUEST: ActionType<{}> = new ActionType<any>('REGISTER_USER_REQUEST');
 export const REGISTER_USER_RESPONSE: ActionType<RegisterResponseDTO> = new ActionType<RegisterResponseDTO>('REGISTER_USER_RESPONSE_SUCCESS');
 export const REGISTER_SHOW_REGISTRATION_PANEL: ActionType<{}> = new ActionType<any>('REGISTER_SHOW_REGISTRATION_PANEL');
+
+
+
 export const ON_LOGOUT_SECOND_USER: ActionType<{userId: number}> = new ActionType<any>('ON_LOGOUT_SECOND_USER');

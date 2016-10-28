@@ -1,25 +1,22 @@
 import {connect} from "react-redux";
 import {VisibleChallengesDTO} from "../module_challenges/index";
 import {TaskDTOState} from "../module_tasks/index";
-import {AccountDTO} from "../module_accounts/index";
+import {RegisterState} from "../module_accounts/index";
+import {EventState} from "../module_events/index";
+import {AccountDTO} from "../module_accounts/AccountDTO";
+
 
 export interface CurrentSelection {
-    day: Date,
-    //userId?:number;
-    showChallengeConversation:boolean
-}
-
-export interface RegisterState {
-    registerInProgress?: boolean;
-    registerError?: string;
-    registeredSuccessfully?: boolean;
+    day: Date
 
 }
+
 export interface ReduxState {
     challenges: VisibleChallengesDTO,
     registerState?: RegisterState,
     tasksState: TaskDTOState,
-    accounts:Array<AccountDTO>,
+    accounts: Array<AccountDTO>,
+    eventsState: EventState;
     currentSelection: CurrentSelection
 }
 
@@ -45,6 +42,22 @@ export class SameAs<a> {
 export function copy<a>(value: a): SameAs<a> {
     return new SameAs(steal({}, value));
 }
+export function copyAndReplace<T>(source:Array<T>, incoming: T, exists: (t:T)=>boolean ): Array<T> {
+    var res:Array<T>=[];
 
+
+    if (source.find(exists)==null) {
+        res=Object.assign([],source);
+        res.push(incoming);
+    } else {
+        res=source.map(eg=> {
+            if (exists(eg)) {
+                return incoming;
+            } else
+                return eg;
+        });
+    }
+   return res;
+}
 
 export {connect};

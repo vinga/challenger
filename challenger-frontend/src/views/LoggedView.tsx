@@ -1,84 +1,73 @@
 import * as React from "react";
 import {ReduxState, connect} from "../redux/ReduxState";
+import {TaskDTO, EditTaskDialog, TaskTableList} from "../module_tasks/index";
+import {loggedUserSelector, SecondUserAuthorizePopover, AccountDTO} from "../module_accounts/index";
+import {selectedChallengeIdSelector, challengeAccountsSelector} from "../module_challenges/index";
+import {EventGroupPanel} from "../module_events/index";
 
-
-import {DisplayedEventUI} from "./EventGroup";
-import {EventGroup} from "./EventGroup";
-
-import {TaskDTO, TaskTable, EditTaskDialog} from "../module_tasks/index";
-import {AccountDTO, loggedUserSelector} from "../module_accounts/index";
-import {sendEvent, selectedChallengeSelector, challengeAccountsSelector, challengeEventsSelector} from "../module_challenges/index";
-
-
-interface Props {
-    challengeIsSelected: boolean,
+interface ReduxProps {
+    challengeId?: number,
     editedTask?: TaskDTO,
     userId: number,
-    accounts: Array<AccountDTO>,
-    displayedPosts?: Array<DisplayedEventUI>
+
+    challengeAccounts: Array<AccountDTO>
+
 }
 
-interface PropsFunc {
-    onSendEventFunc: (content: string) => void
-}
 
-class LoggedView extends React.Component<Props & PropsFunc,void> {
+class LoggedView extends React.Component<ReduxProps,void> {
+    private cc: any;
+
 
     render() {
-        var rows = [];
-
-        if (this.props.challengeIsSelected) {
-            let i = 0;
-            var comps = this.props.accounts.map(u=>
-                <div className="col s12 m6">
-                    <TaskTable no={i++} user={u}/>
-                </div>
-            );
-            // fit exactly two tables in one row
-            for (i = 0; i < comps.length; i += 2) {
-                rows.push(<div className="row" key={i}>{comps[i]}{i + 1 < comps.length && comps[i + 1]}</div>)
-            }
-        }
-
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
                 <div className="section">
-                    {rows}
+                    <TaskTableList
+                        accounts={this.props.challengeAccounts.map(a=> {
+
+                          return {
+                            id: a.userId,
+                            label: a.label,
+                            login: a.login,
+                            jwtToken: a.jwtToken
+                           }
+
+                        })}
+                        challengeId={this.props.challengeId}
+                        showAuthorizeFuncIfNeeded={
+                        (eventTarget: EventTarget, userId: number) => {
+                            return this.cc.getWrappedInstance().showAuthorizeFuncIfNeeded(eventTarget, userId)
+                        }}
+                    />
                 </div>
                 {
-                    this.props.editedTask!=null &&
-                        <EditTaskDialog task={this.props.editedTask}/>
+                    this.props.editedTask != null &&
+                    <EditTaskDialog task={this.props.editedTask}/>
                 }
                 {
-                    this.props.displayedPosts != null &&
-                        <EventGroup
-                            displayedEvents={this.props.displayedPosts}
-                            onPostEventFunc={this.props.onSendEventFunc}
-                        />
+                    this.props.challengeId != null &&
+                    <EventGroupPanel authorId={this.props.userId}/>
                 }
+
+
+                <SecondUserAuthorizePopover
+                    ref={ (c) =>this.cc=c}
+                    challengeAccounts={this.props.challengeAccounts}
+                />
             </div>);
     }
 }
 
-const mapStateToProps = (state: ReduxState): Props => {
+const mapStateToProps = (state: ReduxState): ReduxProps => {
     return {
         editedTask: state.tasksState.editedTask,
         userId: loggedUserSelector(state).userId,
-        challengeIsSelected: selectedChallengeSelector(state) != null,
-        accounts: challengeAccountsSelector(state),
-        displayedPosts: challengeEventsSelector(state)
-
+        challengeId: selectedChallengeIdSelector(state),
+        challengeAccounts: challengeAccountsSelector(state)
     }
 };
 
 
-const mapDispatchToProps = (dispatch) => {
-    return {
-        onSendEventFunc: (content:string) => {
-            dispatch(sendEvent(content))
-        }
-    }
-};
-
-let Ext = connect(mapStateToProps, mapDispatchToProps)(LoggedView);
+let Ext = connect(mapStateToProps)(LoggedView);
 export default Ext;

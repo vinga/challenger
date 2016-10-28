@@ -4,53 +4,36 @@ import {TaskDTO} from "../../TaskDTO";
 import colors from "../../../views/common-components/Colors";
 
 
-
 interface Props {
     no: number,
+    userId: number,
     authorized: boolean,
     taskDTO: TaskDTO,
-    showAuthorizePanelFunc: (event: EventTarget, isInputChecked:boolean)=>(boolean);
+    showAuthorizeFuncIfNeeded: (event: EventTarget, userId: number)=>(JQueryPromise<boolean>);
     onTaskCheckedStateChangedFunc: (task: TaskDTO)=>void;
 }
-interface State {
-    taskDTO: TaskDTO
-}
 
-export default class ChallengeTableCheckbox extends React.Component<Props, State> {
-    constructor(props) {
-        super(props);
-        this.state = {
-            taskDTO: this.props.taskDTO
-
-        };
-    }
+export default class ChallengeTableCheckbox extends React.Component<Props, void> {
 
     render() {
-        var checkbox;
-        //if (this.state.taskDTO.taskStatus == TaskStatus.failed)
-        //    checkbox = <div>Failed</div>;
-        //else {
-            var onCheck = (taskId) => (event, isInputChecked) => {
-                if (!this.props.showAuthorizePanelFunc(event.currentTarget, isInputChecked)) {
-                    this.state.taskDTO.done=isInputChecked;
-                    //if (isInputChecked)
-                    //    this.state.taskDTO.taskStatus = TaskStatus.done;
-                    //else
-                    //    this.state.taskDTO.taskStatus = TaskStatus.pending;
-                    this.setState(this.state);
-                    this.props.onTaskCheckedStateChangedFunc(this.state.taskDTO);
+
+        var onCheck = (taskId) => (event, isInputChecked) => {
+            this.props.showAuthorizeFuncIfNeeded(event.currentTarget, this.props.userId).then((b)=> {
+                if (b == true) {
+                    var newTask = Object.assign({}, this.props.taskDTO);
+                    newTask.done = isInputChecked;
+                    this.props.onTaskCheckedStateChangedFunc(newTask);
                 }
+            })
+        };
 
-            };
+        return <Checkbox
+            key="statusCb"
+            checked={this.props.taskDTO.done === true}
+            onCheck={onCheck(this.props.taskDTO.id)}
+            iconStyle={{fill: this.props.authorized ? colors.userColors[this.props.no] : "lightgrey"}}
+            style={{display: 'inline-block', width: '30px'}}/>;
 
-            checkbox = <Checkbox
-                key="statusCb"
-                checked={this.props.taskDTO.done === true}
-                onCheck={onCheck(this.props.taskDTO.id)}
-                iconStyle={{fill: this.props.authorized ? colors.userColors[this.props.no] : "lightgrey"}}
-                style={{display: 'inline-block', width: '30px'}}/>;
-        //}
-        return checkbox;
     }
 
 };

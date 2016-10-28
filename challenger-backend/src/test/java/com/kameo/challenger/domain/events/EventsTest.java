@@ -1,4 +1,4 @@
-package com.kameo.challenger.domain.conversations;
+package com.kameo.challenger.domain.events;
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
@@ -6,7 +6,6 @@ import com.kameo.challenger.domain.accounts.ConfirmationLinkLogic;
 import com.kameo.challenger.domain.accounts.EventGroupDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
-import com.kameo.challenger.domain.events.EventODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
@@ -19,8 +18,10 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
+
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
-public class ConversationsTest implements En {
+public class EventsTest implements En {
     @Inject
     private AnyDAO anyDao;
     @Inject
@@ -36,7 +37,7 @@ public class ConversationsTest implements En {
     }
 
 
-    public ConversationsTest() {
+    public EventsTest() {
 
         Given("^\"([^\"]*)\" commented action \"([^\"]*)\" with words \"([^\"]*)\"$", (String login, String task, String words) -> {
             UserODB u=testHelper.resolveUserByLogin(login);
@@ -47,21 +48,22 @@ public class ConversationsTest implements En {
             p.setChallenge(t.getChallenge());
             p.setCreateDate(new Date());
             p.setContent(words);
-            eventGroupDao.editPost(u.getId(),p);
+            p.setEventType(EventType.POST);
+            eventGroupDao.editEvent(u.getId(),t.getChallenge().getId(), p);
 
         });
 
         When("^\"([^\"]*)\" fetch all posts for action \"([^\"]*)\"$", (String login, String task) -> {
             UserODB u=testHelper.resolveUserByLogin(login);
             TaskODB t=testHelper.resolveTask(task);
-            eventGroupDao.getPostsForTask(u.getId(),t.getId());
+            eventGroupDao.getEventsForTask(u.getId(), t.getChallenge().getId(), t.getId());
 
         });
 
         Then("^\"([^\"]*)\" see that action \"([^\"]*)\" has (\\d+) post$", (String login,String task, Integer taskNo) -> {
             UserODB u=testHelper.resolveUserByLogin(login);
             TaskODB t=testHelper.resolveTask(task);
-            List<EventODB> res = eventGroupDao.getPostsForTask(u.getId(), t.getId());
+            List<EventODB> res = eventGroupDao.getEventsForTask(u.getId(), t.getChallenge().getId(), t.getId());
             Assert.assertEquals(taskNo.intValue(),res.size());
         });
 
@@ -77,7 +79,8 @@ public class ConversationsTest implements En {
                 p.setChallenge(t.getChallenge());
                 p.setCreateDate(new Date());
                 p.setContent(words);
-                eventGroupDao.editPost(u.getId(), p);
+                p.setEventType(EventType.POST);
+                eventGroupDao.editEvent(u.getId(),  p.getChallenge().getId(), p);
             }
         });
 
@@ -90,7 +93,8 @@ public class ConversationsTest implements En {
                 p.setChallenge(c);
                 p.setCreateDate(new Date());
                 p.setContent(words);
-                eventGroupDao.editPost(u.getId(), p);
+                p.setEventType(EventType.POST);
+                eventGroupDao.editEvent(u.getId(), c.getId(), p);
             }
         });
 

@@ -2,29 +2,31 @@ package com.kameo.challenger.utils.odb.newapi
 
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
+
 import javax.persistence.criteria.*
 import kotlin.reflect.KMutableProperty1
 
 
-class JoinWrap<E> constructor(val pw: PathContext,
-                              root: Join<Any, E>,
-                              arr: MutableList<() -> Predicate?>,
-                              parent: PathWrap<E>?=null)
+class JoinWrap<E,G> constructor(val pw: PathContext,
+                                pathSelect: ISelectWrap<G>,
+                                root: Join<Any, E>,
+                                arr: MutableList<() -> Predicate?>,
+                                parent: PathWrap<E,G>?=null)
 
-                              : PathWrap<E>(pw, root, arr, parent) {
+                              : PathWrap<E,G>(pw, pathSelect, root, arr, parent) {
 
 
     @Suppress("UNCHECKED_CAST")
-    fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F> {
+    fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F,G> {
         val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
-        return JoinWrap(pw, join, arr)
+        return JoinWrap(pw, pathSelect, join, arr)
     }
 
 
     // perhaps we want to create here dedicated class
-    fun <F> joinList(sa: KMutableProperty1<E, List<F>>): JoinWrap<F> {
+    fun <F> joinList(sa: KMutableProperty1<E, List<F>>): JoinWrap<F,G> {
         val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
-        return JoinWrap(pw, join, arr)
+        return JoinWrap(pw, pathSelect, join, arr)
     }
 
 

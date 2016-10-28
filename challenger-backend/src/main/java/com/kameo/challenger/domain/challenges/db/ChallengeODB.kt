@@ -21,4 +21,6 @@ data class ChallengeODB(@Id
 
     @OneToMany(mappedBy = "challenge")
     var participants: List<ChallengeParticipantODB> = Lists.newArrayList<ChallengeParticipantODB>()
+
+
 }

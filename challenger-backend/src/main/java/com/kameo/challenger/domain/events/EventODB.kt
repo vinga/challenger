@@ -20,6 +20,7 @@ data class EventODB(@Id
     @JoinColumn(updatable = false)
     var task: TaskODB? = null
 
+
     @ManyToOne
     @JoinColumn(updatable = false)
     lateinit var author: UserODB;

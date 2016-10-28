@@ -1,5 +1,6 @@
 package com.kameo.challenger.domain.challenges;
 
+import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 import java.util.stream.Collectors;
 
 @Component
-@Path("/api/challenge")
+@Path(ServerConfig.restPath)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ChallengeRestService implements IChallengeRestService {
@@ -27,23 +28,23 @@ public class ChallengeRestService implements IChallengeRestService {
 
 
     @GET
-    @Path("visibleChallenges")
-    public IChallengeRestService.VisibleChallengesDTO getVisibleChallenges() {
+    @Path("challenge/visibleChallenges")
+    public VisibleChallengesDTO getVisibleChallenges() {
         long callerId = session.getUserId();
         ChallengeDAO.ChallengeInfoDTO cinfo = challengeDao
                 .getVisibleChallenges(callerId);
 
-        IChallengeRestService.VisibleChallengesDTO res =
-                new IChallengeRestService.VisibleChallengesDTO(cinfo.getDefaultChallengeId());
+        VisibleChallengesDTO res =
+                new VisibleChallengesDTO(cinfo.getDefaultChallengeId());
 
 
         res.getVisibleChallenges().addAll(cinfo.getVisibleChallenges().stream()
-                .map(IChallengeRestService.VisibleChallengesDTO.ChallengeDTO.Companion::fromODB)
-                .map(c -> {
-                    c.setCallerId(callerId);
-                    return c;
-                })
-                .collect(Collectors.toList()));
+                                               .map(VisibleChallengesDTO.ChallengeDTO.Companion::fromODB)
+                                               .map(c -> {
+                                                   c.setCallerId(callerId);
+                                                   return c;
+                                               })
+                                               .collect(Collectors.toList()));
 
         return res;
     }

@@ -1,5 +1,6 @@
 package com.kameo.challenger.utils.odb;
 
+import com.google.common.base.Function;
 import com.kameo.challenger.odb.api.IIdentity;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
@@ -55,6 +56,8 @@ public class AnyDAO {
 		if (obj == null) {
 			return 0;
 		}
+
+
 		Class<E> clz = set.getDeclaringType().getJavaType();
 		CriteriaBuilder cb = getEm().getCriteriaBuilder();
 		CriteriaUpdate<E> update = cb.createCriteriaUpdate(clz);

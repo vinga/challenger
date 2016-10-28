@@ -10,11 +10,11 @@ import javax.ws.rs.PathParam
  */
 interface IEventGroupRestService {
 
-    fun getEventsForTask(taskId: Long): EventGroupDTO
+    fun getEventsForTask(challengeId: Long, taskId: Long): EventGroupDTO
 
     fun getEventsForChallenge(challengeId: Long): EventGroupDTO
 
-    fun editEvent(eventDTO: EventDTO): EventDTO
+    fun createEvent(challengeId: Long, eventDTO: EventDTO): EventDTO
 
     data class EventGroupDTO(val challengeId: Long, val taskId: Long? = null, val posts: Array<EventDTO> = emptyArray())  {
 

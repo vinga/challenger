@@ -1,7 +1,8 @@
 import {combineReducers} from "redux";
 import {currentSelection} from "./reducers/currentSelection";
-import challenges from "../module_challenges/challengeReducers";
+import {challenges} from "../module_challenges/challengeReducers";
 import {tasksState} from "../module_tasks/taskReducers";
+import {eventsState} from "../module_events/eventReducers";
 import {accounts, registerState} from "../module_accounts/accountReducers";
 
 
@@ -10,7 +11,8 @@ export const rootReducer = combineReducers({
     registerState,
     challenges,
     tasksState,
-    accounts
+    eventsState,
+    accounts,
 });
 
 

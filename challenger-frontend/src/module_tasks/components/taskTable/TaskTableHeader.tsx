@@ -1,34 +1,28 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../../redux/ReduxState";
-import TaskTableUserIcon from "./TaskTableUserIcon.tsx";
 import FlatButton from "material-ui/FlatButton";
-import {IconButton} from "material-ui";
-import {TaskDTO, TaskStatus, TaskType} from "../../TaskDTO";
-import {AccountDTO} from "../../../module_accounts/AccountDTO";
+import {TaskDTO, TaskStatus, TaskType, TaskUserDTO} from "../../TaskDTO";
 import colors from "../../../views/common-components/Colors";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
-import {ON_LOGOUT_SECOND_USER} from "../../../module_accounts/index";
-
-
+import {TaskTableHeaderAccountPanel} from "../../../module_accounts/index";
 
 
 interface Props {
-    tasksList:Array<TaskDTO>,
-    user:AccountDTO,
-    challengeId:number,
-    no:number
+    tasksList: Array<TaskDTO>,
+    user: TaskUserDTO,
+    challengeId: number,
+    no: number
 }
 
 interface ReduxPropsFunc {
-    onAddNewTaskFunc:(task:TaskDTO)=>void;
-    onSecondUserLogout:(userId:number)=>void;
+    onAddNewTaskFunc: (task: TaskDTO)=>void;
 
 }
 interface PropsFunc {
-    onOpenDialogForLoginSecondUser:(event:EventTarget)=>void;
+    onOpenDialogForLoginSecondUser: (event: EventTarget)=>void;
 }
 
-class TaskTableHeader extends React.Component<Props & ReduxPropsFunc & PropsFunc,void> {
+class TaskTableHeaderInternal extends React.Component<Props & ReduxPropsFunc & PropsFunc,void> {
     constructor(props) {
         super(props);
 
@@ -58,51 +52,27 @@ class TaskTableHeader extends React.Component<Props & ReduxPropsFunc & PropsFunc
             taskType: TaskType.onetime,
             taskStatus: TaskStatus.waiting_for_acceptance,
             dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
-            userId: this.props.user.userId,
+            userId: this.props.user.id,
             challengeId: this.props.challengeId,
             done: false,
-            createdByUserId: this.props.user.userId,
+            createdByUserId: this.props.user.id,
 
         };
         return taskDTO;
     }
 
-
-    // <span style={{marginLeft: 20 + 'px'}}>{this.calculateCheckedCount()}</span>  / <span>{this.calculateAllCount()}</span>
     render() {
 
         return (<div>
 
+            <TaskTableHeaderAccountPanel
+                onOpenDialogForLoginSecondUser={this.props.onOpenDialogForLoginSecondUser}
+                no={this.props.no}
+                userId={this.props.user.id}
+                userLabel={this.props.user.label}
+                userLogin={this.props.user.login}
+            />
 
-            <h5  >
-                <TaskTableUserIcon
-                    userNo={this.props.no}
-                />
-
-                <span style={{}}><span style={{lineHeight: '65px'}}>{this.props.user.label}</span>
-                    {this.props.no != 0 && (this.props.user.jwtToken != null ?
-
-                            <IconButton
-                                onClick={() => {this.props.onSecondUserLogout(this.props.user.userId)}}>
-                                &nbsp;<i className={'fa fa-power-off' }
-                                         style={{marginTop: '3px',fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
-                            </IconButton>
-
-                            :
-
-                            <IconButton
-                                onClick={(event) => this.props.onOpenDialogForLoginSecondUser(event.currentTarget)}>
-                                &nbsp;<i className={'fa fa-lock' }
-                                         style={{marginTop: '3px',fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
-                            </IconButton>
-
-                    )}{this.props.user.errorDescription != null &&
-                    <span className="red-text text-darken-3"
-                          style={{fontSize:'15px'}}>
-                        {this.props.user.errorDescription}</span>}
-                </span>
-
-            </h5>
             <div style={{clear: 'both'}}></div>
             <span className="left" style={{margin: '3px'}}>Points: {this.calculateCheckedCount()}</span>
             <div className="right" style={{display: "inline-block"}}>
@@ -114,30 +84,24 @@ class TaskTableHeader extends React.Component<Props & ReduxPropsFunc & PropsFunc
                     style={{color: colors.userColors[this.props.no]}}
                 />
             </div>
-
-
         </div>);
     }
 
 
 }
 
-const mapStateToProps = (state: ReduxState, ownProps:Props & PropsFunc):{} => {
+const mapStateToProps = (state: ReduxState, ownProps: Props & PropsFunc): {} => {
     return {};
 };
-const mapDispatchToProps = (dispatch):ReduxPropsFunc => {
+const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
-        onAddNewTaskFunc: (task:TaskDTO) => {
+        onAddNewTaskFunc: (task: TaskDTO) => {
             dispatch(OPEN_EDIT_TASK.new(task))
-        },
-        onSecondUserLogout: (userId:number) => {
-            dispatch(ON_LOGOUT_SECOND_USER.new({userId}));
         }
+
     }
 };
+export const TaskTableHeader = connect(mapStateToProps, mapDispatchToProps)(TaskTableHeaderInternal);
 
-const Ext = connect(mapStateToProps, mapDispatchToProps)(TaskTableHeader);
-
-export default Ext;
 
 

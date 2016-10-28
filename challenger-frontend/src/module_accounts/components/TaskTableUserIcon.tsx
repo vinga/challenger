@@ -1,5 +1,5 @@
 import * as React from "react";
-import colors from "../../../views/common-components/Colors";
+import colors from "../../views/common-components/Colors";
 
 export default class TaskTableUserIcon extends React.Component<{userNo:number},void> {
     constructor(props) {

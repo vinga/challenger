@@ -56,7 +56,7 @@ public class TasksTest implements En {
             ca.setUser(testHelper.myself());
             ca.setChallenge(cc);
             ca.setTaskType(TaskType.valueOf(arg1));
-            challengerService.updateTask(testHelper.myFriend().getId(), ca);
+            challengerService.createTask(testHelper.myFriend().getId(), ca);
         });
 
         Given("^my friend created new onetime action for me with due date in the past$", () -> {
@@ -68,7 +68,7 @@ public class TasksTest implements En {
             ca.setChallenge(cc);
             ca.setDueDate(DateUtil.addDays(new Date(), -1));
             ca.setTaskType(TaskType.onetime);
-            challengerService.updateTask(testHelper.myFriend().getId(), ca);
+            challengerService.createTask(testHelper.myFriend().getId(), ca);
         });
 
         When("^I get list of waiting for acceptance actions$", () -> {
@@ -118,7 +118,7 @@ public class TasksTest implements En {
             ca.setLabel(actionName);
             ca.setChallenge(cc);
             ca.setUser(u2);
-            challengerService.updateTask(u1.getId(), ca);
+            challengerService.createTask(u1.getId(), ca);
         });
 
         Then("^\"([^\"]*)\" can modify action \"([^\"]*)\"$", (String person, String arg1) -> {
@@ -153,7 +153,7 @@ public class TasksTest implements En {
             ca.setTaskStatus(TaskStatus.accepted);
             ca.setChallenge(cc);
             ca.setUser(myself);
-            challengerService.updateTask(myFriend.getId(), ca);
+            challengerService.createTask(myFriend.getId(), ca);
         });
 
 
@@ -189,19 +189,9 @@ public class TasksTest implements En {
             ca.setTaskStatus(TaskStatus.accepted);
             ca.setChallenge(cc);
             ca.setUser(myFriend);
-            challengerService.updateTask(myFriend.getId(), ca);
+            challengerService.createTask(myFriend.getId(), ca);
         });
 
-
-
-
-    /*    When("^my friend accepted action \"([^\"]*)\"$", (String arg1) -> {
-            UserODB myFriend = testHelper.myFriend();
-            TaskODB caa = anyDao.getOnlyOne(TaskODB.class, ca -> ca.getLabel().equals(arg1));
-            Assert.assertEquals(TaskStatus.waiting_for_acceptance, caa.getTaskStatus());
-            caa.setTaskStatus(TaskStatus.pending);
-            challengerService.updateTask(myFriend.getId(),caa);
-        });*/
 
 
 

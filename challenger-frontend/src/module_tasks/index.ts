@@ -1,11 +1,11 @@
 
 import {fetchTasks, fetchTasksWhenNeeded}  from './taskActions';
 import {TaskDTOState, TaskDTO}  from './TaskDTO';
-import {TaskTable}  from './components/taskTable/TaskTable';
+import {TaskTableList}  from './components/TaskTableList';
 import {EditTaskDialog} from './components/taskEditWindow/EditTaskDialog';
 
 export {
-    TaskTable,
+    TaskTableList,
     EditTaskDialog,
 
     fetchTasks, fetchTasksWhenNeeded, TaskDTOState, TaskDTO

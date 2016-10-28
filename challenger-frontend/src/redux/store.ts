@@ -2,9 +2,7 @@ import {rootReducer} from "./reducers";
 import thunkMiddleware from "redux-thunk";
 import {createStore, applyMiddleware} from "redux";
 import {hotReloadIfNeeded} from "./utils/utilsjs";
-import ajaxWrapper from "../logic/AjaxWrapper";
 
-ajaxWrapper.baseUrl = "http://localhost:9080/api";
 
 //https://github.com/tappleby/redux-batched-subscribe
 

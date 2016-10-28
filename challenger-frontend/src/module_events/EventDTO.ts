@@ -14,5 +14,17 @@ export interface EventDTO {
     content: string,
     sentDate: number,
     authorId: number,
-    eventType: String
+    eventType: string
+}
+
+export interface EventGroupDTO {
+    challengeId?: number
+    taskId?: number
+    posts: Array<EventDTO>
+}
+
+export interface EventState {
+    eventWindowVisible: boolean,
+    expandedEventWindow: boolean,
+    eventGroups: Array<EventGroupDTO>
 }

@@ -15,11 +15,12 @@ interface Props {
     validateOnChange?: boolean,
     validator?: (str: string)=>string,
     useRequiredValidator?: boolean
-    minLengthNumber? :number,
-    maxLengthNumber? :number,
-    regexPattern? :string,
+    minLengthNumber?: number,
+    maxLengthNumber?: number,
+    regexPattern?: string,
     checkEmailPattern?: boolean,
-    name?: string
+    name?: string,
+    onEnterKeyDown?: ()=>void;
 }
 interface State {
     fieldValue: string,
@@ -43,10 +44,21 @@ export default class TextFieldExt extends React.Component<Props,State> {
 
     };
 
+    clear = () => {
+        this.state.fieldValue = "";
+        this.setState(this.state);
+    }
+
+    handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            if (this.props.onEnterKeyDown != null)
+                this.props.onEnterKeyDown();
+        }
+    }
 
     handleFieldChange = (event) => {
 
-        this.state.fieldValue=event.target.value;
+        this.state.fieldValue = event.target.value;
         this.setState(this.state);
 
         if (this.props.validateOnChange)
@@ -56,46 +68,46 @@ export default class TextFieldExt extends React.Component<Props,State> {
             this.props.onChange(event);
     };
     onBlur = () => {
-       this.checkIsValid();
+        this.checkIsValid();
     }
 
     getFieldLabel = () => {
         return this.props.floatingLabelText != null ? this.props.floatingLabelText : "Field";
     }
-    checkIsValid = ():boolean => {
+    checkIsValid = (): boolean => {
         this.state.errorText = null;
-        if (this.props.validateOnFocusOut==null || this.props.validateOnFocusOut==true) {
+        if (this.props.validateOnFocusOut == null || this.props.validateOnFocusOut == true) {
             if (this.props.useRequiredValidator) {
                 if (this.state.fieldValue == "")
-                    this.state.errorText = this.getFieldLabel()  + " is required";
+                    this.state.errorText = this.getFieldLabel() + " is required";
             }
-            if (this.state.errorText!=null) {
+            if (this.state.errorText != null) {
                 this.setState(this.state);
                 return false;
             }
-            if (this.props.minLengthNumber!=null && this.props.minLengthNumber>this.state.fieldValue.length) {
-                this.state.errorText = this.getFieldLabel()  + " should have minimum "+this.props.minLengthNumber+" characters";
+            if (this.props.minLengthNumber != null && this.props.minLengthNumber > this.state.fieldValue.length) {
+                this.state.errorText = this.getFieldLabel() + " should have minimum " + this.props.minLengthNumber + " characters";
             }
-            if (this.props.maxLengthNumber!=null && this.props.maxLengthNumber<this.state.fieldValue.length) {
-                this.state.errorText = this.getFieldLabel()  + " should have maximum "+this.props.maxLengthNumber+" characters";
+            if (this.props.maxLengthNumber != null && this.props.maxLengthNumber < this.state.fieldValue.length) {
+                this.state.errorText = this.getFieldLabel() + " should have maximum " + this.props.maxLengthNumber + " characters";
             }
-            if (this.state.errorText!=null) {
+            if (this.state.errorText != null) {
                 this.setState(this.state);
                 return false;
             }
-            if (this.props.regexPattern!=null) {
+            if (this.props.regexPattern != null) {
                 if (!new RegExp(this.props.regexPattern).test(this.state.fieldValue))
-                    this.state.errorText = this.getFieldLabel()  + " is invalid";
+                    this.state.errorText = this.getFieldLabel() + " is invalid";
             }
-            if (this.state.errorText!=null) {
+            if (this.state.errorText != null) {
                 this.setState(this.state);
                 return false;
             }
-            if (this.props.checkEmailPattern!=null) {
+            if (this.props.checkEmailPattern != null) {
                 if (!validateEmail(this.state.fieldValue))
                     this.state.errorText = "This is not a valid email address";
             }
-            if (this.state.errorText!=null) {
+            if (this.state.errorText != null) {
                 this.setState(this.state);
                 return false;
             }
@@ -105,7 +117,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
             }
             this.setState(this.state);
         }
-        return this.state.errorText==null;
+        return this.state.errorText == null;
     }
 
     render() {
@@ -114,11 +126,12 @@ export default class TextFieldExt extends React.Component<Props,State> {
             floatingLabelText={this.props.floatingLabelText}
             onChange={this.handleFieldChange}
             type={this.props.type}
-            defaultValue={this.state.fieldValue}
+            value={this.state.fieldValue}
             style={this.props.style}
             errorText={this.state.errorText}
             onBlur={this.onBlur}
             name={this.props.name}
+            onKeyDown={this.handleKeyDown}
 
         />);
     }

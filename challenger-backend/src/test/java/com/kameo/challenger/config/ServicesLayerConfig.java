@@ -16,6 +16,10 @@ import org.springframework.context.annotation.FilterType;
 public class ServicesLayerConfig {
 
     @Bean
+    ServerConfig serverConfig() {
+        return new ServerConfig();
+    }
+    @Bean
     TestHelper testHelper() {
         return new TestHelper();
     }

@@ -31,6 +31,7 @@ class DatabaseConfig {
 
 
 
+
     @Bean
     public AnyDAO anyDao() {
         return new AnyDAO();
