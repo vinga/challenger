@@ -120,9 +120,9 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
     renderTaskName = () => {
         if(this.props.task != null)
-            return this.props.task.label;
+            return <span style={{padding:"0px", display: "inline-block", width: "400px", overflowX: "hidden", paddingBottom: "10px"}}>{this.props.task.label}</span>;
         else
-            return "";
+            return  <span style={{padding:"0px", display: "inline-block", width: "400px", overflowX: "hidden"}}>Challenge conversation</span>;
     }
 
     render() {
@@ -136,15 +136,20 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         }
 
         return <Paper style={st}>
-            <div style={{position:"absolute",left:"10px",top:"10px", height:"26px", verticalAlign:"center"}}>
-               { this.props.task != null &&
+            <div style={{display: "block", clear: "both"}}>
+            <div style={{position:"absolute",left:"4px",top:"4px", height:"26px", verticalAlign:"center", display:"block"}}>
+                <div style={{display:"block"}}>
+                { this.props.task != null &&
 
+                    <span style={{display:"inline-block"}}>
                    <DifficultyIconButton
                     no={this.props.no}
                     task={this.props.task}
                     />
+                    </span>
                }
                 {this.renderTaskName()}
+                </div>
             </div>
             <div style={{position:"absolute",right:"10px",top:"10px", fontSize:'10px', height:'26px'}}>
                 {this.props.expandedEventWindow
@@ -153,8 +158,10 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                     :
                     <FontIcon className="fa fa-expand" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onExpandFunc}/> }
             </div>
+            </div>
+
             <div style={{display:"flex", flexDirection:"column", justifyContent: "space-between", height:"100%"}}>
-                <div id="eventGroupChatContent" style={{overflowY:"auto", marginTop:'26px'}}>
+                <div id="eventGroupChatContent" style={{overflowY:"auto", marginTop:'40px'}}>
                     {
 
                         this.props.displayedEvents.map(p =>

@@ -1,15 +1,10 @@
 package com.kameo.challenger.utils.odb.newapi
 
+import com.kameo.challenger.odb.api.IIdentity
 import com.kameo.challenger.utils.odb.AnyDAO
-import com.kameo.challenger.utils.odb.AnyDAONew.*
-
-import org.hibernate.sql.Select
-import java.beans.Introspector
-import java.lang.invoke.LambdaMetafactory
-import java.lang.invoke.MethodHandles
-import java.lang.reflect.Method
+import com.kameo.challenger.utils.odb.AnyDAONew.PathPairSelect
+import com.kameo.challenger.utils.odb.AnyDAONew.PathTripleSelect
 import java.util.*
-import java.util.function.DoubleUnaryOperator
 import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Join
 import javax.persistence.criteria.Path
@@ -23,97 +18,93 @@ import kotlin.reflect.KProperty1.Getter
 import kotlin.reflect.KType
 
 open class PathWrap<E, G> constructor(
-        val pc: PathContext<E>,
-        val pathSelect: ISugarQuerySelect<G>,
+        pc: PathContext<E>,
+
         val root: Path<E>
-        ) :  ISelectExpressionProvider <E>,  ISugarQuerySelect<G>  by pathSelect   {
+) :
+        ExpressionWrap <E, G>(pc,  root) {
 
     override fun getDirectSelection(): ISugarQuerySelect<E> {
-       return ExpressionWrap(root);
+        return ExpressionWrapBase(root);
     }
 
-
-    val cb = pc.cb;
-
-    infix fun skip(skip: Int): PathWrap<E,G> {
+    infix fun skip(skip: Int): PathWrap<E, G> {
         pc.skip = skip
         return this
     }
 
-    infix fun limit(take: Int): PathWrap<E,G> {
+    infix fun limit(take: Int): PathWrap<E, G> {
         pc.take = take
         return this
     }
 
-    infix fun <F,G> select(pw: PathWrap<F,G>): ISugarQuerySelect<F> {
+    infix fun <F, G> select(pw: PathWrap<F, G>): ISugarQuerySelect<F> {
         return SelectWrap(pw.root);
     }
-    infix fun <F> select(pw: ExpressionWrap<F>): ISugarQuerySelect<F> {
+
+    infix fun <F> select(pw: ExpressionWrapBase<F>): ISugarQuerySelect<F> {
         return pw;
     }
 
 
     fun <F, G> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>): PathPairSelect<F, G> {
-        return PathPairSelect(pw1.getDirectSelection(), pw2.getDirectSelection())
+        return PathPairSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), pc.cb);
     }
+
 
     fun <F, G, H> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>, pw3: ISelectExpressionProvider<H>): PathTripleSelect<F, G, H> {
-        return PathTripleSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), pw3.getDirectSelection())
+        return PathTripleSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), pw3.getDirectSelection(), pc.cb)
     }
 
-    infix fun eqId(id: Long): PathWrap<E,G> {
+    infix fun eqId(id: Long): PathWrap<E, G> {
         pc.add({ pc.cb.equal(root.get<Path<Long>>(AnyDAO.id_column), id) })
         return this
     }
 
-    infix fun inIds(ids: List<Long>): PathWrap<E,G> {
+    infix fun inIds(ids: List<Long>): PathWrap<E, G> {
         pc.add({ root.get<Path<Long>>(AnyDAO.id_column).`in`(ids) })
         return this
     }
 
 
-    class ClousureWrap<E,G>(//var innerList:MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>(),
-                             pc: PathContext<E>,
-                             pathSelect: ISugarQuerySelect<G>,
-                             root: Path<E>,
+    class ClousureWrap<E, G>(//var innerList:MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>(),
+            pc: PathContext<E>,
+            root: Path<E>,
 
-                             val parent: PathWrap<E,G>? = null,
+            val parent: PathWrap<E, G>? = null,
 
-                             arr: MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>()
+            arr: MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>()
 
-    ): PathWrap<E,G>(pc,  pathSelect, root) {
-
+    ) : PathWrap<E, G>(pc,  root) {
 
 
-
-     /*fun   fun finish(): PathWrap<E,G> {
-            pc.unstackArray();
-            if (parent != null)
-                return parent
-            throw IllegalArgumentException()
-        }*/
     }
 
-    fun <I,J> ref(ref : PathWrap<I,J>, clause: (PathWrap<I,J>)-> Unit): PathWrap<E,G> {
+    fun <I, J> ref(ref: PathWrap<I, J>, clause: (PathWrap<I, J>) -> Unit): PathWrap<E, G> {
         clause.invoke(ref);
         return this;
     }
 
+    fun ref(clause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
+        clause.invoke(this);
+        return this;
+    }
 
-    fun <I,J> ref(ref : PathWrap<I,J>): PathWrap<I,J> {
+
+    fun <I, J> ref(ref: PathWrap<I, J>): PathWrap<I, J> {
         return ref;
     }
 
-    fun finish(): PathWrap<E,G> {
+    fun finish(): PathWrap<E, G> {
         pc.unstackArray();
         return this;
     }
 
-    fun newOr(): ClousureWrap<E,G> {
+    fun newOr(): ClousureWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
 
 
-        var pw = ClousureWrap(pc, pathSelect, root, this)
+        var pw = ClousureWrap(pc,  root, this)
 
 
         pc.add({ calculateOr(list) })
@@ -122,18 +113,19 @@ open class PathWrap<E, G> constructor(
     }
 
 
-    fun newOr(orClause: (PathWrap<E,G>)-> Unit): PathWrap<E,G> {
+    fun newOr(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
-        var pw = ClousureWrap(pc, pathSelect, root, this)
+        var pw = ClousureWrap(pc,  root, this)
         pc.add({ calculateOr(list) })
         pc.stackNewArray(list);
         orClause.invoke(pw);
         pc.unstackArray();
         return this
     }
-    fun newAnd(orClause: (PathWrap<E,G>)->Unit): PathWrap<E,G> {
+
+    fun newAnd(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
-        var pw = ClousureWrap(pc, pathSelect, root, this)
+        var pw = ClousureWrap(pc,  root, this)
         pc.add({ calculateAnd(list) })
         pc.stackNewArray(list);
         orClause.invoke(pw);
@@ -142,36 +134,35 @@ open class PathWrap<E, G> constructor(
     }
 
 
-    fun newAnd(): ClousureWrap<E,G> {
+    fun newAnd(): ClousureWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
 
-        var pw = ClousureWrap(pc, pathSelect, root,  this)
-
+        var pw = ClousureWrap(pc,  root, this)
 
 
         pc.add({ calculateAnd(list) })
         pc.stackNewArray(list);
         return pw
     }
-
-
 
 
     private fun calculateOr(list: MutableList<() -> Predicate?>): Predicate? {
-        var predicates = mutableListOf<Predicate>()
-        for (p in list) {
-            var pp: Predicate? = p.invoke()
-            if (pp != null) {
-                predicates.add(pp)
-            }
-        }
-        if (predicates.isNotEmpty()) {
-            return cb.or(*predicates.toTypedArray())
-        }
-        return null
+        var predicates = toPredicates(list)
+        return if (predicates.isNotEmpty())
+            cb.or(*predicates.toTypedArray())
+        else
+            null
     }
 
     private fun calculateAnd(list: MutableList<() -> Predicate?>): Predicate? {
+        var predicates = toPredicates(list)
+        return if (predicates.isNotEmpty())
+            cb.and(*predicates.toTypedArray())
+        else
+            null
+    }
+
+    private fun toPredicates(list: MutableList<() -> Predicate?>): MutableList<Predicate> {
         var predicates = mutableListOf<Predicate>()
         for (p in list) {
             var pp: Predicate? = p.invoke()
@@ -179,85 +170,89 @@ open class PathWrap<E, G> constructor(
                 predicates.add(pp)
             }
         }
-        if (predicates.isNotEmpty()) {
-            return cb.and(*predicates.toTypedArray())
-        }
-        return null
+        return predicates
     }
 
 
-
-    fun inIds(vararg ids: Long): PathWrap<E,G> {
+    fun inIds(vararg ids: Long): PathWrap<E, G> {
         pc.add({ root.get<Path<Long>>(AnyDAO.id_column).`in`(ids) })
         return this
     }
 
-    infix fun eq(id: E): PathWrap<E,G> {
-        pc.add({ cb.equal(root, id) })
+    override infix fun eq(id: E): PathWrap<E, G> {
+        super.eq(id);
         return this
     }
 
-
-
-
-    fun <F> eq(sa: SingularAttribute<E, F>, f: F): PathWrap<E,G> {
+    fun <F> eq(sa: SingularAttribute<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.equal(root.get(sa), f) })
         return this
     }
 
-    fun like(sa: KMutableProperty1<E, String>, f: String): PathWrap<E,G> {
+    fun like(sa: KMutableProperty1<E, String>, f: String): PathWrap<E, G> {
         pc.add({ cb.like(root.get<Path<String>>(sa.name) as (Expression<String>), f) })
         return this
     }
 
-    fun <F> eq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E,G> {
+    fun <F> eq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.equal(root.get<Path<F>>(sa.name), f) })
         return this
     }
 
 
-    fun <F> notEq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E,G> {
+    fun <F : IIdentity> eqId(sa: KMutableProperty1<E, F>, id: Long): PathWrap<E, G> {
+        pc.add({ cb.equal(root.get<Path<F>>(sa.name).get<Long>(AnyDAO.id_column), id) })
+        return this
+    }
+
+
+    fun <F> eq(exp1: ExpressionWrapBase<F>, f: F): PathWrap<E, G> {
+        pc.add({ cb.equal(exp1.root, f) })
+        return this
+    }
+
+    fun <F> notEq(sa: KMutableProperty1<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.notEqual(root.get<F>(sa.name), f) })
         return this
     }
 
-    fun <F> notEq(sa: SingularAttribute<E, F>, f: F): PathWrap<E,G> {
+    fun <F> notEq(sa: SingularAttribute<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.notEqual(root.get(sa), f) })
         return this
     }
 
-    fun <F : Comparable<F>> after(sa: SingularAttribute<E, F>, f: F): PathWrap<E,G> {
+    fun <F : Comparable<F>> after(sa: SingularAttribute<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.greaterThan(root.get(sa), f) })
         return this
     }
 
-    fun <F : Comparable<F>> after(sa: KMutableProperty1<E, F>, f: F): PathWrap<E,G> {
+    fun <F : Comparable<F>> after(sa: KMutableProperty1<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.greaterThan(root.get(sa.name), f) })
         return this
     }
 
 
-    fun <F : Comparable<F>> before(sa: KMutableProperty1<E, F>, f: F): PathWrap<E,G> {
+    fun <F : Comparable<F>> before(sa: KMutableProperty1<E, F>, f: F): PathWrap<E, G> {
         pc.add({ cb.lessThan(root.get(sa.name), f) })
         return this
     }
 
-    fun after(sa: KMutableProperty1<E, Date?>, f: Date): PathWrap<E,G> {
+    fun after(sa: KMutableProperty1<E, Date?>, f: Date): PathWrap<E, G> {
         pc.add({ cb.greaterThan(root.get(sa.name), f) })
         return this
     }
 
-    fun before(sa: KMutableProperty1<E, Long?>, f: Long): PathWrap<E,G> {
+    fun before(sa: KMutableProperty1<E, Long?>, f: Long): PathWrap<E, G> {
         pc.add({ cb.lessThan(root.get(sa.name), f) })
         return this
     }
 
-    fun before(sa: KMutableProperty1<E, Date?>, f: Date): PathWrap<E,G> {
+    fun before(sa: KMutableProperty1<E, Date?>, f: Date): PathWrap<E, G> {
         pc.add({ cb.lessThan(root.get(sa.name), f) })
         return this
     }
 
-    operator fun <F> rangeTo(sa: KMutableProperty1<E, F>): PathWrap<F,G> {
+    operator fun <F> rangeTo(sa: KMutableProperty1<E, F>): PathWrap<F, G> {
         return get(sa)
     }
 
@@ -265,15 +260,15 @@ open class PathWrap<E, G> constructor(
         return cb.equal(root.get<Path<Long>>(AnyDAO.id_column), id)
     }
 
-    fun isIn(list: List<E>): PathWrap<E,G> {
+    fun isIn(list: List<E>): PathWrap<E, G> {
         pc.add({ root.`in`(list) })
         return this
     }
 
-    fun isInOrForceNoResults(list: List<E>): PathWrap<E,G> {
+    fun isInOrForceNoResults(list: List<E>): PathWrap<E, G> {
 
         if (list.isEmpty()) {
-           pc.forceNoResultsInQuery();
+            pc.forceNoResultsInQuery();
         } else
             pc.add({ root.`in`(list) })
 
@@ -281,35 +276,31 @@ open class PathWrap<E, G> constructor(
     }
 
 
-
-    fun <F:Number> max(sa: KMutableProperty1<E, F>): ExpressionWrap<F> {
-          return ExpressionWrap(pc.cb.max(root.get(sa.name)) as Expression<F>);
-     }
-    fun <F:Number> min(sa: KMutableProperty1<E, F>): ExpressionWrap<F> {
-        return ExpressionWrap(pc.cb.min(root.get(sa.name)) as Expression<F>);
+    fun <F : Number> max(sa: KMutableProperty1<E, F>): ExpressionWrapBase<F> {
+        return ExpressionWrapBase(pc.cb.max(root.get(sa.name)) as Expression<F>);
     }
 
-    fun <F> get(sa: KMutableProperty1<E, List<F>>): UseGetListOnJoinInstead {
-        val join = (root as Join<Any, E>).join<E, F>(sa.name) as Join<Any, F>
-        return UseGetListOnJoinInstead();
+    fun <F : Number> min(sa: KMutableProperty1<E, F>): ExpressionWrapBase<F> {
+        return ExpressionWrapBase(pc.cb.min(root.get(sa.name)) as Expression<F>);
     }
 
-    infix fun orderByAsc(sa: KMutableProperty1<E, *>): PathWrap<E,G> {
+
+    infix fun orderByAsc(sa: KMutableProperty1<E, *>): PathWrap<E, G> {
         pc.addOrder(cb.asc(root.get<Any>(sa.name)));
         return this;
     }
 
-    infix fun orderByDesc(sa: KMutableProperty1<E, *>): PathWrap<E,G> {
+    infix fun orderByDesc(sa: KMutableProperty1<E, *>): PathWrap<E, G> {
         pc.addOrder(cb.desc(root.get<Any>(sa.name)));
         return this;
     }
 
-    infix fun orderBy(pw: Pair<PathWrap<*,*>, Boolean>) {
+    infix fun orderBy(pw: Pair<PathWrap<*, *>, Boolean>) {
         var (pathWrap, asc) = pw;
         pc.addOrder(if (asc) cb.asc(pathWrap.root) else cb.desc(pathWrap.root));
     }
 
-    fun orderBy(vararg pw: Pair<PathWrap<*,*>, Boolean>) {
+    fun orderBy(vararg pw: Pair<PathWrap<*, *>, Boolean>) {
         for ((pathWrap, asc) in pw) {
             pc.addOrder(if (asc) cb.asc(pathWrap.root) else cb.desc(pathWrap.root));
         }
@@ -320,41 +311,54 @@ open class PathWrap<E, G> constructor(
     class UseGetListOnJoinInstead {
 
     }
-    infix fun like(f: String): PathWrap<String,G> {
-        pc.add({ pc.cb.like(root as (Expression<String>), f) })
-        return this as PathWrap<String, G>;
-    }
 
-    infix fun notEq(f: E): PathWrap<E,G> {
+
+    infix fun notEq(f: E): PathWrap<E, G> {
         pc.add({ cb.notEqual(root, f) })
         return this
     }
 
 
-    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F,G> {
-        return PathWrap(pc as PathContext<F>, pathSelect, root.get(sa))
+    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F, G> {
+        return PathWrap<F, G>(pc as PathContext<F>,  root.get(sa))
     }
-    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F,G> {
-        return PathWrap(pc as PathContext<F>, pathSelect, root.get(sa.name))
+
+    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F, G> {
+        return PathWrap(pc as PathContext<F>,  root.get(sa.name))
     }
- /*   @JvmName("getAsString") infix fun get(sa: KMutableProperty1<E, String>): PathWrap<String,G> {
-        var res= object : Wrap(10), IStringPathWrap<G> {
-            override fun like(f: String): PathWrap<String, G> {
-                return PathWrap(pc as PathContext<String>, pathSelect, root.get(sa.name));
-            }
 
-        }
+    fun <F> get(sa: KMutableProperty1<E, List<F>>): UseGetListOnJoinInstead {
+        val join = (root as Join<Any, E>).join<E, F>(sa.name) as Join<Any, F>
+        return UseGetListOnJoinInstead();
+    }
 
-        return PathWrap(pc as PathContext<String>, pathSelect, root.get(sa.name));
-    }*/
 
+    @JvmName("getAsString")
+    infix fun get(sa: KMutableProperty1<E, String>): StringPathWrap<G> {
+        return StringPathWrap<G>(pc,  root.get(sa.name));
+    }
 
 }
 
-interface IStringPathWrap<G> {
-    infix fun like(f: String): PathWrap<String,G>;
-}
-open class Wrap(val a: Long) {
+class StringPathWrap<G>(pc: PathContext<*>,
+
+                        root: Path<String>) : PathWrap<String, G>(pc as PathContext<String>, root), IStringExpressionWrap<G> {
+
+    override fun lower(): StringExpressionWrap<G> {
+        return StringExpressionWrap(pc,  pc.cb.lower(root));
+    }
+
+    override infix fun like(f: String): PathWrap<String, G> {
+        pc.add({ pc.cb.like(root as (Expression<String>), f) })
+        return this as PathWrap<String, G>;
+    }
+
+    override infix fun like(f: Expression<String>): PathWrap<String, G> {
+
+        pc.add({ pc.cb.like(root as (Expression<String>), f) })
+        return this;
+    }
+
 
 }
 
@@ -408,6 +412,6 @@ interface ISelectExpressionProvider<E> {
     fun getDirectSelection(): ISugarQuerySelect<E>;
 }
 
-class SugarPredicate(val predicate:Predicate) {
+class SugarPredicate(val predicate: Predicate) {
 
 }

@@ -8,25 +8,25 @@ import kotlin.reflect.KMutableProperty1
 
 
 class JoinWrap<E,G> constructor(val pw: PathContext<E>,
-                                pathSelect: ISugarQuerySelect<G>,
+
                                 root: Join<Any, E>
 
                                 )
 
-                              : PathWrap<E,G>(pw, pathSelect, root) {
+                              : PathWrap<E,G>(pw,  root) {
 
 
     @Suppress("UNCHECKED_CAST")
     fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F,G> {
         val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
-        return JoinWrap(pw as PathContext<F>, pathSelect, join)
+        return JoinWrap(pw as PathContext<F>,  join)
     }
 
 
     // perhaps we want to create here dedicated class
     fun <F> joinList(sa: KMutableProperty1<E, List<F>>): JoinWrap<F,G> {
         val join=(root as Join<Any,E>).join<E,F>(sa.name) as Join<Any,F>
-        return JoinWrap(pw as PathContext<F>, pathSelect, join)
+        return JoinWrap(pw as PathContext<F>,  join)
     }
 
 

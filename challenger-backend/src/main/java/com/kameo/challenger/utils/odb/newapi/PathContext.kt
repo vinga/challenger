@@ -1,25 +1,27 @@
 package com.kameo.challenger.utils.odb.newapi
 
 import javax.persistence.EntityManager
+import javax.persistence.Query
 import javax.persistence.TypedQuery
 import javax.persistence.criteria.*
 
 
-class PathContext<E> constructor(val clz: Class<E>,
+class PathContext<E> constructor(clz: Class<*>,
                                  val em: EntityManager,
 
                                  val criteria: CommonAbstractCriteria
 
 ) {
-    val cb: CriteriaBuilder=em.criteriaBuilder;
+    val cb: CriteriaBuilder = em.criteriaBuilder;
 
     companion object {
-        fun <E,G> createSelectQuery(clz: Class<E>, resultClass: Class<G>, em: EntityManager): PathContext<E> {
-            val cb=em.criteriaBuilder;
-            val pc = PathContext(clz, em, cb.createQuery(resultClass));
+        fun <E, G> createSelectQuery(clz: Class<E>, resultClass: Class<G>, em: EntityManager): PathContext<E> {
+            val cb = em.criteriaBuilder;
+            val pc = PathContext<E>(clz, em, cb.createQuery(resultClass));
             return pc;
         }
     }
+
     var currentArray: MutableList<() -> Predicate?> = mutableListOf();
         private set
 
@@ -27,27 +29,32 @@ class PathContext<E> constructor(val clz: Class<E>,
     val arraysStack: MutableList<MutableList<() -> Predicate?>> = mutableListOf();
 
     var forceNoResultsInQuery: Boolean = false;
-        private set
+
     var skip: Int? = null;
 
     var take: Int? = null;
 
 
-    lateinit var root: Root<E>;
+    lateinit var root: Root<Any>;
         private set
-    lateinit var rootWrap: PathWrap<E,E>
+    lateinit var rootWrap: PathWrap<Any, Any>
+        private set
+    var defaultSelection: ISugarQuerySelect<Any>?=null
         private set
 
     init {
         if (criteria is CriteriaQuery<*>) {
-            root = criteria.from(clz) as Root<E>;
-            rootWrap=RootWrap(this, SelectWrap(root), root)
+            root = criteria.from(clz as Class<Any>);
+
+            defaultSelection=SelectWrap(root)
+
+            rootWrap = RootWrap<Any,Any>(this as PathContext<Any>, root)
         } else if (criteria is CriteriaUpdate<*>) {
-            root = (criteria as CriteriaUpdate<E>).from(clz);
-            rootWrap=RootWrapUpdate(this, SelectWrap(root), root)
+            root = (criteria as CriteriaUpdate<Any>).from(clz as Class<Any>);
+            rootWrap = RootWrapUpdate<Any,Any>(this as PathContext<Any>, root)
         } else if (criteria is CriteriaDelete<*>) {
-            root = (criteria as CriteriaDelete<E>).from(clz);
-            rootWrap=RootWrap(this, SelectWrap(root), root)
+            root = (criteria as CriteriaDelete<Any>).from(clz as Class<Any>);
+            rootWrap = RootWrap<Any,Any>(this as PathContext<Any>, root)
         } else throw IllegalArgumentException();
 
     }
@@ -91,11 +98,10 @@ class PathContext<E> constructor(val clz: Class<E>,
     }
 
 
-
     public fun calculateSelect(query: (RootWrap<E, *>) -> ISugarQuerySelect<*>) {
         val selector = query.invoke(rootWrap as RootWrap<E, *>)
         if (criteria is CriteriaQuery<*>)
-            (criteria as CriteriaQuery<Any>).select(selector.select)
+            (criteria as CriteriaQuery<Any>).select(selector.getSelection())
         else if (criteria is CriteriaUpdate<*>) {
             ;//do nothing
         } else if (criteria is CriteriaDelete<*>) {
@@ -103,8 +109,8 @@ class PathContext<E> constructor(val clz: Class<E>,
         } else throw IllegalArgumentException();
 
 
-
     }
+
     fun calculateDelete(query: (RootWrap<E, E>) -> Unit) {
         val selector = query.invoke(rootWrap as RootWrap<E, E>)
         if (criteria is CriteriaQuery<*>)
@@ -113,17 +119,6 @@ class PathContext<E> constructor(val clz: Class<E>,
             throw IllegalArgumentException();
         } else if (criteria is CriteriaDelete<*>) {
             ;//do nothing
-        } else throw IllegalArgumentException();
-    }
-
-    fun calculateUpdate(query: (RootWrapUpdate<E, E>) -> Unit) {
-        val selector = query.invoke(rootWrap as RootWrapUpdate<E, E>)
-        if (criteria is CriteriaQuery<*>)
-            throw IllegalArgumentException();
-        else if (criteria is CriteriaUpdate<*>) {
-            //do nothing
-        } else if (criteria is CriteriaDelete<*>) {
-            throw IllegalArgumentException();
         } else throw IllegalArgumentException();
     }
 
@@ -160,10 +155,58 @@ class PathContext<E> constructor(val clz: Class<E>,
         this.forceNoResultsInQuery = true;
     }
 
-    fun  <RESULT> invokeSingle(query: (RootWrap<E, E>) -> ISugarQuerySelect<RESULT>): TypedQuery<RESULT> {
-        val selector = query.invoke(rootWrap as RootWrap<E,E>)
-        (criteria as CriteriaQuery<RESULT>).select(selector.select)
-        return calculateWhere(em) as TypedQuery<RESULT>;
+    var selector: ISugarQuerySelect<*>? = null;
+
+
+    fun invokeUpdate(query: (RootWrapUpdate<E, E>) -> Unit): Query {
+        if (criteria is CriteriaUpdate<*>) {
+            query.invoke(rootWrap as RootWrapUpdate<E, E>)
+            calculateWhere(criteria)
+            return em.createQuery(criteria as CriteriaUpdate<*>)
+        } else throw IllegalArgumentException();
     }
+
+    fun invokeDelete(query: (RootWrap<E, E>) -> Unit): Query {
+        query.invoke(rootWrap as RootWrap<E, E>)
+        if (criteria is CriteriaDelete<*>) {
+            calculateWhere(criteria)
+            return em.createQuery(criteria as CriteriaDelete<*>)
+        } else throw IllegalArgumentException();
+
+
+    }
+
+
+    fun <RESULT> invokeQuery(query: (RootWrap<E, E>) -> ISugarQuerySelect<RESULT>): TypedQuery<RESULT> {
+        if (criteria is CriteriaQuery<*>) {
+            selector = query.invoke(rootWrap as RootWrap<E, E>)
+            var sell = selector!!.getSelection();
+            (criteria as CriteriaQuery<RESULT>).select(sell as Selection<out RESULT>)
+            return calculateWhere(em) as TypedQuery<RESULT>
+        } else throw IllegalArgumentException();
+    }
+
+    fun <RESULT : Any> mapToPluralsIfNeeded(res: List<RESULT>): List<RESULT> {
+        if (res.isNotEmpty()) {
+            if (!selector!!.isSingle()) {
+                if (res.first() is Array<*>) {
+
+                    var rows = res as List<Array<Object>>;
+                    var row = rows.first();
+                    if (row.size == 2) {
+                        return rows.map({
+                            Pair(it[0], it[1]) as RESULT
+                        });
+                    } else if (row.size == 3) {
+                        return rows.map({
+                            Triple(it[0], it[1], it[2]) as RESULT
+                        });
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
 
 }

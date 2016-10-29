@@ -56,7 +56,7 @@ open class TaskDAO {
 
 
 
-        anyDaoNew.test();
+//        anyDaoNew.test();
 
         val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class,
                 {

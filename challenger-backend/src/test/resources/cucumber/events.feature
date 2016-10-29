@@ -1,4 +1,4 @@
-Feature:Conversations
+Feature:Events
   As a challenger user
   I want to comment and read other user comments on tasks and challenges
 

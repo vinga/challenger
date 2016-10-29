@@ -15,12 +15,14 @@ import cucumber.api.java8.En;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 
 //@AutoConfigureDataJpa
+@TestPropertySource(locations="classpath:application-test.properties")
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class ChallengesTest implements En {
     @Inject

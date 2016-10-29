@@ -3,16 +3,9 @@ package com.kameo.challenger.domain.events;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.utils.odb.AnyDAONew;
-import com.kameo.challenger.utils.odb.ISugarQuery;
-import com.kameo.challenger.utils.odb.newapi.ISugarQuerySelect;
-import com.kameo.challenger.utils.odb.newapi.PathWrap.ClousureWrap;
-import com.kameo.challenger.utils.odb.newapi.RootWrap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import kotlin.Unit;
 
 import javax.persistence.metamodel.SingularAttribute;
-
-import static org.apache.coyote.http11.Constants.a;
 
 
 public class SugarTest {
@@ -20,7 +13,29 @@ public class SugarTest {
     public void foo(AnyDAONew ad) {
         SingularAttribute<TaskODB, UserODB> _user = (SingularAttribute) ad.getEm().getMetamodel().entity(UserODB.class).getDeclaredAttribute("user");
         SingularAttribute<TaskODB, String> _label = (SingularAttribute) ad.getEm().getMetamodel().entity(TaskODB.class).getDeclaredAttribute("label");
-        ad.getOne(TaskODB.class, new ISugarQuery<TaskODB, UserODB>() {
+
+
+        ad.getAll(TaskODB.class, UserODB.class, it -> {
+                    it.inIds(10,12,13)
+                      .eqId(10)
+                      .newOr(it2 -> {
+                          it2.eq(_user, new UserODB(2));
+                          it2.eq(_user, new UserODB(3));
+                          return Unit.INSTANCE;
+                      })
+                      .newOr(it2 -> {
+                          it2.eq(_user, new UserODB(2));
+                          it2.eq(_user, new UserODB(3));
+                          return Unit.INSTANCE;
+                      })
+                      .get(_user).eqId(30);
+
+
+                    return it.select(it.get(_user));
+                }
+        );
+
+        /*ad.getOne(TaskODB.class, UserODB.class, new ISugarQuery<TaskODB, UserODB>() {
 
             @Nullable
             @Override
@@ -46,6 +61,6 @@ public class SugarTest {
                 return it.select(it.get(_user));
 
             }
-        }, UserODB.class);
+        }, UserODB.class);*/
     }
 }

@@ -12,11 +12,12 @@ import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java8.En;
 import org.junit.Assert;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
 import java.util.List;
 
-
+@TestPropertySource(locations="classpath:application-test.properties")
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class Commons implements En {
 

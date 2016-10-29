@@ -19,6 +19,7 @@ import org.hibernate.engine.spi.Managed;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
 import javax.persistence.metamodel.EntityType;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 
 //@AutoConfigureDataJpa
+@TestPropertySource(locations="classpath:application-test.properties")
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class AccountsTest implements En {
     @Inject

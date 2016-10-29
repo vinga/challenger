@@ -117,9 +117,8 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val serverCon
         val exists = anyDaoNew.exists(TaskODB::class, {
             it eqId taskId
             it.join(TaskODB::challenge).joinList(ChallengeODB::participants)
-                    .eqId(callerId)
+                    .eqId(ChallengeParticipantODB::user, callerId)
                     .get(ChallengeParticipantODB::challengeStatus) eq ChallengeStatus.ACTIVE
-
         })
         if (!exists)
             throw IllegalArgumentException("No permission");
