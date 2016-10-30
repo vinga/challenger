@@ -4,6 +4,7 @@ import com.kameo.challenger.odb.api.IIdentity
 import com.kameo.challenger.utils.odb.AnyDAO
 import com.kameo.challenger.utils.odb.AnyDAONew.PathPairSelect
 import com.kameo.challenger.utils.odb.AnyDAONew.PathTripleSelect
+import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Join
@@ -18,14 +19,13 @@ import kotlin.reflect.KProperty1.Getter
 import kotlin.reflect.KType
 
 open class PathWrap<E, G> constructor(
-        pc: PathContext<E>,
-
-        val root: Path<E>
+        pc: PathContext<G>,
+        open val root: Path<E>
 ) :
         ExpressionWrap <E, G>(pc,  root) {
 
     override fun getDirectSelection(): ISugarQuerySelect<E> {
-        return ExpressionWrapBase(root);
+        return SelectWrap(root);
     }
 
     infix fun skip(skip: Int): PathWrap<E, G> {
@@ -38,12 +38,9 @@ open class PathWrap<E, G> constructor(
         return this
     }
 
-    infix fun <F, G> select(pw: PathWrap<F, G>): ISugarQuerySelect<F> {
-        return SelectWrap(pw.root);
-    }
 
-    infix fun <F> select(pw: ExpressionWrapBase<F>): ISugarQuerySelect<F> {
-        return pw;
+    infix fun <F> select(pw: ExpressionWrap<F,G>): ISugarQuerySelect<F> {
+        return pw.getDirectSelection();
     }
 
 
@@ -68,13 +65,8 @@ open class PathWrap<E, G> constructor(
 
 
     class ClousureWrap<E, G>(//var innerList:MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>(),
-            pc: PathContext<E>,
-            root: Path<E>,
-
-            val parent: PathWrap<E, G>? = null,
-
-            arr: MutableList<() -> Predicate?> = mutableListOf<() -> Predicate?>()
-
+            pc: PathContext<G>,
+            root: Path<E>
     ) : PathWrap<E, G>(pc,  root) {
 
 
@@ -86,17 +78,17 @@ open class PathWrap<E, G> constructor(
     }
 
     fun ref(clause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
-        clause.invoke(this);
-        return this;
+        clause.invoke(this)
+        return this
     }
 
 
     fun <I, J> ref(ref: PathWrap<I, J>): PathWrap<I, J> {
-        return ref;
+        return ref
     }
 
     fun finish(): PathWrap<E, G> {
-        pc.unstackArray();
+        pc.unstackArray()
         return this;
     }
 
@@ -104,7 +96,7 @@ open class PathWrap<E, G> constructor(
         var list = mutableListOf<() -> Predicate?>()
 
 
-        var pw = ClousureWrap(pc,  root, this)
+        var pw = ClousureWrap(pc,  root)
 
 
         pc.add({ calculateOr(list) })
@@ -115,20 +107,20 @@ open class PathWrap<E, G> constructor(
 
     fun newOr(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
-        var pw = ClousureWrap(pc,  root, this)
+        var pw = ClousureWrap(pc,  root)
         pc.add({ calculateOr(list) })
-        pc.stackNewArray(list);
-        orClause.invoke(pw);
+        pc.stackNewArray(list)
+        orClause.invoke(pw)
         pc.unstackArray();
         return this
     }
 
     fun newAnd(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
-        var pw = ClousureWrap(pc,  root, this)
+        var pw = ClousureWrap(pc,  root)
         pc.add({ calculateAnd(list) })
-        pc.stackNewArray(list);
-        orClause.invoke(pw);
+        pc.stackNewArray(list)
+        orClause.invoke(pw)
         pc.unstackArray();
         return this
     }
@@ -136,10 +128,7 @@ open class PathWrap<E, G> constructor(
 
     fun newAnd(): ClousureWrap<E, G> {
         var list = mutableListOf<() -> Predicate?>()
-
-        var pw = ClousureWrap(pc,  root, this)
-
-
+        var pw = ClousureWrap(pc,  root)
         pc.add({ calculateAnd(list) })
         pc.stackNewArray(list);
         return pw
@@ -179,18 +168,18 @@ open class PathWrap<E, G> constructor(
         return this
     }
 
-    override infix fun eq(id: E): PathWrap<E, G> {
-        super.eq(id);
+    override infix fun eq(expr: E): PathWrap<E, G> {
+        super.eq(expr);
         return this
     }
 
     fun <F> eq(sa: SingularAttribute<E, F>, f: F): PathWrap<E, G> {
-        pc.add({ cb.equal(root.get(sa), f) })
+        pc.add { cb.equal(root.get(sa), f) }
         return this
     }
 
     fun like(sa: KMutableProperty1<E, String>, f: String): PathWrap<E, G> {
-        pc.add({ cb.like(root.get<Path<String>>(sa.name) as (Expression<String>), f) })
+        pc.add { cb.like(root.get<Path<String>>(sa.name) as (Expression<String>), f) }
         return this
     }
 
@@ -206,8 +195,8 @@ open class PathWrap<E, G> constructor(
     }
 
 
-    fun <F> eq(exp1: ExpressionWrapBase<F>, f: F): PathWrap<E, G> {
-        pc.add({ cb.equal(exp1.root, f) })
+    fun <F> eq(exp1: ExpressionWrap<F,G>, f: F): PathWrap<E, G> {
+        pc.add({ cb.equal(exp1.getExpression(), f) })
         return this
     }
 
@@ -236,17 +225,27 @@ open class PathWrap<E, G> constructor(
         pc.add({ cb.lessThan(root.get(sa.name), f) })
         return this
     }
-
+    @JvmName("afterDate")
     fun after(sa: KMutableProperty1<E, Date?>, f: Date): PathWrap<E, G> {
         pc.add({ cb.greaterThan(root.get(sa.name), f) })
         return this
     }
 
+    @JvmName("after")
+    fun after(sa: KMutableProperty1<E, LocalDateTime?>, f: LocalDateTime): PathWrap<E, G> {
+        pc.add({ cb.greaterThan(root.get(sa.name), f) })
+        return this
+    }
+    @JvmName("before")
+    fun before(sa: KMutableProperty1<E, LocalDateTime?>, f: LocalDateTime): PathWrap<E, G> {
+        pc.add({ cb.lessThan(root.get(sa.name), f) })
+        return this
+    }
     fun before(sa: KMutableProperty1<E, Long?>, f: Long): PathWrap<E, G> {
         pc.add({ cb.lessThan(root.get(sa.name), f) })
         return this
     }
-
+    @JvmName("beforeDate")
     fun before(sa: KMutableProperty1<E, Date?>, f: Date): PathWrap<E, G> {
         pc.add({ cb.lessThan(root.get(sa.name), f) })
         return this
@@ -265,39 +264,28 @@ open class PathWrap<E, G> constructor(
         return this
     }
 
-    fun isInOrForceNoResults(list: List<E>): PathWrap<E, G> {
-
-        if (list.isEmpty()) {
-            pc.forceNoResultsInQuery();
-        } else
-            pc.add({ root.`in`(list) })
-
-        return this
+    fun <F : Number> max(sa: KMutableProperty1<E, F>): ExpressionWrap<F,G> {
+        return ExpressionWrap<F,G>(pc,pc.cb.max(root.get(sa.name)))
     }
 
-
-    fun <F : Number> max(sa: KMutableProperty1<E, F>): ExpressionWrapBase<F> {
-        return ExpressionWrapBase(pc.cb.max(root.get(sa.name)) as Expression<F>);
-    }
-
-    fun <F : Number> min(sa: KMutableProperty1<E, F>): ExpressionWrapBase<F> {
-        return ExpressionWrapBase(pc.cb.min(root.get(sa.name)) as Expression<F>);
+    fun <F : Number> min(sa: KMutableProperty1<E, F>): ExpressionWrap<F,G> {
+        return ExpressionWrap<F,G>(pc,pc.cb.min(root.get(sa.name)))
     }
 
 
     infix fun orderByAsc(sa: KMutableProperty1<E, *>): PathWrap<E, G> {
-        pc.addOrder(cb.asc(root.get<Any>(sa.name)));
-        return this;
+        pc.addOrder(cb.asc(root.get<Any>(sa.name)))
+        return this
     }
 
     infix fun orderByDesc(sa: KMutableProperty1<E, *>): PathWrap<E, G> {
-        pc.addOrder(cb.desc(root.get<Any>(sa.name)));
-        return this;
+        pc.addOrder(cb.desc(root.get<Any>(sa.name)))
+        return this
     }
 
     infix fun orderBy(pw: Pair<PathWrap<*, *>, Boolean>) {
-        var (pathWrap, asc) = pw;
-        pc.addOrder(if (asc) cb.asc(pathWrap.root) else cb.desc(pathWrap.root));
+        var (pathWrap, asc) = pw
+        pc.addOrder(if (asc) cb.asc(pathWrap.root) else cb.desc(pathWrap.root))
     }
 
     fun orderBy(vararg pw: Pair<PathWrap<*, *>, Boolean>) {
@@ -314,35 +302,36 @@ open class PathWrap<E, G> constructor(
 
 
     infix fun notEq(f: E): PathWrap<E, G> {
-        pc.add({ cb.notEqual(root, f) })
+        pc.add { cb.notEqual(root, f) }
         return this
     }
 
 
     fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F, G> {
-        return PathWrap<F, G>(pc as PathContext<F>,  root.get(sa))
+        return PathWrap<F, G>(pc,  root.get(sa))
     }
 
     infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F, G> {
-        return PathWrap(pc as PathContext<F>,  root.get(sa.name))
+        return PathWrap(pc,  root.get(sa.name))
     }
 
     fun <F> get(sa: KMutableProperty1<E, List<F>>): UseGetListOnJoinInstead {
-        val join = (root as Join<Any, E>).join<E, F>(sa.name) as Join<Any, F>
-        return UseGetListOnJoinInstead();
+        sa.name
+        //val join = (root as Join<Any, E>).join<E, F>(sa.name) as Join<Any, F>
+        return UseGetListOnJoinInstead()
     }
 
 
     @JvmName("getAsString")
     infix fun get(sa: KMutableProperty1<E, String>): StringPathWrap<G> {
-        return StringPathWrap<G>(pc,  root.get(sa.name));
+        return StringPathWrap<G>(pc,  root.get(sa.name))
     }
 
 }
 
-class StringPathWrap<G>(pc: PathContext<*>,
+class StringPathWrap<G>(pc: PathContext<G>,
 
-                        root: Path<String>) : PathWrap<String, G>(pc as PathContext<String>, root), IStringExpressionWrap<G> {
+                        root: Path<String>) : PathWrap<String, G>(pc, root), IStringExpressionWrap<G> {
 
     override fun lower(): StringExpressionWrap<G> {
         return StringExpressionWrap(pc,  pc.cb.lower(root));
@@ -350,7 +339,7 @@ class StringPathWrap<G>(pc: PathContext<*>,
 
     override infix fun like(f: String): PathWrap<String, G> {
         pc.add({ pc.cb.like(root as (Expression<String>), f) })
-        return this as PathWrap<String, G>;
+        return this
     }
 
     override infix fun like(f: Expression<String>): PathWrap<String, G> {

@@ -10,26 +10,20 @@ import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.util.TestHelper;
-import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
-import org.hibernate.engine.spi.Managed;
 import org.junit.Assert;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.ManagedType;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Set;
 
 //@AutoConfigureDataJpa
-@TestPropertySource(locations="classpath:application-test.properties")
+@TestPropertySource(locations = "classpath:application-test.properties")
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class AccountsTest implements En {
     @Inject
@@ -87,10 +81,11 @@ public class AccountsTest implements En {
             Assert.assertTrue(invalidCredentials);
             Assert.assertEquals(noOfBadLoginTimes, testHelper.myself().getFailedLoginsNumber());
             Assert.assertEquals(UserStatus.SUSPENDED, testHelper.myself().getUserStatus());
-            Date dueDate = testHelper.myself().getSuspendedDueDate();
+            LocalDateTime dueDate = testHelper.myself().getSuspendedDueDate();
 
-            Assert.assertTrue(dueDate.after(DateUtil.addMinutes(new Date(), 19)));
-            Assert.assertTrue(dueDate.before(DateUtil.addMinutes(new Date(), 21)));
+
+            Assert.assertTrue(dueDate.isAfter(LocalDateTime.now().minusMinutes(20)));
+            Assert.assertTrue(dueDate.isBefore(LocalDateTime.now().plusMinutes(21)));
 
         });
 
@@ -104,13 +99,13 @@ public class AccountsTest implements En {
             String myEmail = "myself@email.em";
 
             Optional<ChallengeParticipantODB> cco = anyDao.streamAll(ChallengeParticipantODB.class)
-                    .where(cc -> !cc.getChallenge().getCreatedBy().equals(cc.getUser()) && cc.getUser().getEmail().equals(myEmail) || cc
-                            .getUser().getEmail().equals(myEmail)).findAny();
+                                                          .where(cc -> !cc.getChallenge().getCreatedBy().equals(cc.getUser()) && cc.getUser().getEmail().equals(myEmail) || cc
+                                                                  .getUser().getEmail().equals(myEmail)).findAny();
             Assert.assertTrue(!cco.isPresent());
         });
 
         When("^I register with that email$", () ->
-                registerResult = accountDao.registerUser("myself", "myselfpass", "myself@email.em").getError()==null
+                registerResult = accountDao.registerUser("myself", "myselfpass", "myself@email.em").getError() == null
         );
 
         Then("^I don't have to confirm my email before I can login succesfully$", () -> {
@@ -127,9 +122,9 @@ public class AccountsTest implements En {
 
         Then("^I have to confirm my email before I can login succesfully$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                    .where(c -> "myself@email.em".equals(c.getEmail()) && c
-                            .getConfirmationLinkType() == ConfirmationLinkType.EMAIL_CONFIRMATION)
-                    .getOnlyValue();
+                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                          .getConfirmationLinkType() == ConfirmationLinkType.EMAIL_CONFIRMATION)
+                                                  .getOnlyValue();
             Assert.assertTrue(!testHelper.getSentMessagesList().isEmpty());
             testHelper.getSentMessagesList().clear();
 
@@ -151,23 +146,22 @@ public class AccountsTest implements En {
         });
 
 
-
         When("^I put my email into reset password option$", () -> accountDao.sendResetMyPasswordLink(testHelper.myself().email));
 
         Then("^I received email with password reset link$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                    .where(c -> "myself@email.em".equals(c.getEmail()) && c
-                            .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
-                    .getOnlyValue();
+                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                          .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
+                                                  .getOnlyValue();
             Assert.assertTrue(!testHelper.getSentMessagesList().isEmpty());
             testHelper.getSentMessagesList().clear();
         });
 
         Then("^I click on password reset link$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                    .where(c -> "myself@email.em".equals(c.getEmail()) && c
-                            .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
-                    .getOnlyValue();
+                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                          .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
+                                                  .getOnlyValue();
 
 
             try {
@@ -180,10 +174,10 @@ public class AccountsTest implements En {
 
         Then("^I can set my new password$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                    .where(c -> "myself@email.em".equals(c.getEmail()) && c
-                            .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
-                    .getOnlyValue();
-            confirmationLinkLogic.resetPassword(onlyValue.getUid(),"newPass");
+                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                          .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
+                                                  .getOnlyValue();
+            confirmationLinkLogic.resetPassword(onlyValue.getUid(), "newPass");
             try {
                 accountDao.login("myself", "myselfpass");
                 Assert.fail();

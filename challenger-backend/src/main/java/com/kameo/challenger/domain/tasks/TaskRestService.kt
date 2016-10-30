@@ -55,8 +55,10 @@ class TaskRestService : ITaskRestService {
     @POST
     @WebResponseStatus(CREATED)
     @Path("/challenges/{challengeId}/tasks/")
-    fun createTask(@PathParam("challengeId") challengeId: Long, @PathParam("taskId") taskId: Long, taskDTO: TaskDTO): TaskDTO? {
+    fun createTask(@PathParam("challengeId") challengeId: Long, taskDTO: TaskDTO): TaskDTO? {
         val callerId = session.userId
+        if (challengeId!=taskDTO.challengeId)
+            throw IllegalArgumentException();
         var challengeTaskODB = challengerLogic.createTask(callerId, taskDTO.toODB())
         eventGroupDao.createTaskEventAfeterServerAction(challengeTaskODB, CREATE_TASK);
         return TaskDTO.fromOdb(challengeTaskODB)

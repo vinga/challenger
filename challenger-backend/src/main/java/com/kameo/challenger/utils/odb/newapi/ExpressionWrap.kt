@@ -4,8 +4,7 @@ import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Selection
 
 open class ExpressionWrap<E, G> constructor(
-        val pc: PathContext<E>,
-      //  val pathSelect: ISugarQuerySelect<G>,
+        val pc: PathContext<G>,
         val value: Expression<E>
 ) :
         ISelectExpressionProvider <E>,
@@ -35,7 +34,7 @@ open class ExpressionWrap<E, G> constructor(
     val cb = pc.cb;
 
     override fun getDirectSelection(): ISugarQuerySelect<E> {
-        return ExpressionWrapBase(value);
+        return SelectWrap(value);
     }
 
     override fun getExpression(): Expression<E> {
@@ -54,25 +53,25 @@ interface IExpression<F,G> {
 }
 
 interface  IStringExpressionWrap<G>: IExpression<String,G> {
-    infix fun like(f: String): PathWrap<String, G>;
-    infix fun like(f: Expression<String>): PathWrap<String, G>;
+    infix fun like(f: String): IExpression<String, G>;
+    infix fun like(f: Expression<String>): IExpression<String, G>;
     fun lower(): StringExpressionWrap<G> ;
 }
 
 
 class StringExpressionWrap<G> constructor(
-        pc: PathContext<String>,
+        pc: PathContext<G>,
         value: Expression<String>) : ExpressionWrap<String, G>(pc,  value), IStringExpressionWrap<G>  {
 
-    override infix fun like(f: String): PathWrap<String, G> {
-        pc.add({ pc.cb.like(value as (Expression<String>), f) })
-        return this as PathWrap<String, G>;
+    override infix fun like(f: String): IExpression<String,G> {
+        pc.add({ pc.cb.like(value, f) })
+        return this;
     }
-    override infix fun like(f: Expression<String>): PathWrap<String, G> {
-        pc.add({ pc.cb.like(value as (Expression<String>), f) })
-        return this as PathWrap<String, G>;
+    override infix fun like(f: Expression<String>): IExpression<String,G> {
+        pc.add({ pc.cb.like(value, f) })
+        return this;
     }
     override fun lower(): StringExpressionWrap<G> {
-        return StringExpressionWrap(pc,pc.cb.lower(value as (Expression<String>)));
+        return StringExpressionWrap(pc,pc.cb.lower(value));
     }
 }

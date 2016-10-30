@@ -1,5 +1,5 @@
 @accounts
-Feature:Login
+Feature:Accounts management
   As a challenger user
   I want to safely login to application
   so I can access reserved resources

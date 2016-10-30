@@ -14,6 +14,6 @@ interface IAccountRestService {
 
     );
 
-    fun registerUser(registerRequest: RegisterRequestDTO):RegisterResponseDTO
+    fun registerUser(rr: RegisterRequestDTO):RegisterResponseDTO
 
 }

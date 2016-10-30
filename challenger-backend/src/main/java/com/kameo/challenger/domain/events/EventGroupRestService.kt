@@ -73,24 +73,23 @@ class EventGroupRestService : IEventGroupRestService {
         // TODO what if in the meantime between remove response and next call somethin new arrived? better than remove, we should set there LAST postId
 
 
-        val subscriber = Subscriber(session.userId, asyncResponse);
+        val subscriber = Subscriber(session.userId, asyncResponse)
 
-
-
-
-        val challengeSubscribers: ChallengeSubscribers? = subscribers.get(challengeId);
+        val challengeSubscribers: ChallengeSubscribers? = subscribers[challengeId]
         if (challengeSubscribers == null) {
 
             synchronized(subscribers, {
-                val challengeSubscribersSynch: ChallengeSubscribers? = subscribers.get(challengeId);
+                val challengeSubscribersSynch: ChallengeSubscribers? = subscribers[challengeId];
+
                 if (challengeSubscribersSynch == null) {
-                    subscribers.put(challengeId, ChallengeSubscribers(users = mutableListOf(subscriber)));
+                    subscribers.put(challengeId, ChallengeSubscribers(users = mutableListOf(subscriber)))
                 } else {
 
                     synchronized(challengeSubscribersSynch, {
-                        challengeSubscribersSynch.users.add(subscriber) as Any;
+                        challengeSubscribersSynch.users.add(subscriber)
                     });
                 }
+
             });
 
         } else {

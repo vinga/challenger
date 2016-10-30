@@ -4,11 +4,10 @@ package com.kameo.challenger.domain.accounts.db
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.odb.api.IIdentity
 import org.hibernate.validator.constraints.Length
+import java.time.LocalDateTime
 import java.util.*
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.ManyToMany
+import javax.persistence.*
+import javax.persistence.TemporalType.TIMESTAMP
 import javax.validation.constraints.Size
 
 
@@ -25,7 +24,9 @@ data class UserODB(@Id
     lateinit var salt: String
     lateinit var passwordHash: String
     lateinit var userStatus: UserStatus
-    lateinit var suspendedDueDate: Date
+
+
+    var suspendedDueDate: LocalDateTime?=null
     var userRegistrationType = UserRegistrationType.NORMAL
     var failedLoginsNumber: Int = 0
 

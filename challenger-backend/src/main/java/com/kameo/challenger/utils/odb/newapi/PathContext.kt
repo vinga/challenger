@@ -1,63 +1,33 @@
 package com.kameo.challenger.utils.odb.newapi
 
+
 import javax.persistence.EntityManager
 import javax.persistence.Query
 import javax.persistence.TypedQuery
 import javax.persistence.criteria.*
 
 
-class PathContext<E> constructor(clz: Class<*>,
-                                 val em: EntityManager,
+abstract class PathContext<G>
+    constructor(
+        val em: EntityManager,
+        open val criteria: CommonAbstractCriteria) {
 
-                                 val criteria: CommonAbstractCriteria
-
-) {
-    val cb: CriteriaBuilder = em.criteriaBuilder;
-
-    companion object {
-        fun <E, G> createSelectQuery(clz: Class<E>, resultClass: Class<G>, em: EntityManager): PathContext<E> {
-            val cb = em.criteriaBuilder;
-            val pc = PathContext<E>(clz, em, cb.createQuery(resultClass));
-            return pc;
-        }
-    }
-
-    var currentArray: MutableList<() -> Predicate?> = mutableListOf();
-        private set
-
+    val cb: CriteriaBuilder = em.criteriaBuilder
     val orders: MutableList<Order> = mutableListOf()
     val arraysStack: MutableList<MutableList<() -> Predicate?>> = mutableListOf();
 
-    var forceNoResultsInQuery: Boolean = false;
-
-    var skip: Int? = null;
-
-    var take: Int? = null;
-
-
-    lateinit var root: Root<Any>;
+    private var currentArray: MutableList<() -> Predicate?> = mutableListOf()
         private set
-    lateinit var rootWrap: PathWrap<Any, Any>
-        private set
-    var defaultSelection: ISugarQuerySelect<Any>?=null
-        private set
+    var skip: Int? = null
+    var take: Int? = null
 
-    init {
-        if (criteria is CriteriaQuery<*>) {
-            root = criteria.from(clz as Class<Any>);
+    lateinit var root: Root<Any>
+        protected set
+    lateinit var rootWrap: PathWrap<*, G>
+        protected set
+    var defaultSelection: ISugarQuerySelect<Any>? = null
+        protected set
 
-            defaultSelection=SelectWrap(root)
-
-            rootWrap = RootWrap<Any,Any>(this as PathContext<Any>, root)
-        } else if (criteria is CriteriaUpdate<*>) {
-            root = (criteria as CriteriaUpdate<Any>).from(clz as Class<Any>);
-            rootWrap = RootWrapUpdate<Any,Any>(this as PathContext<Any>, root)
-        } else if (criteria is CriteriaDelete<*>) {
-            root = (criteria as CriteriaDelete<Any>).from(clz as Class<Any>);
-            rootWrap = RootWrap<Any,Any>(this as PathContext<Any>, root)
-        } else throw IllegalArgumentException();
-
-    }
 
     fun addOrder(o: Order) {
         orders.add(o);
@@ -68,8 +38,6 @@ class PathContext<E> constructor(clz: Class<*>,
     }
 
     fun stackNewArray(newArr: MutableList<() -> Predicate?>) {
-
-
         arraysStack.add(currentArray);
         currentArray = newArr;
     }
@@ -80,7 +48,7 @@ class PathContext<E> constructor(clz: Class<*>,
     }
 
 
-    public fun getPredicate(): Predicate {
+    fun getPredicate(): Predicate {
         if (arraysStack.isNotEmpty())
             throw IllegalArgumentException("In or Or clause has not been closed");
         var predicates = mutableListOf<Predicate>()
@@ -97,39 +65,37 @@ class PathContext<E> constructor(clz: Class<*>,
         }
     }
 
+}
 
-    public fun calculateSelect(query: (RootWrap<E, *>) -> ISugarQuerySelect<*>) {
-        val selector = query.invoke(rootWrap as RootWrap<E, *>)
-        if (criteria is CriteriaQuery<*>)
-            (criteria as CriteriaQuery<Any>).select(selector.getSelection())
-        else if (criteria is CriteriaUpdate<*>) {
-            ;//do nothing
-        } else if (criteria is CriteriaDelete<*>) {
-            ;//do nothing
-        } else throw IllegalArgumentException();
+class QueryPathContext<G>(clz: Class<*>,
+                          em: EntityManager,
+                          override val criteria: CriteriaQuery<G> = em.criteriaBuilder.createQuery(clz) as CriteriaQuery<G>)
+: PathContext<G>(em, criteria) {
+
+    var selector: ISugarQuerySelect<*>? = null // set after execution
 
 
+    init {
+        root = criteria.from(clz as Class<Any>)
+        defaultSelection = SelectWrap(root)
+        rootWrap = RootWrap<Any, G>(this, root)
     }
 
-    fun calculateDelete(query: (RootWrap<E, E>) -> Unit) {
-        val selector = query.invoke(rootWrap as RootWrap<E, E>)
-        if (criteria is CriteriaQuery<*>)
-            throw IllegalArgumentException();
-        else if (criteria is CriteriaUpdate<*>) {
-            throw IllegalArgumentException();
-        } else if (criteria is CriteriaDelete<*>) {
-            ;//do nothing
-        } else throw IllegalArgumentException();
+
+    fun <RESULT, E> invokeQuery(query: (RootWrap<E, E>) -> ISugarQuerySelect<RESULT>): TypedQuery<RESULT> {
+        selector = query.invoke(rootWrap as RootWrap<E, E>)
+        var sell = selector!!.getSelection()
+        criteria.select(sell as Selection<out G>)
+        return calculateWhere(em) as TypedQuery<RESULT>
     }
 
-    public fun calculateWhere(em: EntityManager): TypedQuery<*> {
-        (criteria as CriteriaQuery<*>).where(getPredicate())
+    fun calculateWhere(em: EntityManager): TypedQuery<*> {
+        criteria.where(getPredicate())
         if (orders.isNotEmpty())
-            (criteria as CriteriaQuery<*>).orderBy(orders)
+            criteria.orderBy(orders)
         val jpaQuery = em.createQuery(criteria)
-        applyPage(jpaQuery);
+        applyPage(jpaQuery)
         return jpaQuery;
-
     }
 
     private fun applyPage(jpaQuery: TypedQuery<*>) {
@@ -141,58 +107,13 @@ class PathContext<E> constructor(clz: Class<*>,
             jpaQuery.maxResults = take;
     }
 
-
-    public fun calculateWhere(cq: CriteriaUpdate<*>) {
-        cq.where(getPredicate())
-
-    }
-
-    public fun calculateWhere(cq: CriteriaDelete<*>) {
-        cq.where(getPredicate())
-    }
-
-    fun forceNoResultsInQuery() {
-        this.forceNoResultsInQuery = true;
-    }
-
-    var selector: ISugarQuerySelect<*>? = null;
-
-
-    fun invokeUpdate(query: (RootWrapUpdate<E, E>) -> Unit): Query {
-        if (criteria is CriteriaUpdate<*>) {
-            query.invoke(rootWrap as RootWrapUpdate<E, E>)
-            calculateWhere(criteria)
-            return em.createQuery(criteria as CriteriaUpdate<*>)
-        } else throw IllegalArgumentException();
-    }
-
-    fun invokeDelete(query: (RootWrap<E, E>) -> Unit): Query {
-        query.invoke(rootWrap as RootWrap<E, E>)
-        if (criteria is CriteriaDelete<*>) {
-            calculateWhere(criteria)
-            return em.createQuery(criteria as CriteriaDelete<*>)
-        } else throw IllegalArgumentException();
-
-
-    }
-
-
-    fun <RESULT> invokeQuery(query: (RootWrap<E, E>) -> ISugarQuerySelect<RESULT>): TypedQuery<RESULT> {
-        if (criteria is CriteriaQuery<*>) {
-            selector = query.invoke(rootWrap as RootWrap<E, E>)
-            var sell = selector!!.getSelection();
-            (criteria as CriteriaQuery<RESULT>).select(sell as Selection<out RESULT>)
-            return calculateWhere(em) as TypedQuery<RESULT>
-        } else throw IllegalArgumentException();
-    }
-
     fun <RESULT : Any> mapToPluralsIfNeeded(res: List<RESULT>): List<RESULT> {
         if (res.isNotEmpty()) {
             if (!selector!!.isSingle()) {
                 if (res.first() is Array<*>) {
 
-                    var rows = res as List<Array<Object>>;
-                    var row = rows.first();
+                    var rows = res as List<Array<Any>>
+                    var row = rows.first()
                     if (row.size == 2) {
                         return rows.map({
                             Pair(it[0], it[1]) as RESULT
@@ -205,8 +126,52 @@ class PathContext<E> constructor(clz: Class<*>,
                 }
             }
         }
-        return res;
+        return res
     }
 
+}
 
+class UpdatePathContext<G>(clz: Class<*>,
+                           em: EntityManager,
+                           override val criteria: CriteriaUpdate<G> = em.criteriaBuilder.createCriteriaUpdate(clz) as CriteriaUpdate<G>)
+: PathContext<G>(em, criteria) {
+
+    init {
+        root = criteria.from(clz as Class<G>) as Root<Any>
+        rootWrap = RootWrapUpdate<Any, G>(this, root)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <E> invokeUpdate(query: (RootWrapUpdate<E, E>) -> Unit): Query {
+        query.invoke(rootWrap as RootWrapUpdate<E, E>)
+        calculateWhere(criteria)
+        return em.createQuery(criteria)
+    }
+
+    private fun calculateWhere(cq: CriteriaUpdate<*>) {
+        cq.where(getPredicate())
+    }
+}
+
+class DeletePathContext<G>(clz: Class<*>,
+                           em: EntityManager,
+                           override val criteria: CriteriaDelete<G> = em.criteriaBuilder.createCriteriaDelete(clz) as CriteriaDelete<G>)
+: PathContext<G>(em, criteria) {
+
+    init {
+        root = (criteria as CriteriaDelete<Any>).from(clz as Class<Any>);
+        rootWrap = RootWrap<Any, G>(this, root)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <E> invokeDelete(query: (RootWrap<E, E>) -> Unit): Query {
+        query.invoke(rootWrap as RootWrap<E, E>)
+        calculateWhere(criteria)
+        return em.createQuery(criteria)
+
+    }
+
+    private fun calculateWhere(cq: CriteriaDelete<*>) {
+        cq.where(getPredicate())
+    }
 }

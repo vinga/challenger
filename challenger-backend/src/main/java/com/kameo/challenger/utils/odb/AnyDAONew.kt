@@ -13,11 +13,7 @@ import javax.persistence.criteria.Selection
 import kotlin.reflect.KClass
 
 
-interface ISugarQuery<E, F> {
-    fun query(it: RootWrap<E, E>): (ISugarQuerySelect<F>)
-}
-
-
+@Suppress("UNUSED_PARAMETER") // parameter resltClass is unused but needed for type safety
 class AnyDAONew(@Inject val em: EntityManager) {
 
     class PathPairSelect<E, F>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val cb: CriteriaBuilder) : ISugarQuerySelect<Pair<E, F>> {
@@ -25,10 +21,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
             return cb.tuple(first.getSelection(), second.getSelection())
         }
 
-        override fun isSingle(): Boolean {
-            return false;
-        }
-
+        override fun isSingle(): Boolean = false
     }
 
     class PathTripleSelect<E, F, G>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val third: ISugarQuerySelect<G>, val cb: CriteriaBuilder) : ISugarQuerySelect<Triple<E, F, G>> {
@@ -36,10 +29,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
             return cb.tuple(first.getSelection(), second.getSelection(), third.getSelection())
         }
 
-        override fun isSingle(): Boolean {
-            return false;
-        }
-
+        override fun isSingle(): Boolean = false
     }
 
     fun test() {
@@ -47,14 +37,14 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val ep2 = exists(UserODB::class.java, { it eqId 300 })
         println(" $ep $ep2")
 
-      ;
+
 
 
         val oneq: List<Pair<Long, UserODB>> = getAll(TaskODB::class) {
-            it.get(TaskODB::user).get(+UserODB::login).lower().eq("12");
-            it.get(TaskODB::user).get(+UserODB::login).lower().eq(it.get(TaskODB::label).lower());
-            it.get(TaskODB::user).get(+UserODB::login).lower().eq(it.get(TaskODB::label));
-            it.get(TaskODB::user).get(+UserODB::login).eq(it.get(TaskODB::label));
+            it.get(TaskODB::user).get(+UserODB::login).lower().eq("12")
+            it.get(TaskODB::user).get(+UserODB::login).lower().eq(it.get(TaskODB::label).lower())
+            it.get(TaskODB::user).get(+UserODB::login).lower().eq(it.get(TaskODB::label))
+            it.get(TaskODB::user).get(+UserODB::login).eq(it.get(TaskODB::label))
 
 
 
@@ -63,8 +53,8 @@ class AnyDAONew(@Inject val em: EntityManager) {
         }
 
         oneq.map {
-            println("FI " + it.first);
-            println("SE " + it.second);
+            println("FI " + it.first)
+            println("SE " + it.second)
         }
 
         val one = getOne(TaskODB::class) {
@@ -104,12 +94,6 @@ class AnyDAONew(@Inject val em: EntityManager) {
             it limit 1
         }
         println("ONE HEH " + four)
-        val four2: TaskODB = getOne(TaskODB::class) {
-            it eqId 8
-            it limit 1
-        }
-
-        println("ONE HEH " + four2)
 
         val users3: List<Long> = getAll(TaskODB::class) {
             it.select(it.max(TaskODB::id))
@@ -147,50 +131,44 @@ class AnyDAONew(@Inject val em: EntityManager) {
     }
 
 
+
     fun <E : Any, RESULT : Any> getAll(clz: Class<E>, resultClass: Class<RESULT>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
-        val pc = PathContext.createSelectQuery(clz, resultClass, em)
+        val pc = QueryPathContext<RESULT>(clz, em)
         val res = pc.invokeQuery(query).resultList
         return pc.mapToPluralsIfNeeded<RESULT>(res)
     }
 
     fun <E : Any, RESULT : Any> getOne(clz: Class<E>, resultClass: Class<RESULT>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT {
-        val pc = PathContext.createSelectQuery(clz, resultClass, em)
-        val jpaQuery = pc.invokeQuery(query);
+        val pc = QueryPathContext<RESULT>(clz, em)
+        val jpaQuery = pc.invokeQuery(query)
         jpaQuery.maxResults = 1
         return ensureIsOnlyOne(pc.mapToPluralsIfNeeded<RESULT>(jpaQuery.resultList))
     }
 
     fun <E : Any, RESULT : Any> getFirst(clz: Class<E>, resultClass: Class<RESULT>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT? {
-        val pc = PathContext.createSelectQuery(clz, resultClass, em)
-        val jpaQuery = pc.invokeQuery(query);
+        val pc = QueryPathContext<RESULT>(clz, em)
+        val jpaQuery = pc.invokeQuery(query)
         jpaQuery.maxResults = 1
         return pc.mapToPluralsIfNeeded<RESULT>(jpaQuery.resultList).firstOrNull()
     }
 
 
     fun <E : Any> update(clz: Class<E>, query: (RootWrapUpdate<E, E>) -> Unit): Int {
-        val criteria = em.criteriaBuilder.createCriteriaUpdate(clz)
-        val pc = PathContext<E>(clz, em, criteria)
-        return pc.invokeUpdate(query).executeUpdate();
-
+        val pc = UpdatePathContext<E>(clz, em)
+        return pc.invokeUpdate(query).executeUpdate()
     }
 
     fun <E : Any> remove(clz: Class<E>, query: (RootWrap<E, E>) -> Unit): Int {
-        val criteria = em.criteriaBuilder.createCriteriaDelete(clz)
-        val pc = PathContext<E>(clz, em, criteria)
-        return pc.invokeDelete(query).executeUpdate();
+        val pc = DeletePathContext<E>(clz, em)
+        return pc.invokeDelete(query).executeUpdate()
     }
 
     fun <E : Any> exists(clz: Class<E>, query: (RootWrap<E, E>) -> ISugarQuerySelect<*>): Boolean {
-        val criteria = em.criteriaBuilder.createQuery(Long::class.java)
-        val pc = PathContext<E>(clz, em, criteria)
-
         val queryExists: (RootWrap<E, E>) -> ISugarQuerySelect<Long> = {
             val invoke: ISugarQuerySelect<*> = query.invoke(it)
-            it.select(ExpressionWrapBase(em.criteriaBuilder.count(invoke.getSelection() as Expression<*>)))
+            it.select(ExpressionWrap(it.pc,em.criteriaBuilder.count(invoke.getSelection() as Expression<*>)))
         }
-
-        return getOne(clz, Long::class.java, queryExists) > 0;
+        return getOne(clz, Long::class.java, queryExists) > 0
     }
 
 

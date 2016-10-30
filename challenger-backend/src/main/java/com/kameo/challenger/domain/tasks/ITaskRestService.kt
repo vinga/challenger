@@ -86,7 +86,7 @@ interface ITaskRestService {
             task.createdByUser = UserODB(this.createdByUserId)
             task.difficulty = this.difficulty
             if (this.dueDate != null)
-                task.dueDate = Date(this.dueDate!!)
+                task.dueDate = Date(this.dueDate)
             if (this.id > 0)
                 task.id = this.id
             return task;
