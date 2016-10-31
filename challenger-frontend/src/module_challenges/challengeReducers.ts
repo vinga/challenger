@@ -20,6 +20,12 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         console.log("change challenge to " + action.challengeId);
         return copy(state).and({selectedChallengeId: action.challengeId});
     } else if (isAction(action, WEB_CHALLENGES_RESPONSE)) {
+        state.visibleChallenges.map(vc=> {
+            var ord=0;
+            vc.userLabels.forEach(ul=> {
+                ul.ordinal=ord++;
+            })
+        });
         return action;
     }
     return state

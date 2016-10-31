@@ -3,8 +3,8 @@ import {ReduxState} from "../redux/ReduxState";
 import {MODIFY_TASK_OPTIMISTIC, MODIFY_TASK_REQUEST, DELETE_TASK_OPTIMISTIC, MARK_TASK_DONE_OPTIMISTIC, TASK_PROGRESS_REQUEST, LOAD_TASKS_REQUEST, LOAD_TASKS_RESPONSE} from "./taskActionTypes";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
-import {selectedChallengeParticipantIds} from "../module_challenges/index";
 import * as webCall from "./taskWebCalls";
+import {jwtTokensOfChallengeParticipants} from "../module_glue/index";
 
 
 export function updateTask(task: TaskDTO) {
@@ -94,25 +94,14 @@ export function fetchTasksWhenNeeded(challengeId: number, day: Date): any {
 
 export function updateTaskStatus(challengeId: number, taskApproval: TaskApprovalDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
-        // all other users should
-        // user created task for himself, all others should accept it
-        var challengeParticipantIds = selectedChallengeParticipantIds(getState());
 
-        //TODO accounts selector
-        var jwtTokensOfApprovingUsers: Array<String> = getState().accounts.filter(a=>a.jwtToken != null &&
-        challengeParticipantIds.contains(a.userId))
-            .map(a=>a.jwtToken);
-        //TODO optimistic update
-        /*        if (jwtTokensOfApprovingUsers.length==challengeParticipantIds.length-1) {
-         getState().tasks.
-         task.taskStatus=TaskStatus.accepted;
-         dispatch(MODIFY_TASK_OPTIMISTIC.new(task));
-         dispatch(MODIFY_TASK_REQUEST.new(task));
-         }*/
-
+        var state=getState();
+        var day=state.currentSelection.day;
+        var state=getState();
+        var jwtTokensOfApprovingUsers = jwtTokensOfChallengeParticipants(state);
         webCall.updateTaskStatus(challengeId, taskApproval, jwtTokensOfApprovingUsers)
             .then((task: TaskDTO)=> {
-                dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
+                dispatch(fetchTasks(challengeId, day));
             });
         dispatch(displayInProgressWebRequestsIfAny());
     }

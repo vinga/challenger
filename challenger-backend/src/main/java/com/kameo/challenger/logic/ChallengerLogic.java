@@ -56,6 +56,9 @@ public class ChallengerLogic {
     }
 
 
+    public UserODB getUserById(long callerId) {
+        return anyDao.get(UserODB.class, callerId);
+    }
     // no permission checked
     public List<TaskProgressODB> getTaskProgress(List<TaskODB> tasks, Date day) {
         Date midnight = DateUtil.getMidnight(day);

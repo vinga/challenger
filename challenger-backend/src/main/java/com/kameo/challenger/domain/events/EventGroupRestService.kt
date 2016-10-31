@@ -14,10 +14,7 @@ import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import org.springframework.stereotype.Component
 import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit.DAYS
 import javax.inject.Inject
 import javax.ws.rs.*
 import javax.ws.rs.container.AsyncResponse
@@ -35,6 +32,8 @@ class EventGroupRestService : IEventGroupRestService {
     private lateinit var eventGroupDAO: EventGroupDAO
     @Inject
     private lateinit var session: ChallengerSess;
+    @Inject
+    private lateinit var eventPushDAO: EventPushDAO
 
 
     @GET
@@ -51,18 +50,12 @@ class EventGroupRestService : IEventGroupRestService {
     }
 
 
-    private class ChallengeSubscribers(val users: MutableList<Subscriber> = mutableListOf()) {
-
-    }
-
-    private class Subscriber(val userId: Long, val asyncResponse: AsyncResponse, var lastDispatchedSentId: Long?=null) {
-
-    }
 
 
-    private var subscribers = mutableMapOf<Long, ChallengeSubscribers>();
+
     @POST
     @Path("/async/challenges/{challengeId}/events")
+    @WebResponseStatus(WebResponseStatus.ACCEPTED)
     fun listenTo(@Suspended asyncResponse: AsyncResponse, @PathParam("challengeId") challengeId: Long) {
         //TODO permissions
 
@@ -72,94 +65,12 @@ class EventGroupRestService : IEventGroupRestService {
         //TODO fetch only last messages
         // TODO what if in the meantime between remove response and next call somethin new arrived? better than remove, we should set there LAST postId
 
-
-        val subscriber = Subscriber(session.userId, asyncResponse)
-
-        val challengeSubscribers: ChallengeSubscribers? = subscribers[challengeId]
-        if (challengeSubscribers == null) {
-
-            synchronized(subscribers, {
-                val challengeSubscribersSynch: ChallengeSubscribers? = subscribers[challengeId];
-
-                if (challengeSubscribersSynch == null) {
-                    subscribers.put(challengeId, ChallengeSubscribers(users = mutableListOf(subscriber)))
-                } else {
-
-                    synchronized(challengeSubscribersSynch, {
-                        challengeSubscribersSynch.users.add(subscriber)
-                    });
-                }
-
-            });
-
-        } else {
-            synchronized(challengeSubscribers, {
-                challengeSubscribers.users.add(subscriber);
-            });
-        }
-
-        asyncResponse.setTimeout(500, TimeUnit.SECONDS);
-        asyncResponse.setTimeoutHandler({
-
-
-            it.cancel();
-
-
-        })
-    }
-    var lastDispatchedEventId:Number?=null;
-
-
-    // TRANSIENT
-    var minEventId:Long?=null;
-    var maxEventId:Long?=null;
-
-    fun checkIfSomethingWasDispatchedAfter(minEventIdExclusive: Long?, maxEventIdExclusive:Long?) {
-        val minEventIdExclusiveConst=minEventIdExclusive;
-        val maxEventIdExclusiveConst=maxEventIdExclusive;
-        if (minEventIdExclusiveConst==null) {
-            // this should only have place after system start, for example when first person registers to listen
-            minEventId=eventGroupDAO.getMaxEventId();
-            maxEventId=eventGroupDAO.getMaxEventId();
-        }
-        if (minEventIdExclusiveConst!=null && maxEventIdExclusiveConst!=null && minEventIdExclusiveConst+1==maxEventIdExclusiveConst) {
-            // nothing more for sure
-            minEventId=minEventId;
-            maxEventId=maxEventIdExclusive;
-        } else {
-            var notDispatchedEvents=eventGroupDAO.getEventsBetween(minEventIdExclusive, maxEventIdExclusive);
-            notDispatchedEvents.forEach {
-                broadcastNewMessage(it)
-            }
-            minEventId=notDispatchedEvents.maxBy({ it.id })?.id;
-            maxEventId=null;
-        }
-    }
-
-    fun broadcastNewMessage(event:EventODB) {
-        println("BROADCAST NEW");
-
-        val challengeId=event.challenge.id;
-        val postsForTask = eventGroupDAO.getPostsForChallengeWithoutPermissionCheck(challengeId).map(
-                { EventDTO.fromODB(it) })
-                .toTypedArray();
-
-
-        val challengeSubscribers: ChallengeSubscribers? = subscribers.get(challengeId);
-        if (challengeSubscribers != null) {
-            synchronized(challengeSubscribers, {
-                challengeSubscribers.users.forEach {
-
-                    it.asyncResponse.resume(EventGroupDTO(challengeId, null, postsForTask))
-                    it.lastDispatchedSentId=event.id
-                }
-                challengeSubscribers.users.clear()
-            });
-        }
-        println("RESUME " + challengeSubscribers?.users?.size)
-
+        eventPushDAO.listenToNewEvents(session.userId, asyncResponse, challengeId);
 
     }
+
+
+
 
 
     @GET
@@ -190,7 +101,7 @@ class EventGroupRestService : IEventGroupRestService {
 
 
         var updatedEvent = eventGroupDAO.editEvent(callerId, challengeId, ev);
-        broadcastNewMessage(updatedEvent)
+        eventPushDAO.broadcastNewEvent(updatedEvent)
         return EventDTO.fromODB(updatedEvent);
     }
 }

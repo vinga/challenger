@@ -8,6 +8,8 @@ import com.kameo.challenger.domain.tasks.db.*
 import com.kameo.challenger.utils.DateUtil
 import com.kameo.challenger.utils.odb.AnyDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
+import com.kameo.challenger.utils.odb.newapi.ComparablePathWrap
+import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -27,10 +29,10 @@ open class TaskDAO {
 
 
     open fun createTask(callerId: Long, taskODB: TaskODB): TaskODB {
-        val cc = anyDao.get(ChallengeODB::class.java, taskODB.challenge.id)
-        if (!cc.participants.any({ cp -> cp.user.id == callerId }))
+        val cc = anyDaoNew.getOne(ChallengeODB::class) { it eqId taskODB.challenge.id }
+        if (!cc.participants.any { it.user.id == callerId })
             throw IllegalArgumentException()
-        if (!cc.participants.any({ cp -> cp.user.id == taskODB.user.id }))
+        if (!cc.participants.any { it.user.id == taskODB.user.id })
             throw IllegalArgumentException()
 
 
@@ -55,7 +57,6 @@ open class TaskDAO {
     open fun getTasks(callerId: Long, challengeId: Long, date: Date): List<TaskODB> {
 
 
-
 //        anyDaoNew.test();
 
         val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class,
@@ -67,25 +68,20 @@ open class TaskDAO {
         updateSeendDateOfChallegeContract(callerPermission0)
 
 
-
-        val tasks = anyDaoNew.getAll(TaskODB::class,
-                {
-
-                    it.get(TaskODB::challenge) eqId challengeId
-                    it.newOr({
-                        it get TaskODB::taskType notEq TaskType.onetime
-                        it.after(TaskODB::dueDate, date)
-                    })
-
-
-                });
+        val tasks = anyDaoNew.getAll(TaskODB::class) {
+            it get TaskODB::challenge eqId challengeId
+            it.newOr {
+                it get TaskODB::taskType notEq TaskType.onetime
+                it get(+TaskODB::dueDate) after date
+            }
+        }
 
 
 
         getTaskProgress(tasks, date).forEach {
             tp ->
-                tasks
-                    .filter({ it.id == tp.task.id })
+            tasks
+                    .filter { it.id == tp.task.id }
                     .forEach { it.done = tp.done }
         }
 
@@ -93,22 +89,24 @@ open class TaskDAO {
 
     }
 
-    open fun deleteTask(callerId: Long, taskId: Long) {
-        val task = anyDaoNew.getOne(TaskODB::class, { it eqId taskId });
+
+    open fun deleteTask(callerId: Long, taskId: Long) : TaskODB {
+        val task = anyDaoNew.getOne(TaskODB::class) { it eqId taskId }
         if (task.user.id != callerId)
             throw IllegalArgumentException()
 
-        anyDaoNew.remove(TaskProgressODB::class, { it get TaskProgressODB::task eqId taskId });
-        anyDaoNew.remove(TaskApprovalODB::class, { it get TaskApprovalODB::task eqId taskId });
+        anyDaoNew.remove(TaskProgressODB::class) { it get TaskProgressODB::task eqId taskId }
+        anyDaoNew.remove(TaskApprovalODB::class) { it get TaskApprovalODB::task eqId taskId }
 
         anyDao.getEm().remove(task)
+        return task;
 
     }
 
     open fun getTaskProgress(tasks: List<TaskODB>, day: Date): List<TaskProgressODB> {
         val midnight = DateUtil.getMidnight(day)
 
-        val taskIds = tasks.map({ it.id })
+        val taskIds = tasks.map { it.id }
         if (taskIds.isEmpty())
             return emptyList()
 

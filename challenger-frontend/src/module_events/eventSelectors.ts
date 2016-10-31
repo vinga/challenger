@@ -1,23 +1,24 @@
 import {Selector, createSelector} from "reselect";
 import {ReduxState} from "../redux/ReduxState";
 import {DisplayedEventUI} from "./components/EventGroupPanel";
-import {selectedChallengeIdSelector, challengeUserIndex, challengeUserLabel} from "../module_challenges/challengeSelectors";
+
 import {EventGroupDTO} from "./EventDTO";
 import {TaskDTO} from "../module_tasks/TaskDTO";
 
-const displayEventSelector: Selector<ReduxState,Boolean> = (state: ReduxState): Boolean => state.eventsState.eventWindowVisible
+import {selectedChallengeParticipantsSelector, ChallengeParticipantDTO} from "../module_challenges/index";
 
 const displaySeletectedEventGroupSelector: Selector<ReduxState,EventGroupDTO> = (state: ReduxState): EventGroupDTO =>
     state.eventsState.eventGroups.find(eg=>eg.challengeId == state.challenges.selectedChallengeId)
 
 const displayTaskSelector: Selector<ReduxState,TaskDTO> = (state: ReduxState): TaskDTO => state.eventsState.selectedTask
 
+
+
 export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI>> = createSelector(
-    (state: ReduxState) => state,
+    selectedChallengeParticipantsSelector,
     displaySeletectedEventGroupSelector,
-    displayEventSelector,
-    (state: ReduxState): TaskDTO => state.eventsState.selectedTask,
-    (state: ReduxState, eventGroups: EventGroupDTO,  displayLog: Boolean, filteredTask?: TaskDTO) => {
+    displayTaskSelector,
+    (challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupDTO,  filteredTask?: TaskDTO) => {
 
         if (eventGroups != null)
             return eventGroups.posts.filter(p=> filteredTask==null || p.taskId==filteredTask.id).map(p=> {
@@ -30,8 +31,8 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI>> = crea
                     // maybe should be taken with explicitely spcified challengeId
 
                     // mode that to selector
-                    authorOrdinal: challengeUserIndex(state, p.authorId),
-                    authorLabel: challengeUserLabel(state, p.authorId),
+                    authorOrdinal: challengeParticipants.find(cp=>cp.id==p.authorId).ordinal,
+                    authorLabel:  challengeParticipants.find(cp=>cp.id==p.authorId).label,
                     postContent: p.content
                 }
             });

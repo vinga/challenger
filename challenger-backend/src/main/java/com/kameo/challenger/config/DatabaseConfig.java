@@ -4,6 +4,7 @@ package com.kameo.challenger.config;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import com.kameo.challenger.utils.odb.AnyDAONew;
 import org.jinq.jpa.JinqJPAStreamProvider;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -11,11 +12,14 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
+
+import static org.reflections.util.ConfigurationBuilder.build;
 
 
 @Configuration
@@ -43,7 +47,15 @@ class DatabaseConfig {
         return new AnyDAONew(em.get());
     }
 
+/*    @Bean
+    public ServletRegistrationBean dispatcherServlet() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(
+                new DispatcherServlet() {
 
+                }, "/");
+        registration.setAsyncSupported(false);
+        return registration;
+    }*/
     @Bean
     public DataSource dataSource() {
 
@@ -52,6 +64,8 @@ class DatabaseConfig {
 
         return builder
                 .setType(EmbeddedDatabaseType.HSQL) //.H2 or .DERBY
+                .ignoreFailedDrops(true)
+                .generateUniqueName(true)
                 // .addScript("db/sql/create-db.sql")
                 // .addScript("db/sql/insert-data.sql")
                 .build();

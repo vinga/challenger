@@ -1,10 +1,13 @@
 package com.kameo.challenger.domain.tasks
 
 import com.kameo.challenger.config.ServerConfig
+import com.kameo.challenger.domain.accounts.AccountDAO
 import com.kameo.challenger.domain.accounts.EventGroupDAO
-import com.kameo.challenger.domain.events.EventType.CREATE_TASK
+import com.kameo.challenger.domain.events.EventType.*
 import com.kameo.challenger.domain.tasks.ITaskRestService.*
+import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
 import com.kameo.challenger.logic.ChallengerLogic
+import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus.*
 import com.kameo.challenger.web.rest.ChallengerSess
@@ -15,6 +18,7 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.ws.rs.*
+import javax.ws.rs.POST
 import javax.ws.rs.core.MediaType
 
 @Component
@@ -33,6 +37,8 @@ class TaskRestService : ITaskRestService {
 
     @Inject
     lateinit var eventGroupDao: EventGroupDAO;
+
+
 
     @GET
     @Path("challenges/{challengeId}/tasks/")
@@ -60,7 +66,7 @@ class TaskRestService : ITaskRestService {
         if (challengeId!=taskDTO.challengeId)
             throw IllegalArgumentException();
         var challengeTaskODB = challengerLogic.createTask(callerId, taskDTO.toODB())
-        eventGroupDao.createTaskEventAfeterServerAction(challengeTaskODB, CREATE_TASK);
+        eventGroupDao.createTaskEventAfeterServerAction(task=challengeTaskODB, eventType = CREATE_TASK);
         return TaskDTO.fromOdb(challengeTaskODB)
     }
 
@@ -71,6 +77,7 @@ class TaskRestService : ITaskRestService {
             throw IllegalArgumentException();
         val callerId = session.userId
         var challengeTaskODB = challengerLogic.updateTask(callerId, taskDTO.toODB())
+        eventGroupDao.createTaskEventAfeterServerAction(user_=challengerLogic.getUserById(callerId),task=challengeTaskODB, eventType = UPDATE_TASK);
         return TaskDTO.fromOdb(challengeTaskODB)
     }
 
@@ -79,7 +86,8 @@ class TaskRestService : ITaskRestService {
     @Path("/challenges/{challengeId}/tasks/{taskId}")
     fun deleteTask(@PathParam("challengeId") challengeId: Long, @PathParam("taskId") taskId: Long) {
         val callerId = session.userId
-        taskDao.deleteTask(callerId, taskId)
+        var task=taskDao.deleteTask(callerId, taskId)
+        eventGroupDao.createTaskEventAfeterServerAction(user_=challengerLogic.getUserById(callerId), task=task, eventType = DELETE_TASK);
     }
 
 
@@ -92,6 +100,13 @@ class TaskRestService : ITaskRestService {
         //TODO check also challenge
         val userIds = multiSessions.get().userIds
         val taskODB = challengerLogic.changeTaskStatus(ta.taskId, userIds, ta.taskStatus, ta.rejectionReason)
+
+        for (userId in userIds) {
+            if (ta.taskStatus == accepted)
+                eventGroupDao.createTaskEventAfeterServerAction(user_=challengerLogic.getUserById(userId), task = taskODB, eventType = ACCEPT_TASK);
+            else
+                eventGroupDao.createTaskEventAfeterServerAction(user_=challengerLogic.getUserById(userId), task = taskODB, eventType = REJECT_TASK, rejectReason = ta.rejectionReason);
+        }
         return TaskDTO.fromOdb(taskODB)
     }
 
@@ -104,6 +119,10 @@ class TaskRestService : ITaskRestService {
         //TODO check also challenge
         val callerId = session.userId
         val tpOdb = challengerLogic.markTaskDone(callerId, tp.taskId, Date(tp.progressTime), tp.done)
+        if (tp.done)
+            eventGroupDao.createTaskEventAfeterServerAction(user_=challengerLogic.getUserById(callerId), task=tpOdb.task, eventType = CHECKED_TASK);
+        else
+            eventGroupDao.createTaskEventAfeterServerAction(user_=challengerLogic.getUserById(callerId), task=tpOdb.task, eventType = UNCHECKED_TASK);
         return TaskProgressDTO.fromOdb(tpOdb)
     }
 

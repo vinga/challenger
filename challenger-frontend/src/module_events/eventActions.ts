@@ -45,7 +45,7 @@ export function loadEventsAsyncAllTheTime() {
             ).catch((reason:any)=>{
                 console.log("REASON ");
                 console.log(reason);
-                if (reason.status==503) {
+                if (reason.status==307) {
                     dispatch(loadEventsAsyncAllTheTime());
                     console.log("it was cancelled");
                 }

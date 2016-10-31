@@ -6,6 +6,7 @@ import {Header} from "./views/Header.tsx";
 import LoggedView from "./views/LoggedView.tsx";
 import store from "./redux/store.ts";
 import {LOGOUT, LoginPanel, RegisterPanel, loggedUserSelector} from "./module_accounts/index";
+import {GlobalPopover} from "./views/common-components/GlobalPopover";
 
 
 //2.0.3
@@ -30,6 +31,7 @@ const App = (props: Props & PropsFunc)=> {
                 (props.logged ?
                     <LoggedView/>  :
                     <LoginPanel/> ) }
+            <GlobalPopover/>
         </div>
     </MuiThemeProvider >
 };

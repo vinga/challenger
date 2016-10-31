@@ -100,6 +100,7 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                                 task={task}
                                                 onEditTask={this.props.onEditTask}
                                                 onShowTaskEvents={this.props.onShowTaskEvents}
+                                                showTooltip={true}
                                             />
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.label}>

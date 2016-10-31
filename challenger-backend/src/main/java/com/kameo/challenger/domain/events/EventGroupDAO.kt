@@ -6,6 +6,7 @@ import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.domain.events.EventODB
+import com.kameo.challenger.domain.events.EventPushDAO
 import com.kameo.challenger.domain.events.EventType
 import com.kameo.challenger.domain.events.EventType.CREATE_TASK
 import com.kameo.challenger.domain.events.EventType.POST
@@ -16,25 +17,40 @@ import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import javax.inject.Inject
+import javax.inject.Provider
 import kotlin.reflect.*
 import kotlin.reflect.KMutableProperty1.Setter
 import kotlin.reflect.KProperty1.Getter
 
 @Component
 @Transactional
-open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val serverConfig: ServerConfig) {
+open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val serverConfig: ServerConfig, @Inject val eventPushDao : Provider<EventPushDAO>) {
 
 
-    open fun createTaskEventAfeterServerAction(task: TaskODB, eventType: EventType) {
 
-        var user = anyDaoNew.em.find(UserODB::class.java, task.createdByUser.id);
+    open fun createTaskEventAfeterServerAction(user_: UserODB?=null, task: TaskODB, eventType: EventType, rejectReason: String?=null) {
+
+        val user = user_ ?: anyDaoNew.em.find(UserODB::class.java, task.createdByUser.id);
+
         val e = EventODB();
-        e.eventType = CREATE_TASK;
-        e.content = user.getLoginOrEmail() + " created new task " + task.label;
+        e.eventType = eventType;
+        e.content = when(eventType) {
+            EventType.CREATE_TASK -> user.getLoginOrEmail() + " created " + task.label
+            EventType.POST -> e.content
+            EventType.UPDATE_TASK -> user.getLoginOrEmail() + " updated " + task.label
+            EventType.ACCEPT_TASK -> user.getLoginOrEmail() + " accepted " + task.label
+            EventType.REJECT_TASK -> user.getLoginOrEmail() + " rejected " + task.label+" because of "+rejectReason;
+            EventType.CHECKED_TASK -> user.getLoginOrEmail() + " checked " + task.label
+            EventType.UNCHECKED_TASK -> user.getLoginOrEmail() + " unchecked " + task.label
+            EventType.DELETE_TASK -> user.getLoginOrEmail() + " deleted " + task.label
+
+        }
         e.challenge = task.challenge;
         e.author = user;
+        e.task=task;
 
         anyDaoNew.em.persist(e);
+        eventPushDao.get().broadcastNewEvent(e);
     }
 
     open fun getEventsForTask(callerId: Long, challengeId: Long, taskId: Long): List<EventODB> {

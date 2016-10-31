@@ -4,12 +4,14 @@ import TextFieldExt from "../../views/common-components/TextFieldExt";
 import {FlatButton, FontIcon} from "material-ui";
 import {copy, ReduxState} from "../../redux/ReduxState";
 import {eventsSelector} from "../eventSelectors";
-import {EXPAND_EVENTS_WINDOW} from "../eventActionTypes";
+import {EXPAND_EVENTS_WINDOW, SHOW_TASK_EVENTS} from "../eventActionTypes";
 import {connect} from "react-redux";
 import {sendEvent} from "../eventActions";
 import {EventType} from "../EventDTO";
 import DifficultyIconButton from "../../module_tasks/components/taskTable/DifficultyIconButton";
 import {TaskDTO} from "../../module_tasks/TaskDTO";
+import Chip from "material-ui/Chip";
+import {getColorSuperlightenForUser} from "../../views/common-components/Colors";
 
 
 interface Props {
@@ -27,6 +29,7 @@ interface PropsFunc {
     onPostEventFunc: (authorId: number, post: string) => void
     onExpandFunc: () => void
     onCompressFunc: () => void
+    onTaskCloseFunc: () => void
 }
 export interface DisplayedEventUI {
     id: number,
@@ -36,6 +39,9 @@ export interface DisplayedEventUI {
     postContent: string,
     eventType: string
 }
+
+
+
 
 const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
     return {
@@ -58,6 +64,9 @@ const mapDispatchToProps = (dispatch, ownProps: Props): PropsFunc => {
         },
         onExpandFunc: () => {
             dispatch(EXPAND_EVENTS_WINDOW.new({expanded: true}))
+        },
+        onTaskCloseFunc: () => {
+            dispatch(SHOW_TASK_EVENTS.new({task: null, no: null}))
         }
     }
 };
@@ -78,7 +87,7 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
     onPostSubmit = () => {
         var postText = this.postField.state.fieldValue;
         if (postText.length > 0) {
-            this.state.justClicked=true;
+            this.state.justClicked = true;
             this.props.onPostEventFunc(this.props.authorId, postText);
             this.postField.clear();
 
@@ -112,17 +121,18 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                 elem.scrollTop(elem.prop("scrollHeight"));
         }
     }
+
     renderPost = (ev: DisplayedEventUI) => {
-        if (ev.eventType==EventType.POST)
+        if (ev.eventType == EventType.POST)
             return <span><span style={{marginRight:"5px"}}>{ev.authorLabel}:</span> {ev.postContent}</span>;
         else return <span><i> {ev.postContent}</i></span>;
     }
 
     renderTaskName = () => {
-        if(this.props.task != null)
-            return <span style={{padding:"0px", display: "inline-block", width: "400px", overflowX: "hidden", paddingBottom: "10px"}}>{this.props.task.label}</span>;
+        if (this.props.task != null)
+            return this.props.task.label
         else
-            return  <span style={{padding:"0px", display: "inline-block", width: "400px", overflowX: "hidden"}}>Challenge conversation</span>;
+            return  "";
     }
 
     render() {
@@ -137,27 +147,38 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
         return <Paper style={st}>
             <div style={{display: "block", clear: "both"}}>
-            <div style={{position:"absolute",left:"4px",top:"4px", height:"26px", verticalAlign:"center", display:"block"}}>
-                <div style={{display:"block"}}>
-                { this.props.task != null &&
+                <div style={{position:"absolute",left:"4px",top:"4px", verticalAlign:"center", display:"block"}}>
+                    <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
+                        <div style={{display:"block"}}>
+                           {/* {this.props.task != null &&
+                            <span style={{display:"inline-block"}}>
+                                    <DifficultyIconButton
+                                        no={this.props.no}
+                                        task={this.props.task}
+                                        showTooltip={false}
+                                    />
+                                </span>
+                            }
+                           */}
+                            {this.renderTaskName()}
 
-                    <span style={{display:"inline-block"}}>
-                   <DifficultyIconButton
-                    no={this.props.no}
-                    task={this.props.task}
-                    />
-                    </span>
-               }
-                {this.renderTaskName()}
+                            {this.props.task != null &&
+                            <span style={{float: "right", marginLeft: "10px"}}>
+                                 <FontIcon className="fa fa-close" style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onTaskCloseFunc}/>
+                            </span>
+                            }
+
+                        </div>
+
+                    </Chip>
                 </div>
-            </div>
-            <div style={{position:"absolute",right:"10px",top:"10px", fontSize:'10px', height:'26px'}}>
-                {this.props.expandedEventWindow
-                    ?
-                    <FontIcon className="fa fa-compress" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onCompressFunc}/>
-                    :
-                    <FontIcon className="fa fa-expand" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onExpandFunc}/> }
-            </div>
+                <div style={{position:"absolute",right:"10px",top:"10px", fontSize:'10px', height:'26px'}}>
+                    {this.props.expandedEventWindow
+                        ?
+                        <FontIcon className="fa fa-compress" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onCompressFunc}/>
+                        :
+                        <FontIcon className="fa fa-expand" style={{ cursor: "pointer", fontSize:'15px', marginRight:'9px'}} onClick={this.props.onExpandFunc}/> }
+                </div>
             </div>
 
             <div style={{display:"flex", flexDirection:"column", justifyContent: "space-between", height:"100%"}}>

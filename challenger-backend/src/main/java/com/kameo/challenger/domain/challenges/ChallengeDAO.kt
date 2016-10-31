@@ -9,7 +9,6 @@ import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.EntityHelper
-import lombok.Getter
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -24,31 +23,31 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
     open fun createNewChallenge(userId: Long, cb: ChallengeODB) {
 
 
-        if (!cb.participants.any({ it.user.id == userId })) {
-            val cp = ChallengeParticipantODB()
-            cp.user = UserODB(userId)
-            cp.challenge = cb
-            cp.challengeStatus = ChallengeStatus.ACTIVE
-        }
 
-        val challengeCreator = anyDaoNew.reload(cb.participants.find({ p -> p.user.id == userId })!!.user)
+
+        val challengeCreator = anyDaoNew.reload(cb.participants.find { it.user.id == userId }!!.user)
         if (cb.participants.size == 1)
             throw IllegalArgumentException()
-        val cpToSendEmails = Lists.newArrayList<ChallengeParticipantODB>()
+
         for (cp in cb.participants) {
             // creator has accepted challenge by default
-            if (cp.user.id == userId) {
-                cp.challengeStatus = ChallengeStatus.ACTIVE
-                continue
-            }
-            cp.challengeStatus = ChallengeStatus.WAITING_FOR_ACCEPTANCE
-            if (cp.user.isNew()) {
-                cp.user = accountDao.getOrCreateUserForEmail(cp.user.email)
-                cpToSendEmails.add(cp)
-            }
+            cp.challengeStatus =
+                    if (cp.user.id == userId)
+                        ChallengeStatus.ACTIVE
+                    else
+                        ChallengeStatus.WAITING_FOR_ACCEPTANCE
+
         }
+
+
+        val cpToSendEmails = cb.participants
+                .filter {it.user.isNew()}
+                .map {
+                    it.user = accountDao.getOrCreateUserForEmail(it.user.email)
+                    it
+                }
         if (Strings.isNullOrEmpty(cb.label)) {
-            cb.label = cb.participants.map({ p -> p.user.getLoginOrEmail() }).joinToString { it }.toLowerCase()
+            cb.label = cb.participants.map { it.user.getLoginOrEmail() }.joinToString { it }.toLowerCase()
         }
         cb.challengeStatus = ChallengeStatus.WAITING_FOR_ACCEPTANCE
         cb.createdBy = challengeCreator
@@ -64,10 +63,9 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
     }
 
     class ChallengeInfoDTO {
-        @Getter
         var defaultChallengeId: Long? = null
             internal set
-        @Getter
+
         var visibleChallenges: List<ChallengeODB> = Lists.newArrayList<ChallengeODB>()
             internal set
     }
@@ -80,11 +78,12 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
             it get ChallengeParticipantODB::user eqId callerId
             it.get(ChallengeParticipantODB::challenge)
                     .newOr()
-                        .eq(ChallengeODB::challengeStatus, ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                        .eq(ChallengeODB::challengeStatus, ChallengeStatus.ACTIVE)
-                        .newAnd({
-                             it.eq(ChallengeODB::challengeStatus, ChallengeStatus.REFUSED)
-                            .get(ChallengeODB::createdBy).eqId(callerId) })
+                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.WAITING_FOR_ACCEPTANCE)
+                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.ACTIVE)
+                    .newAnd({
+                        it.eq(ChallengeODB::challengeStatus, ChallengeStatus.REFUSED)
+                                .get(ChallengeODB::createdBy).eqId(callerId)
+                    })
                     .finish();
         })
 

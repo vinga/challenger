@@ -327,8 +327,25 @@ open class PathWrap<E, G> constructor(
         return StringPathWrap<G>(pc,  root.get(sa.name))
     }
 
+    @JvmName("getAsComparable")
+    infix fun <F: Comparable<F>> get(sa: KMutableProperty1<E, F>): ComparablePathWrap<F,G> {
+        return ComparablePathWrap<F,G>(pc,  root.get(sa.name))
+    }
+
 }
 
+class ComparablePathWrap<E: Comparable<E>,G>(pc: PathContext<G>,
+                              root: Path<E>): PathWrap<E,G>(pc, root) {
+    infix fun before(f: E): PathWrap<E, G> {
+        pc.add({ cb.lessThan(root as Expression<E>, f) })
+        return this
+    }
+    infix fun after(f: E): PathWrap<E, G> {
+        pc.add({ cb.greaterThan(root as Expression<E>, f) })
+        return this
+    }
+
+}
 class StringPathWrap<G>(pc: PathContext<G>,
 
                         root: Path<String>) : PathWrap<String, G>(pc, root), IStringExpressionWrap<G> {

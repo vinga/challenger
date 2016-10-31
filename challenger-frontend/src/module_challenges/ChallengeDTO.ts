@@ -25,6 +25,8 @@ export const ChallengeStatus = {
 export interface ChallengeParticipantDTO {
     id: number,
     label: string,
-    login?: string
+    login?: string,
+    ordinal: number //  ordinal will be different for different users, because caller has always 0
 }
+
 
