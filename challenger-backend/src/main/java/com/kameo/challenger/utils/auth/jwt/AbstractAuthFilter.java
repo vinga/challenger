@@ -3,6 +3,7 @@ package com.kameo.challenger.utils.auth.jwt;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.kameo.challenger.web.rest.ChallengerSess;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -66,7 +67,12 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                     else tokensList.add(tokenInfo);
                 }
 
+                if (isResourceARenewTokenGenerator(httpReq)) {
+                    E tokenInfo = renewToken(httpReq, httpRes);
 
+                    printTokenToResponse(httpRes, tokenInfo);
+                    return;
+                }
 
                 //Authorization:Bearer eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q
 
@@ -100,6 +106,8 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
      * @return
      */
     protected abstract boolean isResourceANewTokenGenerator(HttpServletRequest req);
+
+    protected abstract boolean isResourceARenewTokenGenerator(HttpServletRequest req);
 
     protected boolean isResourceAuthorizationRequired(HttpServletRequest req) {
         return true;
@@ -170,6 +178,8 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
 
     }
 
+
+    protected abstract E renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException;
 
 
 }

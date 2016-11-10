@@ -1,7 +1,11 @@
 import {ReduxState} from "../redux/ReduxState";
 import * as webCall from "./accountWebCalls";
-import {LOGIN_USER_RESPONSE_SUCCESS, LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_REQUEST, REGISTER_USER_REQUEST, REGISTER_USER_RESPONSE} from "./accountActionTypes";
+import {
+    LOGIN_USER_RESPONSE_SUCCESS, LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_REQUEST, REGISTER_USER_REQUEST, REGISTER_USER_RESPONSE,
+    UNAUTHORIZED_WEB_RESPONSE, REGISTER_USER_RESPONSE_FAILURE
+} from "./accountActionTypes";
 import {fetchWebChallenges} from "../module_challenges/index";
+import {WEB_STATUS_UNAUTHORIZED} from "../logic/domain/Common";
 
 function renewToken(login: string, jwtToken: string) {
     return function (dispatch, getState: ()=>ReduxState) {
@@ -9,14 +13,7 @@ function renewToken(login: string, jwtToken: string) {
         webCall.renewToken(login, jwtToken).then(jwtToken=> {
                 dispatch(LOGIN_USER_RESPONSE_SUCCESS.new({login, jwtToken}));
                 dispatch(queueRenewAccessToken(login));
-            },
-            (jqXHR: any, textStatus: string, exception)=> dispatch(LOGIN_USER_RESPONSE_FAILURE.new({
-                login,
-                textStatus,
-                jqXHR,
-                exception
-            }))
-        )
+            }).catch((reason)=>authPromiseErr(reason,dispatch));
     }
 }
 
@@ -24,6 +21,7 @@ function renewToken(login: string, jwtToken: string) {
 function queueRenewAccessToken(login) {
     return function (dispatch, getState: ()=>ReduxState) {
         getState().accounts.filter(u=>login == login).map(u=> {
+
             console.log("queueAccessToken");
             // one minute before expiration time
             var requestTimeMillis = u.tokenExpirationDate.getTime() - 1000 * 60;
@@ -44,26 +42,22 @@ function queueRenewAccessToken(login) {
 export function loginUserAction(login: string, password: string, primary: boolean) {
     return function (dispatch) {
         dispatch(LOGIN_USER_REQUEST.new({login, password, primary}));
-        return new Promise(function (resolve, reject) {
-            webCall.login(login, password).then(
+        return webCall.login(login, password).then(
                 jwtToken=> {
                     dispatch(LOGIN_USER_RESPONSE_SUCCESS.new({login, jwtToken}));
-                    resolve(true);
-                    //   dispatch(queueRenewAccessToken(login));
+                      //  dispatch(queueRenewAccessToken(login));
                     if (primary) {
                         dispatch(fetchWebChallenges());
                     }
-                },
-                (jqXHR: any, textStatus: string, exception)=> dispatch(LOGIN_USER_RESPONSE_FAILURE.new({
+                }
+            ).catch((response:XMLHttpRequest)=> {
+                dispatch(LOGIN_USER_RESPONSE_FAILURE.new({
                     login,
-                    textStatus,
-                    jqXHR,
-                    exception
-                }))
-            )
-
-
-        });
+                    textStatus: response.responseText,
+                    status: response.status,
+                    responseText: response.responseText
+                }));
+            })
 
     }
 }
@@ -75,9 +69,23 @@ export function registerUserAction(email: string, login: string, password: strin
             registerResponseDTO=> {
                 dispatch(REGISTER_USER_RESPONSE.new(registerResponseDTO));
             }
-        )
+        ).catch((response:XMLHttpRequest)=> {
+            dispatch(REGISTER_USER_RESPONSE_FAILURE.new({
+                login,
+                textStatus: response.responseText,
+                status: response.status,
+                responseText: response.responseText
+            }));
+        })
     }
 }
 
+export function authPromiseErr(reason: any, dispatch) {
+    if (reason.status==WEB_STATUS_UNAUTHORIZED) {
+        console.log("FOUND UNAUTHORIZED");
+        dispatch(UNAUTHORIZED_WEB_RESPONSE.new({jwtToken:reason.jwtToken}));
+    }
+    throw reason
+}
 
 

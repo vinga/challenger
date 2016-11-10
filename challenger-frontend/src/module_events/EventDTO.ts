@@ -15,7 +15,8 @@ export interface EventDTO {
     content: string,
     sentDate: number,
     authorId: number,
-    eventType: string
+    eventType: string,
+    readDate?: number; // if message has been read for that user
 }
 
 export interface EventGroupDTO {
@@ -30,4 +31,24 @@ export interface EventState {
     eventGroups: Array<EventGroupDTO>,
     selectedTask: TaskDTO,
     selectedNo: number
+}
+
+
+export interface DisplayedEventUI {
+    kind: string
+    id: number,
+    authorId: number,
+    authorOrdinal: number,
+    authorLabel: string,
+    postContent: string,
+    eventType: string
+    isNew: boolean,
+    readDate?: Date,
+    sentDate: Date
+}
+export interface DateDiscrimUI {
+    kind: 'DateDiscrimUI'
+    date: Date
+    id: number,
+    title: string
 }

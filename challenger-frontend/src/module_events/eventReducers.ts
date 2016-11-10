@@ -1,4 +1,4 @@
-import {EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC, SHOW_TASK_EVENTS} from "./eventActionTypes";
+import {EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC, SHOW_TASK_EVENTS, WEB_ASYNC_EVENT_RESPONSE, MARK_EVENT_AS_READ_OPTIMISTIC} from "./eventActionTypes";
 import {copy, copyAndReplace} from "../redux/ReduxState";
 import {isAction} from "../redux/ReduxTask";
 import {EventState, EventDTO, EventGroupDTO} from "./EventDTO";
@@ -45,19 +45,42 @@ export function eventsState(state: EventState = getInitialState(), action): Even
             selectedTask: action.task,
             selectedNo: action.no,
         })
+    } else if (isAction(action, WEB_ASYNC_EVENT_RESPONSE)) {
+        var posts: Array<EventDTO> = action.events;
+
+        var newState = state;
+        posts.map(p=> {
+            var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == p.challengeId);
+
+            var newPosts = eg.posts.filter(po=>po.id > 0 && po.id != p.id).concat(p); // replace old ones with new
+            eg = Object.assign({}, eg, {posts: newPosts});
+
+            newState = copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == p.challengeId)});
+        })
+
+        return newState
+
+    } else if (isAction(action, MARK_EVENT_AS_READ_OPTIMISTIC)) {
+
+        var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == action.challengeId);
+        eg = Object.assign({}, eg, {
+            posts: eg.posts.map(p=> {
+                    if (p.id == action.eventId) {
+                        return Object.assign({}, p, {readDate: action.readDate})
+                    } else return p;
+                }
+            )
+        });
+        return copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == action.challengeId)});
     }
     return state;
 }
 
-function eventGroup(state: EventGroupDTO, action): EventGroupDTO {
+function eventGroup(state: EventGroupDTO = {posts: []}, action): EventGroupDTO {
 
     if (isAction(action, ADD_NEW_EVENT_OPTIMISTIC)) {
-        var temp;
-        if (state==null)
-            temp={posts:[]}
-        else temp=state;
-        var newPosts = temp.posts.concat(action);
-        return Object.assign({}, temp, {posts: newPosts});
+        var newPosts = state.posts.concat(action);
+        return Object.assign({}, state, {posts: newPosts});
     }
     return state;
 }

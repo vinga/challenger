@@ -7,8 +7,7 @@ import {eventsSelector} from "../eventSelectors";
 import {EXPAND_EVENTS_WINDOW, SHOW_TASK_EVENTS} from "../eventActionTypes";
 import {connect} from "react-redux";
 import {sendEvent} from "../eventActions";
-import {EventType} from "../EventDTO";
-import DifficultyIconButton from "../../module_tasks/components/taskTable/DifficultyIconButton";
+import {EventType, DateDiscrimUI, DisplayedEventUI} from "../EventDTO";
 import {TaskDTO} from "../../module_tasks/TaskDTO";
 import Chip from "material-ui/Chip";
 import {getColorSuperlightenForUser} from "../../views/common-components/Colors";
@@ -18,7 +17,7 @@ interface Props {
     authorId: number
 }
 interface ReduxProps {
-    displayedEvents: Array<DisplayedEventUI>,
+    displayedEvents: Array<DisplayedEventUI | DateDiscrimUI>,
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
     task?: TaskDTO,
@@ -31,16 +30,6 @@ interface PropsFunc {
     onCompressFunc: () => void
     onTaskCloseFunc: () => void
 }
-export interface DisplayedEventUI {
-    id: number,
-    authorId: number,
-    authorOrdinal: number,
-    authorLabel: string,
-    postContent: string,
-    eventType: string
-}
-
-
 
 
 const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
@@ -122,17 +111,25 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         }
     }
 
-    renderPost = (ev: DisplayedEventUI) => {
-        if (ev.eventType == EventType.POST)
-            return <span><span style={{marginRight:"5px"}}>{ev.authorLabel}:</span> {ev.postContent}</span>;
-        else return <span><i> {ev.postContent}</i></span>;
+    renderPost = (ev: DisplayedEventUI | DateDiscrimUI) => {
+        if (ev.kind == 'DateDiscrimUI') {//ev instanceof DateDiscrim) {
+
+            var ddisc = ev as DateDiscrimUI;
+            return <div style={{fontSize:"10px", marginTop:'10px', borderRight:
+             '10px solid transparent',marginRight:'20px',borderBottom: "1px solid #ddd", width:"100%"}}>{ddisc.title}</div>;
+        } else {//if (ev instanceof DisplayedEventUI) {
+            var dd = ev as DisplayedEventUI;
+            if (dd.eventType == EventType.POST)
+                return <span><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span> {dd.postContent} {dd.isNew && "*"} </span>;
+            else return <span><i> {dd.postContent} {dd.isNew && "*"} </i></span>;
+        }
     }
 
     renderTaskName = () => {
         if (this.props.task != null)
             return this.props.task.label
         else
-            return  "";
+            return "";
     }
 
     render() {
@@ -140,9 +137,9 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
             return null;
         //elem.scrollTop = elem.scrollHeight;
 
-        var st = {width: "550px", height: "500px", position: "fixed", bottom: 0, right: 0, padding: "15px"}
+        var st = {width: "400px", height: "600px", position: "fixed", bottom: 0, right: 0, padding: "15px"}
         if (!this.props.expandedEventWindow) {
-            st = copy(st).and({height: "188px"})
+            st = copy(st).and({height: "228px"})
         }
 
         return <Paper style={st}>
@@ -150,16 +147,6 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                 <div style={{position:"absolute",left:"4px",top:"4px", verticalAlign:"center", display:"block"}}>
                     <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
                         <div style={{display:"block"}}>
-                           {/* {this.props.task != null &&
-                            <span style={{display:"inline-block"}}>
-                                    <DifficultyIconButton
-                                        no={this.props.no}
-                                        task={this.props.task}
-                                        showTooltip={false}
-                                    />
-                                </span>
-                            }
-                           */}
                             {this.renderTaskName()}
 
                             {this.props.task != null &&

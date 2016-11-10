@@ -1,4 +1,4 @@
-package com.kameo.challenger.domain.events
+package com.kameo.challenger.domain.events.db
 
 /**
  * Created by Kamila on 2016-10-23.

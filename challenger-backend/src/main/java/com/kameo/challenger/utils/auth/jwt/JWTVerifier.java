@@ -52,7 +52,6 @@ public class JWTVerifier<E extends TokenInfo> {
 
     void verify(String tokenString) throws InvalidKeyException {
 
-        System.out.println("verify "+tokenString);
         Verifier hmacVerifier = new HmacSHA256Verifier(sc.getSigningKey());
         VerifierProvider hmacLocator = (id, key) -> Lists.newArrayList(hmacVerifier);
         VerifierProviders locators = new VerifierProviders();

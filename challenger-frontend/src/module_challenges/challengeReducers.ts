@@ -1,6 +1,6 @@
-import {WEB_CHALLENGES_REQUEST, CHANGE_CHALLENGE, WEB_CHALLENGES_RESPONSE} from "./challengeActionTypes";
+import {WEB_CHALLENGES_REQUEST, CHANGE_CHALLENGE, WEB_CHALLENGES_RESPONSE, CLOSE_EDIT_CHALLENGE, CREATE_NEW_CHALLENGE} from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
-import {VisibleChallengesDTO} from "./ChallengeDTO";
+import {VisibleChallengesDTO, ChallengeStatus} from "./ChallengeDTO";
 import {copy} from "../redux/ReduxState";
 
 
@@ -8,6 +8,7 @@ const initial = (): VisibleChallengesDTO => {
     return {
         selectedChallengeId: -1,
         visibleChallenges: [],
+        editedChallenge: undefined
     }
 }
 
@@ -27,6 +28,20 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
             })
         });
         return action;
+    } else if (isAction(action, CLOSE_EDIT_CHALLENGE)) {
+        return Object.assign({}, state, {
+            editedChallenge: null,
+        })
+    } else if (isAction(action, CREATE_NEW_CHALLENGE)) {
+        return Object.assign({}, state, {
+            editedChallenge: {
+                id: 0,
+                label: "New challenge",
+                challengeStatus: ChallengeStatus.ACTIVE,
+                creatorId: 0,
+                myId: 0,
+                userLabels: []}
+        })
     }
     return state
 }

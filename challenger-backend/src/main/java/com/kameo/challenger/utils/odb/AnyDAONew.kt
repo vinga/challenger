@@ -8,8 +8,10 @@ import javax.inject.Inject
 import javax.persistence.EntityManager
 import javax.persistence.Tuple
 import javax.persistence.criteria.CriteriaBuilder
+import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Selection
+import javax.swing.text.html.HTML
 import kotlin.reflect.KClass
 
 
@@ -49,6 +51,10 @@ class AnyDAONew(@Inject val em: EntityManager) {
 
 
             it.get(TaskODB::label).lower() like "%ide%"
+
+            it.newOr {
+                it.newAnd { it.get(TaskODB::label).eq("hah") }
+            }
             it.select(it.get(TaskODB::id), it.get(TaskODB::user))
         }
 
@@ -60,7 +66,9 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val one = getOne(TaskODB::class) {
             it.select(it.max(TaskODB::id))
         }
-
+        val one2 = getFirst(TaskODB::class) {
+            it eqId 10
+        }
         println("Get max user id: " + one)
 
         val two = getOne(TaskODB::class) {
@@ -128,8 +136,24 @@ class AnyDAONew(@Inject val em: EntityManager) {
         for (p in users2) {
             println("EMAIL " + p)
         }
+
+
     }
 
+
+    fun <T> merge(entity: T):T {
+       return em.merge(entity)
+    }
+    fun <T> remove(entity: T):T {
+        em.remove(entity)
+        return entity
+    }
+    fun persist(entity: Any) {
+        em.persist(entity)
+    }
+    fun <E : Any> find(clz: KClass<E>, primaryKey: Any): E {
+        return em.find(clz.java, primaryKey);
+    }
 
 
     fun <E : Any, RESULT : Any> getAll(clz: Class<E>, resultClass: Class<RESULT>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
@@ -144,6 +168,8 @@ class AnyDAONew(@Inject val em: EntityManager) {
         jpaQuery.maxResults = 1
         return ensureIsOnlyOne(pc.mapToPluralsIfNeeded<RESULT>(jpaQuery.resultList))
     }
+
+
 
     fun <E : Any, RESULT : Any> getFirst(clz: Class<E>, resultClass: Class<RESULT>, query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT? {
         val pc = QueryPathContext<RESULT>(clz, em)
@@ -197,6 +223,21 @@ class AnyDAONew(@Inject val em: EntityManager) {
     }
 
     inline fun <E : Any, reified RESULT : Any> getAll(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
+        return getAll(clz.java, RESULT::class.java, query)
+    }
+    inline fun <E : Any, reified RESULT : Any> getAllMutable(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): MutableList<RESULT> {
+        return getAll(clz.java, RESULT::class.java, query) as MutableList<RESULT>
+    }
+  /*
+    Example usage: /Function Literals with Receiver/
+    fun boo() {
+        getAll2(TaskODB::class) {
+            eqId(10)
+            get(TaskODB::label) like "ha ha"
+            select(+TaskODB::label)
+        }
+    }*/
+    inline fun <E : Any, reified RESULT : Any> getAll2(clz: KClass<E>, noinline query: RootWrap<E, E>.() -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
         return getAll(clz.java, RESULT::class.java, query)
     }
 

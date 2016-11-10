@@ -12,6 +12,7 @@ export interface ChallengeDTO {
 export interface VisibleChallengesDTO {
     selectedChallengeId: number,
     visibleChallenges: Array<ChallengeDTO>
+    editedChallenge: ChallengeDTO
 }
 
 export const ChallengeStatus = {
@@ -26,7 +27,8 @@ export interface ChallengeParticipantDTO {
     id: number,
     label: string,
     login?: string,
-    ordinal: number //  ordinal will be different for different users, because caller has always 0
+    ordinal: number, //  ordinal will be different for different users, because caller has always 0
+    email?: string
 }
 
 

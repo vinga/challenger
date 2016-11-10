@@ -1,4 +1,4 @@
-package com.kameo.challenger.domain.events;
+package com.kameo.challenger.utils.odb.newapi;
 
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
@@ -13,6 +13,7 @@ public class SugarTest {
     public void foo(AnyDAONew ad) {
         SingularAttribute<TaskODB, UserODB> _user = (SingularAttribute) ad.getEm().getMetamodel().entity(UserODB.class).getDeclaredAttribute("user");
         SingularAttribute<TaskODB, String> _label = (SingularAttribute) ad.getEm().getMetamodel().entity(TaskODB.class).getDeclaredAttribute("label");
+
 
 
         ad.getAll(TaskODB.class, UserODB.class, it -> {

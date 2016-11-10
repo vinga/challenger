@@ -11,6 +11,7 @@ const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px'
 import IconMenuProps = __MaterialUI.Menus.IconMenuProps;
 import {selectedChallengeSelector} from "../challengeSelectors";
 import {changeChallengeAction} from "../challengeActions";
+import {CREATE_NEW_CHALLENGE} from "../challengeActionTypes";
 
 interface Props {
     selectedChallengeLabel: string,
@@ -23,6 +24,7 @@ interface Props {
 interface PropsFunc {
     onIncrementDayFunc: (amount: number)=> void;
     onChangeChallenge: (challengeId: number)=>void;
+    onCreateNewChallenge: () => void;
 
 }
 class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {  style: IconMenuProps },void> {
@@ -92,7 +94,9 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                     leftIcon={<FontIcon
                     style={menuIconStyle}
                     className={"fa fa-plus-circle cyan-text"}/>}
-                    primaryText="Create new challenge"/>
+                    primaryText="Create new challenge"
+                    onTouchTap={()=>this.props.onCreateNewChallenge()}
+                />
             </IconMenu>
         </div>);
     }
@@ -112,6 +116,9 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         },
         onIncrementDayFunc: (amount: number) => {
             dispatch(incrementDayAction(amount))
+        },
+        onCreateNewChallenge: () => {
+            dispatch(CREATE_NEW_CHALLENGE.new({}))
         }
     }
 };

@@ -1,16 +1,21 @@
 package com.kameo.challenger.domain.events;
 
+import com.google.common.collect.Lists;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.domain.accounts.ConfirmationLinkLogic;
-import com.kameo.challenger.domain.accounts.EventGroupDAO;
+import com.kameo.challenger.domain.events.EventGroupDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
+import com.kameo.challenger.domain.events.db.EventODB;
+import com.kameo.challenger.domain.events.db.EventReadODB;
+import com.kameo.challenger.domain.events.db.EventType;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
+import kotlin.Pair;
 import org.junit.Assert;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -18,8 +23,8 @@ import org.springframework.test.context.TestPropertySource;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.c;
 @TestPropertySource(locations="classpath:application-test.properties")
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class EventsTest implements En {
@@ -50,7 +55,7 @@ public class EventsTest implements En {
             p.setCreateDate(new Date());
             p.setContent(words);
             p.setEventType(EventType.POST);
-            eventGroupDao.editEvent(u.getId(),t.getChallenge().getId(), p);
+            eventGroupDao.createEventFromClient(u.getId(),t.getChallenge().getId(), p);
 
         });
 
@@ -81,7 +86,7 @@ public class EventsTest implements En {
                 p.setCreateDate(new Date());
                 p.setContent(words);
                 p.setEventType(EventType.POST);
-                eventGroupDao.editEvent(u.getId(),  p.getChallenge().getId(), p);
+                eventGroupDao.createEventFromClient(u.getId(),  p.getChallenge().getId(), p);
             }
         });
 
@@ -95,21 +100,34 @@ public class EventsTest implements En {
                 p.setCreateDate(new Date());
                 p.setContent(words);
                 p.setEventType(EventType.POST);
-                eventGroupDao.editEvent(u.getId(), c.getId(), p);
+                eventGroupDao.createEventFromClient(u.getId(), c.getId(), p);
             }
         });
+        Given("^\"([^\"]*)\" read all events in challenge \"([^\"]*)\"$", (String login, String challenge) -> {
+            UserODB u=testHelper.resolveUserByLogin(login);
+            ChallengeODB c=testHelper.resolveChallenge(challenge);
+            long challengeId=c.getId();
+            List<EventODB> events = anyDao.streamAll(EventODB.class).where(e -> e.getChallenge().getId() == challengeId)
+                                          .sortedBy(EventODB::getId).collect(Collectors.toList());
+            for (EventODB e: events) {
+                eventGroupDao.markEventAsRead(u.getId(), challengeId, e.getId(), new Date());
+            }
+        });
+
 
         When("^\"([^\"]*)\" fetch (\\d+) total posts for challenge \"([^\"]*)\"$", (String login, Integer postsCount, String challenge) -> {
             UserODB u=testHelper.resolveUserByLogin(login);
             ChallengeODB c=testHelper.resolveChallenge(challenge);
-            eventGroupDao.getPostsForChallenge(u.getId(),c.getId(), postsCount);
+            eventGroupDao.getLastEventsForChallenge(u.getId(),c.getId(), postsCount);
         });
 
         Then("^\"([^\"]*)\" see that last (\\d+) comments of challenge \"([^\"]*)\" contains (\\d+) (?:post|posts) with \"([^\"]*)\"$",
                 (String login, Integer commentsCount, String challenge, Integer commentsOfTypeCount, String words) -> {
                     UserODB u=testHelper.resolveUserByLogin(login);
                     ChallengeODB c=testHelper.resolveChallenge(challenge);
-                    List<EventODB> posts = eventGroupDao.getPostsForChallenge(u.getId(), c.getId(), commentsCount);
+                    List<Pair<EventReadODB, EventODB>> pairs = eventGroupDao.getLastEventsForChallenge(u.getId(), c.getId(), commentsCount);
+                    List<EventODB> posts=pairs.stream().map(Pair<EventReadODB, EventODB>::getSecond).collect(Collectors.toList());
+
                     int count=0;
                     for (EventODB p: posts) {
                         if (p.getContent().equals(words))

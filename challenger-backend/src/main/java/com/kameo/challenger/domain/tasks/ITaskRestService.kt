@@ -3,6 +3,7 @@ package com.kameo.challenger.domain.tasks
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.tasks.db.*
+import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
 import lombok.Data
 import java.util.*
 
@@ -24,7 +25,7 @@ interface ITaskRestService {
     }
 
     @Data
-    data class TaskApprovalDTO(val taskId: Long = 0, val userId: Long = 0, val taskStatus: TaskStatus? = null, val rejectionReason: String? = null) {
+    data class TaskApprovalDTO(val taskId: Long = 0, val userId: Long = 0, val taskStatus: TaskStatus = accepted, val rejectionReason: String? = null) {
 
 
         companion object {

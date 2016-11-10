@@ -5,6 +5,7 @@ import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
 import * as webCall from "./taskWebCalls";
 import {jwtTokensOfChallengeParticipants} from "../module_glue/index";
+import {authPromiseErr} from "../module_accounts/accountActions";
 
 
 export function updateTask(task: TaskDTO) {
@@ -15,12 +16,12 @@ export function updateTask(task: TaskDTO) {
             webCall.createTask(task)
                 .then((task: TaskDTO)=> {
                     dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-                });
+                }).catch((reason)=>authPromiseErr(reason,dispatch));
         } else {
             webCall.updateTask(task)
                 .then((task: TaskDTO)=> {
                     dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-                });
+                }).catch((reason)=>authPromiseErr(reason,dispatch));
         }
         dispatch(displayInProgressWebRequestsIfAny());
     }
@@ -33,7 +34,7 @@ export function deleteTask(task: TaskDTO) {
         dispatch(MODIFY_TASK_REQUEST.new(task));
         webCall.deleteTask(task).then(()=> {
             dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-        });
+        }).catch((reason)=>authPromiseErr(reason,dispatch));
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }
@@ -61,7 +62,7 @@ export function markTaskDoneOrUndone(caller: TaskUserDTO, challengeId: number, t
             .then((tpRes: TaskProgressDTO)=> {
                 // tpRes caused wrong date (previous day), cause response had zeroed hour
                dispatch(fetchTasks(challengeId, new Date(taskProgress.progressTime)));
-            });
+            }).catch((reason)=>authPromiseErr(reason,dispatch));
 
         dispatch(displayInProgressWebRequestsIfAny());
 
@@ -79,7 +80,7 @@ export function fetchTasks(challengeId: number, day: Date): any {
                 var key: string = createTaskDTOListKey(challengeId, day);
                 dispatch(LOAD_TASKS_RESPONSE.new({taskList: taskList, challengeId: challengeId, day: day, lastUpdated: new Date(), webState: WebState.FETCHED, invalidTasksIds: []}))
             }
-        );
+        ).catch((reason)=>authPromiseErr(reason,dispatch));
     }
 };
 
@@ -102,7 +103,7 @@ export function updateTaskStatus(challengeId: number, taskApproval: TaskApproval
         webCall.updateTaskStatus(challengeId, taskApproval, jwtTokensOfApprovingUsers)
             .then((task: TaskDTO)=> {
                 dispatch(fetchTasks(challengeId, day));
-            });
+            }).catch((reason)=>authPromiseErr(reason,dispatch))
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }

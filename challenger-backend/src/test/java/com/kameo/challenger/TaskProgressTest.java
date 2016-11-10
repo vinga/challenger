@@ -4,6 +4,7 @@ package com.kameo.challenger;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.tasks.TaskDAO;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.domain.tasks.db.TaskProgressODB;
 import com.kameo.challenger.logic.ChallengerLogic;
@@ -28,6 +29,8 @@ public class TaskProgressTest implements En {
     @Inject
     private AnyDAO anyDao;
     @Inject
+    private TaskDAO taskDao;
+    @Inject
     private ChallengerLogic challengerService;
     @Inject
     private TestHelper testHelper;
@@ -48,7 +51,7 @@ public class TaskProgressTest implements En {
             List<TaskODB> res = challengerService
                     .getTasks(user1.getId(), taskODB.getChallenge().getId(), new Date())
                     .stream().filter(t->t.getUser().getId()==user1.getId()).collect(Collectors.toList());
-            List<TaskProgressODB> taskProgress = challengerService.getTaskProgress(res, new Date());
+            List<TaskProgressODB> taskProgress = taskDao.getTaskProgress(res, new Date());
 
             if (doneUndone.equals("undone")) {
                 taskProgress.forEach(tp -> {
@@ -80,7 +83,7 @@ public class TaskProgressTest implements En {
                     throw new IllegalArgumentException(doneUndone + " should be done or undone");
             }
             try {
-                challengerService.markTaskDone(user1.getId(), taskODB.getId(),new Date(), done);
+                taskDao.markTaskDone(user1.getId(), taskODB.getId(),new Date(), done);
             } catch (Exception ex) {
                 testHelper.pushException(ex);
             }

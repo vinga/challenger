@@ -38,6 +38,21 @@ export const challengeAccountsSelector: Selector<ReduxState,Array<AccountDTO>> =
     }
 );
 
+export const possibleChallengeParticipantsSelector: Selector<ReduxState,Array<ChallengeParticipantDTO>> =
+    createSelector(getChallenges,
+        (visibleChallenges: Array<ChallengeDTO>) => {
+        var uniqueParticipants:Array<ChallengeParticipantDTO>=[];
+        var uniqueEmails=[];
+        visibleChallenges.map(vc=> {
+          vc.userLabels.map(ul=> {
+              if ($.inArray(ul.label,uniqueEmails)==-1) {
+                  uniqueEmails.push(ul.label);
+                  uniqueParticipants.push(ul);
+              }
+          })
+        });
+        return uniqueParticipants;
+    });
 
 
 

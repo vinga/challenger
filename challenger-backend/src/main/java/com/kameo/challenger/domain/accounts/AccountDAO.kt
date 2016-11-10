@@ -130,5 +130,11 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         confirmationLinkLogic.createAndSendChallengeConfirmationLink(cb, cp)
     }
 
+    open fun getUserIdByLogin(login: String) :Long {
+        return anyDaoNew.getOne(UserODB::class, {
+            it get UserODB::login eq login
+        }).id
+    }
+
 
 }

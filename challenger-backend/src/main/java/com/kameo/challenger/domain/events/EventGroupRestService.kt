@@ -1,11 +1,12 @@
 package com.kameo.challenger.domain.events
 
 import com.kameo.challenger.config.ServerConfig
-import com.kameo.challenger.domain.accounts.EventGroupDAO
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.events.IEventGroupRestService.EventDTO
 import com.kameo.challenger.domain.events.IEventGroupRestService.EventGroupDTO
+import com.kameo.challenger.domain.events.db.EventODB
+import com.kameo.challenger.domain.events.db.EventType
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus.CREATED
@@ -14,7 +15,6 @@ import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import org.springframework.stereotype.Component
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.ws.rs.*
 import javax.ws.rs.container.AsyncResponse
@@ -36,6 +36,7 @@ class EventGroupRestService : IEventGroupRestService {
     private lateinit var eventPushDAO: EventPushDAO
 
 
+    @Deprecated("use getEventsForChallenge instaed")
     @GET
     @Path("/challenges/{challengeId}/tasks/{taskId}/events")
     @ApiOperation("Gets events for task")
@@ -50,35 +51,25 @@ class EventGroupRestService : IEventGroupRestService {
     }
 
 
-
-
-
     @POST
     @Path("/async/challenges/{challengeId}/events")
     @WebResponseStatus(WebResponseStatus.ACCEPTED)
     fun listenTo(@Suspended asyncResponse: AsyncResponse, @PathParam("challengeId") challengeId: Long) {
-        //TODO permissions
-
-        //TODO inform when more should be fetched??
-        //TODO timeouts
-        //TODO synchronization
-        //TODO fetch only last messages
-        // TODO what if in the meantime between remove response and next call somethin new arrived? better than remove, we should set there LAST postId
-
         eventPushDAO.listenToNewEvents(session.userId, asyncResponse, challengeId);
-
     }
 
-
-
+    @POST
+    @Path("/challenges/{challengeId}/events/{eventId}/markRead")
+    fun markEventRead(@PathParam("challengeId") challengeId: Long, @PathParam("eventId") eventId: Long, readDate: Long) {
+        eventGroupDAO.markEventAsRead(session.userId, challengeId, eventId, Date(readDate))
+    }
 
 
     @GET
     @Path("/challenges/{challengeId}/events")
     override fun getEventsForChallenge(@PathParam("challengeId") challengeId: Long): EventGroupDTO {
         val callerId = session.getUserId();
-        val postsForTask = eventGroupDAO.getPostsForChallenge(callerId, challengeId).map(
-                { EventDTO.fromODB(it) })
+        val postsForTask = eventGroupDAO.getLastEventsForChallenge(callerId, challengeId).map { EventDTO.fromODB(it) }
                 .toTypedArray();
         return EventGroupDTO(challengeId, null, postsForTask);
     }
@@ -91,7 +82,7 @@ class EventGroupRestService : IEventGroupRestService {
             throw IllegalArgumentException();
         val callerId = session.getUserId();
 
-        var ev = EventODB(eventDTO.id);
+        var ev = EventODB(0);
         ev.author = UserODB(eventDTO.authorId);
         ev.challenge = ChallengeODB(eventDTO.challengeId);
         ev.task = if (eventDTO.taskId != null) TaskODB(eventDTO.taskId ?: throw IllegalArgumentException()) else null;
@@ -99,9 +90,8 @@ class EventGroupRestService : IEventGroupRestService {
         ev.createDate = Date(eventDTO.sentDate);
         ev.eventType = EventType.POST;
 
+        var updatedEvent = eventGroupDAO.createEventFromClient(callerId, challengeId, ev);
 
-        var updatedEvent = eventGroupDAO.editEvent(callerId, challengeId, ev);
-        eventPushDAO.broadcastNewEvent(updatedEvent)
         return EventDTO.fromODB(updatedEvent);
     }
 }

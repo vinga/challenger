@@ -11,7 +11,9 @@ import {REGISTER_SHOW_REGISTRATION_PANEL} from "../accountActionTypes";
 interface ReduxProps {
     loginFailed: boolean,
     inProgress: boolean,
-    errorDescription : string
+    errorDescription : string,
+    infoDescription: string,
+
 
 };
 interface ReactProps {
@@ -98,10 +100,20 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                             {this.props.registerButtonVisible &&
 <div className="right">
                             <FlatButton label="Register" onClick={this.props.onRegisterFunc}/></div> }
+
+
+                        </div>
+
+                    </div>
+                    <div className="row">
+                        <div className="col s1 offset-s3">
+                        </div>
+                    <div className="col s3 " style={{paddingRight: '50px'}}>
+                        <div className="right">
+                            Forgot password?
                         </div>
                     </div>
-
-
+</div>
                 </div>
             </div>);
     }
@@ -117,8 +129,14 @@ const mapStateToProps = (state: ReduxState, props:ReactProps):any => {
     if (inProgress==undefined)
         inProgress=false;
 
+    var user=state.accounts.find(u=>u.primary==true);
+    var infoDescription=props.infoDescription;
+    if (user!=null && user.infoDescription!=null)
+        infoDescription=user.infoDescription;
     return {
         errorDescription: errorDescription,
+        infoDescription: infoDescription,
+
         inProgress: inProgress,
         loginFailed: errorDescription!=null
 

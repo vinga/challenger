@@ -8,8 +8,9 @@ import com.kameo.challenger.domain.accounts.db.UserStatus;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
-import com.kameo.challenger.domain.events.EventODB;
-import com.kameo.challenger.domain.events.EventType;
+import com.kameo.challenger.domain.events.db.EventODB;
+import com.kameo.challenger.domain.events.db.EventReadODB;
+import com.kameo.challenger.domain.events.db.EventType;
 import com.kameo.challenger.domain.tasks.db.TaskApprovalODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.domain.tasks.db.TaskProgressODB;
@@ -73,6 +74,8 @@ public class FakeDataLogic implements CommandLineRunner {
         cp.setChallenge(contract1);
         cp.setChallengeStatus(ChallengeStatus.ACTIVE);
         em.persist(cp);
+
+
 
         TaskODB ac1 = new TaskODB();
         ac1.setUser(data.userJack);
@@ -178,6 +181,18 @@ public class FakeDataLogic implements CommandLineRunner {
         p1.setEventType(EventType.POST);
         em.persist(p1);
 
+        EventReadODB er=new EventReadODB();
+        er.setChallenge(contract1);
+        er.setEvent(p1);
+        er.setUser(data.userJack);
+        em.persist(er);
+        er=new EventReadODB();
+        er.setChallenge(contract1);
+        er.setEvent(p1);
+        er.setUser(data.userKami);
+        er.setRead(DateUtil.addDays(new Date(),-3));
+        em.persist(er);
+
         EventODB p2=new EventODB();
         p2.setChallenge(contract1);
         p2.setCreateDate(new Date());
@@ -185,6 +200,18 @@ public class FakeDataLogic implements CommandLineRunner {
         p2.setContent("Totally agree.");
         p2.setEventType(EventType.POST);
         em.persist(p2);
+
+        er=new EventReadODB();
+        er.setChallenge(contract1);
+        er.setEvent(p2);
+        er.setUser(data.userJack);
+        er.setRead(new Date());
+        em.persist(er);
+        er=new EventReadODB();
+        er.setChallenge(contract1);
+        er.setEvent(p2);
+        er.setUser(data.userKami);
+        em.persist(er);
 
 
         ChallengeODB contract2 = new ChallengeODB();

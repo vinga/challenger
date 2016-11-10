@@ -11,6 +11,7 @@ import java.lang.annotation.Annotation;
 @Provider
 public class WebResponseStatusFilter implements ContainerResponseFilter {
 
+
     @Override
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
         if (containerResponseContext.getStatus() == 200) {

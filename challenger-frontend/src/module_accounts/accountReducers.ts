@@ -8,10 +8,10 @@ import {
     ON_LOGOUT_SECOND_USER,
     REGISTER_SHOW_REGISTRATION_PANEL,
     REGISTER_USER_REQUEST,
-    REGISTER_USER_RESPONSE
+    REGISTER_USER_RESPONSE, UNAUTHORIZED_WEB_RESPONSE, REGISTER_USER_RESPONSE_FAILURE,
 } from "./accountActionTypes";
 import {isAction} from "../redux/ReduxTask";
-import {webCall} from "../logic/WebCall";
+import {baseWebCall} from "../logic/WebCall";
 import {RegisterState} from "./RegisterResponseDTO";
 
 
@@ -26,6 +26,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
                 userId: -1,
                 login: action.login,
                 errorDescription: null,
+                infoDescription: null,
                 inProgress: true,
                 primary: action.primary
             }
@@ -36,7 +37,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
             if (u.login == action.login) {
 
                 if (u.primary) {
-                    webCall.webToken = action.jwtToken;
+                    baseWebCall.webToken = action.jwtToken;
                 }
 
                 var decodedToken: any = jwtDecode(action.jwtToken);
@@ -52,6 +53,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
                     jwtToken: action.jwtToken,
                     lastUpdated: Date.now(),
                     errorDescription: null,
+                    infoDescription: null,
                     inProgress: false,
                     tokenExpirationDate: new Date(exp * 1000)
                 });
@@ -66,7 +68,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
                 return Object.assign({}, u, {
                     jwtToken: null,
                     tokenExpirationDate: null,
-                    errorDescription: getErrorDescriptionForLogin(action.jqXHR.responseText, action.jqXHR, action.textStatus, action.exception),
+                    errorDescription: getErrorDescriptionForLogin(action.status, action.textStatus, action.responseText),
                     inProgress: false
                 });
 
@@ -81,19 +83,44 @@ export function accounts(state: Array<AccountDTO> = [], action) {
             } else
                 return Object.assign({}, u);
         });
+    } else if (isAction(action, UNAUTHORIZED_WEB_RESPONSE)) {
+
+        // multusr response returned as unauthorized
+        if (action.jwtToken.constructor === Array) {
+           // just log out primary user
+            state.filter(u=>u.primary==true).map((u: AccountDTO) => {
+                return Object.assign({}, u, {
+                    jwtToken: null,
+                    tokenExpirationDate: null,
+                    errorDescription: null,
+                    infoDescription: "You (or other challenge participant) have been logged out. Please login again",
+                    inProgress: false
+                });
+            });
+
+        }
+
+
+        return state.filter(u=>u.jwtToken==action.jwtToken).map((u: AccountDTO) => {
+                return Object.assign({}, u, {
+                    jwtToken: null,
+                    tokenExpirationDate: null,
+                    errorDescription: null,
+                    infoDescription: "You've been logged out. Please login again",
+                    inProgress: false
+                });
+        });
     }
     return state;
 }
 
-const getErrorDescriptionForLogin = (data, jqXHR, textStatus, exception) => {
-    if (jqXHR.status === 0)
+const getErrorDescriptionForLogin = (status: number, textStatus, responseText: string) => {
+    if (status === 0)
         return "Connection refused"; //('Not connect.\n Verify Network.');
-    else if (jqXHR.status == 401) {
-        if (data != null)
-            return data;
-        return jqXHR.responseText;
+    else if (status == 401) {
+        return responseText;
     } else {
-        console.log("Error unexpected... " + jqXHR.status + " " + jqXHR.responseText);
+        console.log("Error unexpected... " + status + " " + responseText);
         return "Unexpected problem"
     }
 };
@@ -126,6 +153,12 @@ export function registerState(state: RegisterState = null, action): RegisterStat
                 registeredSuccessfully: false,
             });
         }
+    } else if (isAction(action, REGISTER_USER_RESPONSE_FAILURE)) {
+        return Object.assign({}, state, {
+            registerError: action.responseText,
+            registerInProgress: false,
+            registeredSuccessfully: false,
+        });
     } else if (isAction(action, LOGIN_USER_REQUEST)) {
         return null;
     }

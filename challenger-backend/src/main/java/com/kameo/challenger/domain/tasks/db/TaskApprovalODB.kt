@@ -22,4 +22,10 @@ data class TaskApprovalODB(@Id
     lateinit var taskStatus: TaskStatus
 
     var rejectionReason: String? = null
+
+    constructor(user: UserODB, task: TaskODB, taskStatus: TaskStatus) : this(0) {
+        this.task=task
+        this.user=user
+        this.taskStatus=taskStatus
+    }
 }

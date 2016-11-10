@@ -11,8 +11,11 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
-import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -22,7 +25,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
-
     private final ChallengerSess myTokenInfo;
     private final Provider<MultiUserChallengerSess> multiTokenInfos;
     private final AccountDAO accountDao;
@@ -35,9 +37,6 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         this.accountDao = accountDao;
         this.serverConfig = serverConfig;
     }
-
-
-
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
@@ -53,19 +52,22 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         }
         super.doFilter(req, res, chain);
     }
+
     @Override
     protected boolean isResourceANewTokenGenerator(HttpServletRequest req) {
         return "/accounts/newToken".equals(req.getPathInfo());
     }
 
+    protected boolean isResourceARenewTokenGenerator(HttpServletRequest req) {
+        return "/accounts/renewToken".equals(req.getPathInfo());
+    }
+
     @Override
     protected boolean isResourceAuthorizationRequired(HttpServletRequest req) {
-        if (req.getPathInfo()==null)
+        if (req.getPathInfo() == null)
             return false;
-
         System.out.println(req.getPathInfo());
         return
-
                 !(req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().contains("swagger"));
     }
 
@@ -73,6 +75,17 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     protected JWTServiceConfig getJWTServiceConfig(FilterConfig fc) {
         return new JWTServiceConfig<>("signingkeytemporaryherebutwillbemovedtoouterfile"
                 .getBytes(), "Kameo", "ChallengerUsers", ChallengerSess.class);
+    }
+
+    @Override
+    protected ChallengerSess renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
+        String login = req.getParameter("login");
+        if (myTokenInfo.getUserId() != accountDao.getUserIdByLogin(login))
+            throw new IllegalArgumentException();
+        ChallengerSess td = new ChallengerSess();
+        td.setUserId(myTokenInfo.getUserId());
+        td.setExpires(new DateTime(DateUtil.addMinutes(new Date(), 15)));
+        return td;
     }
 
     @Override
@@ -88,13 +101,10 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
     @Override
     protected void setRequestScopeVariable(List<ChallengerSess> ti) {
-
         if (ti.size() == 1)
             ReflectionUtils.copy(ti.get(0), this.myTokenInfo);
         else {
             multiTokenInfos.get().setUserIds(ti.stream().map(ChallengerSess::getUserId).collect(Collectors.toSet()));
         }
     }
-
-
 }

@@ -1,12 +1,14 @@
-package com.kameo.challenger.domain.events
+package com.kameo.challenger.domain.events.db
 
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
+import com.kameo.challenger.domain.events.db.EventType
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.odb.api.IIdentity
 import org.crsh.cli.Man
 import java.util.*
 import javax.persistence.*
+import javax.persistence.TemporalType.TIMESTAMP
 
 /**
  * Created by Kamila on 2016-10-21.
@@ -30,7 +32,7 @@ data class EventODB(@Id
     var recipient: UserODB? = null
 
     @JoinColumn(updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TIMESTAMP)
     var createDate: Date = Date();
     lateinit var content: String;
 

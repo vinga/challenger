@@ -1,16 +1,19 @@
 import * as React from "react";
+import {ReduxState, connect} from "../../redux/ReduxState";
 import {TaskTable} from "./taskTable/TaskTable";
-import {TaskUserDTO} from "../TaskDTO";
+import {TaskUserDTO, TaskDTO} from "../TaskDTO";
+import {EditTaskDialog} from "./taskEditWindow/EditTaskDialog";
 
 
 interface Props {
     challengeId?: number,
-    accounts: Array<TaskUserDTO>
-
+    accounts: Array<TaskUserDTO>,
     showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>JQueryPromise<boolean>
 }
-
-export class TaskTableList extends React.Component<Props,void> {
+interface ReduxProps {
+    editedTask?: TaskDTO,
+}
+class TaskTableListInternal extends React.Component<Props & ReduxProps, void> {
 
 
     render() {
@@ -32,6 +35,21 @@ export class TaskTableList extends React.Component<Props,void> {
                 rows.push(<div className="row" key={i}>{comps[i]}{i + 1 < comps.length && comps[i + 1]}</div>)
             }
         }
-        return <div>{rows}</div>;
+        return <div>{rows}
+
+            {
+                this.props.editedTask != null &&
+                <EditTaskDialog task={this.props.editedTask}/>
+            }
+        </div>;
     }
 }
+
+const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
+    return {
+        editedTask: state.tasksState.editedTask,
+    }
+};
+
+
+export const TaskTableList = connect(mapStateToProps)(TaskTableListInternal);

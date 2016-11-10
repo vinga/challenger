@@ -1,8 +1,8 @@
 package com.kameo.challenger.domain.events
 
-import com.kameo.challenger.domain.accounts.EventGroupDAO
 import com.kameo.challenger.domain.events.IEventGroupRestService.EventDTO
-import com.kameo.challenger.domain.events.IEventGroupRestService.EventGroupDTO
+import com.kameo.challenger.logic.PermissionDAO
+import com.kameo.challenger.utils.synchCopyThenClear
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
@@ -18,118 +18,100 @@ import javax.ws.rs.container.AsyncResponse
 open class EventPushDAO {
     @Inject
     lateinit var eventGroupDAO: EventGroupDAO
+    @Inject
+    lateinit var permissionDAO: PermissionDAO
     private var subscribers = mutableMapOf<Long, ChallengeSubscribers>();
 
 
+    /**
+     * check if there is anything unread for caller for specified challenge
+     * if yes, return that immediately
+     * otherwise add asyncResponse to list
+     */
     open fun listenToNewEvents(callerId: Long, asyncResponse: AsyncResponse, challengeId: Long) {
-        //TODO permissions
-
-        //TODO inform when more should be fetched??
-        //TODO timeouts
-        //TODO synchronization
-        //TODO fetch only last messages
-        // TODO what if in the meantime between remove response and next call somethin new arrived? better than remove, we should set there LAST postId
-
+        permissionDAO.checkHasPermissionToChallenge(callerId, challengeId);
 
         val subscriber = Subscriber(callerId, asyncResponse)
 
+
         val challengeSubscribers: ChallengeSubscribers? = subscribers[challengeId]
         if (challengeSubscribers == null) {
-
             synchronized(subscribers, {
-                val challengeSubscribersSynch: ChallengeSubscribers? = subscribers[challengeId];
-
+                val challengeSubscribersSynch = subscribers[challengeId]
                 if (challengeSubscribersSynch == null) {
+                    // create new ChallengeSubscribers
                     subscribers.put(challengeId, ChallengeSubscribers(users = mutableListOf(subscriber)))
                 } else {
-
                     synchronized(challengeSubscribersSynch, {
                         challengeSubscribersSynch.users.add(subscriber)
-                    });
+                    })
                 }
-
             });
 
         } else {
             synchronized(challengeSubscribers, {
-                challengeSubscribers.users.add(subscriber);
-            });
+                challengeSubscribers.users.add(subscriber)
+            })
         }
 
         asyncResponse.setTimeout(500, TimeUnit.SECONDS);
-        asyncResponse.setTimeoutHandler({
+        asyncResponse.setTimeoutHandler { it.cancel() }
 
+        broadcastAllPendingEvents(callerId, challengeId);
 
-            it.cancel();
-
-
-        })
     }
 
 
-    open fun broadcastNewEvent(event: EventODB) {
-        println("BROADCAST NEW");
+    open fun broadcastNewEvent(challengeId: Long) {
+        // fetch everyhing unread for those challenge and subscribers
 
-        val challengeId = event.challenge.id;
-        val postsForTask = eventGroupDAO.getPostsForChallengeWithoutPermissionCheck(challengeId).map(
-                { EventDTO.fromODB(it) })
-                .toTypedArray();
-
-
-        val challengeSubscribers: ChallengeSubscribers? = subscribers.get(challengeId);
-        if (challengeSubscribers != null) {
-            synchronized(challengeSubscribers, {
-                challengeSubscribers.users.forEach {
-
-                    it.asyncResponse.resume(EventGroupDTO(challengeId, null, postsForTask))
-                    it.lastDispatchedSentId = event.id
+        subscribers.get(challengeId)?.let {
+            synchronized(it) {
+                println("ANY USERS " + it.users.size)
+                it.users.toList().forEach {
+                    broadcastAllPendingEvents(it.userId, challengeId)
                 }
-                challengeSubscribers.users.clear()
-            });
-        }
-        println("RESUME " + challengeSubscribers?.users?.size)
-
-
-    }
-
-
-    var lastDispatchedEventId: Number? = null;
-
-
-    // TRANSIENT
-    var minEventId: Long? = null;
-    var maxEventId: Long? = null;
-
-    open fun checkIfSomethingWasDispatchedAfter(minEventIdExclusive: Long?, maxEventIdExclusive: Long?) {
-        val minEventIdExclusiveConst = minEventIdExclusive;
-        val maxEventIdExclusiveConst = maxEventIdExclusive;
-        if (minEventIdExclusiveConst == null) {
-            // this should only have place after system start, for example when first person registers to listen
-            minEventId = eventGroupDAO.getMaxEventId();
-            maxEventId = eventGroupDAO.getMaxEventId();
-        }
-        if (minEventIdExclusiveConst != null && maxEventIdExclusiveConst != null && minEventIdExclusiveConst + 1 == maxEventIdExclusiveConst) {
-            // nothing more for sure
-            minEventId = minEventId;
-            maxEventId = maxEventIdExclusive;
-        } else {
-            var notDispatchedEvents = eventGroupDAO.getEventsBetween(minEventIdExclusive, maxEventIdExclusive);
-            notDispatchedEvents.forEach {
-                broadcastNewEvent(it)
             }
-            minEventId = notDispatchedEvents.maxBy({ it.id })?.id;
-            maxEventId = null;
+        }
+    }
+
+    /**
+     * check if there are any unread posts, if yes, send them immediatelly
+     */
+    private fun broadcastAllPendingEvents(callerId: Long, challengeId: Long) {
+        eventGroupDAO.getUnreadEventsForChallenge(callerId, challengeId)
+                .map { EventDTO.fromODB(it) }
+                .toTypedArray()
+                .let { internalBroadcastNewEvent(*it) }
+    }
+
+
+    /**
+     * eventDtoArray - should be from same challenge
+     */
+    private fun internalBroadcastNewEvent(vararg eventDtoArray: EventDTO) {
+        println("BROADCAST NEW EVENTS: " + eventDtoArray.size)
+        if (eventDtoArray.isEmpty()) {
+            return
+        }
+        if (eventDtoArray.groupBy { it.challengeId }.keys.size > 1)
+            throw IllegalArgumentException("Only events from same event may be broadcasted together")
+
+
+
+        subscribers[eventDtoArray.first().challengeId]?.let {
+            synchronized(it) {
+                it.users.synchCopyThenClear().forEach {
+                    it.asyncResponse.resume(eventDtoArray)
+                }
+            }
         }
     }
 
 
-    private class ChallengeSubscribers(val users: MutableList<Subscriber> = mutableListOf()) {
+    private class ChallengeSubscribers(val users: MutableList<Subscriber> = mutableListOf())
 
-    }
-
-    private class Subscriber(val userId: Long, val asyncResponse: AsyncResponse, var lastDispatchedSentId: Long? = null) {
-
-    }
+    private class Subscriber(val userId: Long, val asyncResponse: AsyncResponse)
 
 
 }
