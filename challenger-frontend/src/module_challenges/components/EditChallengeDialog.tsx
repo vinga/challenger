@@ -8,8 +8,11 @@ import {ReduxState, connect} from "../../redux/ReduxState";
 import TextField from "material-ui/TextField";
 import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 import AutoComplete from "material-ui/AutoComplete";
-import {Chip} from "material-ui/Chip";
+import Chip from "material-ui/Chip";
 import {possibleChallengeParticipantsSelector} from "../challengeSelectors";
+import {updateChallengeParticipants} from "../../module_accounts/accountActions";
+import Subheader from "material-ui/Subheader";
+import {validateEmail} from "../../views/common-components/TextFieldExt";
 
 interface Props {
 
@@ -23,13 +26,16 @@ interface ReduxProps {
 }
 
 interface PropsFunc {
-    onCloseFunc?:(event?:TouchTapEvent) => void,
-    onChallengeSuccessfullyUpdatedFunc:(challenge:ChallengeDTO)=>void;
+    onCloseFunc?: (event?: TouchTapEvent) => void,
+    onChallengeSuccessfullyUpdatedFunc: (challenge: ChallengeDTO)=>void;
+    updateChallengeParticipant: (loginOrEmail: string) => void
 }
 interface State {
     challenge: ChallengeDTO,
     submitDisabled: boolean,
-    possibleParticipants: Array<ChallengeParticipantDTO>,
+    searchText: string,
+
+
 }
 
 class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
@@ -38,7 +44,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
         this.state = {
             challenge: this.props.challenge,
             submitDisabled: false,
-            possibleParticipants: this.props.possibleParticipants,
+            searchText: ""
         };
     }
 
@@ -53,9 +59,9 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     };
 
     resolveChallengeDefaultLabel = () => {
-        if(this.props.challenge == null)
+        if (this.props.challenge == null)
             return "Challenge name";
-        return ""+this.props.challenge.label;
+        return "" + this.props.challenge.label;
 
     };
 
@@ -68,14 +74,15 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     }
 
     handleUpdateInput = (value) => {
-        var p = {
-            id: 0,
-            label: value,
-            login: value,
-            ordinal: 0, //  ordinal will be different for different users, because caller has always 0
-            email: value,
-        }
-        this.props.challenge.userLabels.push(p);
+        this.state.searchText=value
+        this.setState(this.state);
+    }
+    handleNewRequest = (value) => {
+        this.props.updateChallengeParticipant(value);
+        this.state.searchText=""
+        this.setState(this.state);
+
+
     }
 
     render() {
@@ -97,7 +104,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
             <Dialog
                 actions={actions}
                 modal={true}
-                open={this.props.challenge != null}
+                open={true}
                 style={{height: "600px", overflow: "none", display: "block"}}
             >
                 <div>
@@ -106,53 +113,63 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                         hintText="Challenge name"
                         defaultValue={this.props.challenge.label}
                         onChange={this.handleActionNameFieldChange}
+
                     />
+                    </div><div>
 
-                    <div>
-                        {
-                            this.props.challenge.userLabels.map(ch =>
-                                <Chip
-                                    onRequestDelete={this.handleRequestDelete}
-                                    onTouchTap={this.handleChipTouchTap}
 
-                                >
-                                    {ch.label}
-                                </Chip>
-
-                            )
-                        }
-                    </div>
 
 
                     <AutoComplete
+                        searchText={this.state.searchText}
                         hintText="Type username or email address"
-dataSource={this.props.possibleLabels}
+                        dataSource={this.props.possibleLabels}
                         onUpdateInput={this.handleUpdateInput}
+                        onNewRequest={this.handleNewRequest}
                     />
+
+
+                    <div style={{display:"flex", flexFlow:"wrap"}}>
+                        {
+                            this.props.challenge.userLabels.map(ch =>
+                                <Chip
+                                    style={{marginRight:'5px', marginBottom:'5px'}}
+                                    key={ch.label}
+                                    onRequestDelete={this.handleRequestDelete}
+                                    onTouchTap={this.handleChipTouchTap}
+                                >
+                                    <i className={validateEmail(ch.label)? "fa fa-envelope-o": "fa fa-user"}></i>  {ch.label}
+                                </Chip>
+                            )
+                        }
+                    </div>
                 </div>
             </Dialog>
-            </div>);
+        </div>);
     }
 }
 
-const mapStateToProps = (state:ReduxState, ownProps:Props):ReduxProps => {
+const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 
     return {
         challenge: state.challenges.editedChallenge,
         currentUserId: loggedUserSelector(state).userId,
         possibleParticipants: possibleChallengeParticipantsSelector(state),
-        possibleLabels:  possibleChallengeParticipantsSelector(state).map(u=>u.label),
+        possibleLabels: possibleChallengeParticipantsSelector(state).map(u=>u.label),
 
     }
 };
-const mapDispatchToProps = (dispatch):PropsFunc => {
+const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
-        onChallengeSuccessfullyUpdatedFunc: (challenge:ChallengeDTO)=> {
+        onChallengeSuccessfullyUpdatedFunc: (challenge: ChallengeDTO)=> {
             dispatch(updateChallenge(challenge));
         },
-        onCloseFunc: (event:TouchTapEvent)=> {
+        onCloseFunc: (event: TouchTapEvent)=> {
             dispatch(CLOSE_EDIT_CHALLENGE.new({}));
         },
+        updateChallengeParticipant: (loginOrEmail: string) => {
+            dispatch(updateChallengeParticipants(loginOrEmail));
+        }
 
     }
 };

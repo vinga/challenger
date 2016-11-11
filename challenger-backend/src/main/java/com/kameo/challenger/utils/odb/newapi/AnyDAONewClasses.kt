@@ -678,8 +678,39 @@ open class PathWrap<E, G> constructor(
         return ComparablePathWrap<F, G>(pc, root.get(sa.name))
     }
 
+    @JvmName("getAsLocalDateTime")
+    infix fun get(sa: KMutableProperty1<E, LocalDateTime>): LocalDateTimePathWrap<G> {
+        return LocalDateTimePathWrap<G>(pc, root.get(sa.name))
+    }
 }
+class LocalDateTimePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>,
+                                               root: Path<LocalDateTime>) : PathWrap<LocalDateTime, G>(pc, root) {
+    infix fun before(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.lessThan(root as Expression<LocalDateTime>, f) })
+        return this
+    }
 
+    infix fun after(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.greaterThan(root as Expression<LocalDateTime>, f) })
+        return this
+    }
+    infix fun lessThan(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.lessThan(root as Expression<LocalDateTime>, f) })
+        return this
+    }
+    infix fun greaterThan(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.greaterThan(root as Expression<LocalDateTime>, f) })
+        return this
+    }
+    infix fun lessThanOrEqualTo(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDateTime>, f) })
+        return this
+    }
+    infix fun greaterThanOrEqualTo(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDateTime>, f) })
+        return this
+    }
+}
 class ComparablePathWrap<E : Comparable<E>, G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>,
                                                root: Path<E>) : PathWrap<E, G>(pc, root) {
     infix fun before(f: E): PathWrap<E, G> {

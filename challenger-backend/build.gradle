@@ -55,7 +55,8 @@ dependencies {
     compile group: 'com.google.code.gson', name: 'gson', version:'2.7'
     compile group: 'com.googlecode.jsontoken', name: 'jsontoken', version:'1.0'
     compile group: 'org.jinq', name: 'jinq-jpa', version:'1.8.11'
-    compile group: 'org.hibernate', name: 'hibernate-jpamodelgen', version:'5.2.3.Final'
+   // compile group: 'org.hibernate', name: 'hibernate-jpamodelgen', version:'5.2.3.Final'
+    compile group: 'org.hibernate', name: 'hibernate-java8', version:'5.0.9.Final'  //5.1.0 or later doesn't use FieldInterceptionHelper
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version:'1.0.4'
     runtime group: 'org.hsqldb', name: 'hsqldb', version:'2.3.3'
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version:'1.4.0.RELEASE') {

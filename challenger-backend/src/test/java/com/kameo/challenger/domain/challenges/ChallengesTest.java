@@ -10,6 +10,7 @@ import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
+import com.kameo.challenger.utils.odb.AnyDAONew;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
 import org.junit.Assert;
@@ -18,6 +19,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +29,8 @@ import java.util.List;
 public class ChallengesTest implements En {
     @Inject
     private AnyDAO anyDao;
+    @Inject
+    private AnyDAONew anyDaoNew;
     @Inject
     private ChallengerLogic challengerService;
     @Inject
@@ -42,7 +46,13 @@ public class ChallengesTest implements En {
 
 
     public ChallengesTest() {
+        Given("^\"([^\"]*)\" (have|has) accepted challenge \"([^\"]*)\"$", (String user, String challenge) -> {
+            UserODB userODB = testHelper.resolveUserByLogin("user");
+            final ChallengeODB challengeODB = testHelper.resolveChallenge(challenge);
+            testHelper.acceptExistingChallenge(userODB, challengeODB);
 
+        });
+        // deprecated, use above
         Given("^I have (\\d+) accepted challenge? with my friend$", (Integer arg1) -> {
             List<UserODB> users = testHelper.createUsers("myself", "myFriend");
             for (int i = 0; i < arg1; i++)
@@ -93,6 +103,15 @@ public class ChallengesTest implements En {
             Assert.assertNotNull(res.getDefaultChallengeId());
         });
 
+        Given("^\"([^\"]*)\" created challenge \"([^\"]*)\" with user \"([^\"]*)\" (\\d+) days ago$", (String u1, String challenge, String u2, Integer daysAgo) -> {
+            // Write code here that turns the phrase above into concrete actions
+            List<UserODB> users = testHelper.createUsers(u1, u2);
+            UserODB uu1 = users.get(0);
+            ChallengeODB ch = testHelper.createPendingChallengeWithLabel(challenge, users.iterator());
+            ch.setCreateDate(LocalDateTime.now().minusDays(daysAgo));
+            testHelper.merge(ch);
+
+        });
 
         Given("^\"([^\"]*)\" created challenge \"([^\"]*)\" with \"([^\"]*)\" and \"([^\"]*)\"$", (String u1, String challenge, String u2, String u3) -> {
             // Write code here that turns the phrase above into concrete actions

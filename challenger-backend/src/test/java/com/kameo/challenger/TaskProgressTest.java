@@ -18,6 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,9 +50,9 @@ public class TaskProgressTest implements En {
             UserODB user1 = testHelper.resolveUserByLogin(login);
             TaskODB taskODB = testHelper.resolveTask(task);
             List<TaskODB> res = challengerService
-                    .getTasks(user1.getId(), taskODB.getChallenge().getId(), new Date())
+                    .getTasks(user1.getId(), taskODB.getChallenge().getId(), LocalDate.now())
                     .stream().filter(t->t.getUser().getId()==user1.getId()).collect(Collectors.toList());
-            List<TaskProgressODB> taskProgress = taskDao.getTaskProgress(res, new Date());
+            List<TaskProgressODB> taskProgress = taskDao.getTaskProgress(res, LocalDate.now());
 
             if (doneUndone.equals("undone")) {
                 taskProgress.forEach(tp -> {
@@ -83,7 +84,7 @@ public class TaskProgressTest implements En {
                     throw new IllegalArgumentException(doneUndone + " should be done or undone");
             }
             try {
-                taskDao.markTaskDone(user1.getId(), taskODB.getId(),new Date(), done);
+                taskDao.markTaskDone(user1.getId(), taskODB.getChallenge().getId(), taskODB.getId(),LocalDate.now(), done);
             } catch (Exception ex) {
                 testHelper.pushException(ex);
             }

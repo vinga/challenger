@@ -40,3 +40,4 @@ When I invite my friend to new challenge
 Then my friend should see 1 unanswered challenge invitation
 
 
+

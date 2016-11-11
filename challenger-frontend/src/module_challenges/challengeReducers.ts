@@ -1,4 +1,4 @@
-import {WEB_CHALLENGES_REQUEST, CHANGE_CHALLENGE, WEB_CHALLENGES_RESPONSE, CLOSE_EDIT_CHALLENGE, CREATE_NEW_CHALLENGE} from "./challengeActionTypes";
+import {WEB_CHALLENGES_REQUEST, CHANGE_CHALLENGE, WEB_CHALLENGES_RESPONSE, CLOSE_EDIT_CHALLENGE, CREATE_NEW_CHALLENGE, UPDATE_CHALLENGE_PARTICIPANTS} from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {VisibleChallengesDTO, ChallengeStatus} from "./ChallengeDTO";
 import {copy} from "../redux/ReduxState";
@@ -41,6 +41,21 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
                 creatorId: 0,
                 myId: 0,
                 userLabels: []}
+        })
+    } else if (isAction(action, UPDATE_CHALLENGE_PARTICIPANTS)) {
+
+        var participant = {
+            id: 0,
+            label: action.loginOrEmail,
+            ordinal: 0,
+        }
+
+        var editedChCopy = Object.assign({}, state.editedChallenge, {
+           userLabels: state.editedChallenge.userLabels.concat(participant)
+        })
+
+        return Object.assign({}, state, {
+            editedChallenge: editedChCopy
         })
     }
     return state

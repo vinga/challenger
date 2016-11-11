@@ -3,8 +3,10 @@ package com.kameo.challenger.domain.challenges.db
 import com.google.common.collect.Lists
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.odb.api.IIdentity
+import java.time.LocalDateTime
 import javax.persistence.*
 import javax.persistence.Entity
+import javax.persistence.TemporalType.TIMESTAMP
 
 @Entity
 data class ChallengeODB(@Id
@@ -22,5 +24,7 @@ data class ChallengeODB(@Id
     @OneToMany(mappedBy = "challenge")
     var participants: List<ChallengeParticipantODB> = Lists.newArrayList<ChallengeParticipantODB>()
 
+
+    var createDate: LocalDateTime= LocalDateTime.now();
 
 }

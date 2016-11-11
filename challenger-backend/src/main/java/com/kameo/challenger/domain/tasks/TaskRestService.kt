@@ -11,9 +11,10 @@ import com.kameo.challenger.utils.rest.annotations.WebResponseStatus.CREATED
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus.SUCCESSFULLY_DELETED
 import com.kameo.challenger.web.rest.ChallengerSess
 import com.kameo.challenger.web.rest.MultiUserChallengerSess
-import org.joda.time.format.DateTimeFormat
 import org.springframework.stereotype.Component
-import java.util.*
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.ws.rs.*
@@ -42,8 +43,8 @@ class TaskRestService : ITaskRestService {
     @Path("challenges/{challengeId}/tasks/")
     fun getTasks(@PathParam("challengeId") contractId: Long, @QueryParam("day") /*"date_yy-MM-dd"*/ dateString: String): List<TaskDTO> {
         val callerId = session.userId
-        val date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate()
-
+        // val date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate()
+        val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yy-MM-dd"))
         val tasks = challengerLogic.getTasks(callerId, contractId, date)
         val taskApprovalODBs = challengerLogic.getTasksApprovalForRejectedTasks(tasks)
         val taskDTOs = tasks.sortedBy { it.id }.map { TaskDTO.fromOdb(it) }
@@ -115,7 +116,9 @@ class TaskRestService : ITaskRestService {
             throw IllegalArgumentException();
         //TODO check also challenge
         val callerId = session.userId
-        val tpOdb = taskDao.markTaskDone(callerId, tp.taskId, Date(tp.progressTime), tp.done)
+        //TODO
+
+        val tpOdb = taskDao.markTaskDone(callerId, challengeId, tp.taskId, tp.getLocalDate(), tp.done)
         if (tp.done)
             eventGroupDao.createTaskEventAfterServerAction(user_ = challengerLogic.getUserById(callerId), task = tpOdb.task, eventType = CHECKED_TASK);
         else

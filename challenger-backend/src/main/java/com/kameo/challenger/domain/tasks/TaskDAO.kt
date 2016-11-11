@@ -13,6 +13,9 @@ import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.Collectors
 import javax.inject.Inject
@@ -38,9 +41,9 @@ open class TaskDAO {
 
         taskODB.createdByUser = UserODB(callerId)
         taskODB.taskStatus =
-                if (taskODB.user.id == callerId)
+                /*if (taskODB.user.id == callerId)
                     TaskStatus.accepted
-                else
+                else*/
                     TaskStatus.waiting_for_acceptance
 
         anyDaoNew.persist(taskODB)
@@ -48,7 +51,7 @@ open class TaskDAO {
         return taskODB
     }
 
-    open fun getTasks(callerId: Long, challengeId: Long, date: Date): List<TaskODB> {
+    open fun getTasks(callerId: Long, challengeId: Long, dayMidnight: LocalDate): List<TaskODB> {
 
 //        anyDaoNew.test();
 
@@ -63,11 +66,17 @@ open class TaskDAO {
             it get TaskODB::challenge eqId challengeId
             it.newOr {
                 it get TaskODB::taskType notEq TaskType.onetime
-                it get (+TaskODB::dueDate) after date
+                it get (+TaskODB::dueDate) after dayMidnight.atStartOfDay()
+            }
+        }
+        tasks.forEach {
+            println(""+it.dueDate+" "+dayMidnight+" "+dayMidnight.atStartOfDay())
+            if (it.dueDate!=null) {
+                println(""+Timestamp.valueOf(it.dueDate)+" "+Timestamp.valueOf(dayMidnight.atStartOfDay()))
             }
         }
 
-        getTaskProgress(tasks, date).forEach {
+        getTaskProgress(tasks, dayMidnight).forEach {
             tp ->
             tasks
                     .filter { it.id == tp.task.id }
@@ -87,22 +96,25 @@ open class TaskDAO {
         return anyDaoNew.remove(task)
     }
 
-    open fun getTaskProgress(tasks: List<TaskODB>, day: Date): List<TaskProgressODB> {
+    open fun getTaskProgress(tasks: List<TaskODB>, dayMidnight: LocalDate): List<TaskProgressODB> {
+
         val taskIds = tasks.map { it.id }
         return if (taskIds.isEmpty())
             emptyList()
         else
             anyDaoNew.getAll(TaskProgressODB::class, {
                 it.get(TaskProgressODB::task).get(TaskODB::id) isIn taskIds
-                it get TaskProgressODB::progressTime eq DateUtil.getMidnight(day)
+                it get TaskProgressODB::progressTime eq dayMidnight
             })
 
     }
 
-    open fun markTaskDone(callerId: Long, taskId: Long, day: Date, done: Boolean): TaskProgressODB {
-        val dayMidnight = DateUtil.getMidnight(day)
+    open fun markTaskDone(callerId: Long, challengeId: Long, taskId: Long, dayMidnight: LocalDate, done: Boolean): TaskProgressODB {
+        permissionDao.checkHasPermissionToChallenge(callerId, challengeId)
         val task = anyDaoNew.getOne(TaskODB::class) { it eqId taskId }
         if (task.user.id != callerId)
+            throw IllegalArgumentException()
+        if (task.challenge.id!=challengeId)
             throw IllegalArgumentException()
 
         val taskProgress = anyDaoNew.getFirst(TaskProgressODB::class) {

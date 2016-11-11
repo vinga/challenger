@@ -6,6 +6,9 @@ import {
 } from "./accountActionTypes";
 import {fetchWebChallenges} from "../module_challenges/index";
 import {WEB_STATUS_UNAUTHORIZED} from "../logic/domain/Common";
+import {validateEmail} from "../views/common-components/TextFieldExt";
+import {UPDATE_CHALLENGE_PARTICIPANTS} from "../module_challenges/challengeActionTypes";
+import {ChallengeParticipantDTO} from "../module_challenges/ChallengeDTO";
 
 function renewToken(login: string, jwtToken: string) {
     return function (dispatch, getState: ()=>ReduxState) {
@@ -88,4 +91,20 @@ export function authPromiseErr(reason: any, dispatch) {
     throw reason
 }
 
+
+export function updateChallengeParticipants(loginOrEmail: string) {
+    return function (dispatch, getState: ()=>ReduxState) {
+        if(validateEmail(loginOrEmail)) {
+            dispatch(UPDATE_CHALLENGE_PARTICIPANTS.new({loginOrEmail: loginOrEmail}))
+        } else {
+            webCall.checkIfLoginExists(loginOrEmail).then(
+                exists => {
+                    if (exists) {
+                        dispatch(UPDATE_CHALLENGE_PARTICIPANTS.new({loginOrEmail: loginOrEmail}))
+                    }
+                }
+            ).catch((reason)=>authPromiseErr(reason,dispatch));
+        }
+    }
+}
 

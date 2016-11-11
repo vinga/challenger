@@ -5,8 +5,11 @@ import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.tasks.db.TaskStatus
 import com.kameo.challenger.domain.tasks.db.TaskType
 import com.kameo.challenger.odb.api.IIdentity
+import org.apache.tomcat.jni.Local
+import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
+import javax.persistence.TemporalType.TIMESTAMP
 
 @Entity
 data class TaskODB(@Id
@@ -31,17 +34,22 @@ data class TaskODB(@Id
     @ManyToOne
     lateinit var createdByUser: UserODB
 
+
+    var createDate: LocalDateTime = LocalDateTime.now();
+
     @ManyToOne
     lateinit var challenge: ChallengeODB
 
 
     var icon: String? = null
 
-    @Temporal(TemporalType.TIMESTAMP)
-    var dueDate: Date? = null
+
+    var dueDate: LocalDateTime? = null
 
     @Transient
     var done: Boolean = false
+
+
 
 
 

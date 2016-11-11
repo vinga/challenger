@@ -45,4 +45,12 @@ class AccountRestService : IAccountRestService {
     }
 
 
+
+    @GET
+    @Path("/accounts")
+    fun checkIfLoginExists(@QueryParam("login") login: String): Boolean {
+        return accountDao.checkIfLoginExists(login);
+    }
+
+
 }

@@ -25,12 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.codehaus.groovy.runtime.DefaultGroovyMethods.collect;
 
 @Transactional
 @Component
@@ -45,7 +49,7 @@ public class ChallengerLogic {
     @Inject
     private EventGroupDAO eventGroupDao;
 
-    public List<TaskODB> getTasks(long callerId, long challengeId, Date date) {
+    public List<TaskODB> getTasks(long callerId, long challengeId, LocalDate date) {
         return taskDao.getTasks(callerId, challengeId, date);
     }
 
@@ -75,7 +79,7 @@ public class ChallengerLogic {
                      .filter(ca ->
                              ca.getTaskType() != TaskType.onetime ||
                                      ca.getTaskType() == TaskType.onetime &&
-                                             new DateTime(ca.getDueDate()).isAfterNow())
+                                             ca.getDueDate().isAfter(LocalDateTime.now()))
                      .collect(Collectors.toList());
     }
 
@@ -92,8 +96,8 @@ public class ChallengerLogic {
             throw new IllegalArgumentException();
         boolean isSelfCreatedForMyself = caDB.getCreatedByUser().getId() == caDB.getUser().getId() && caDB.getUser()
                                                                                                           .getId() == callerId;
-        // moge modyfikowac tylko swoje stworzone przez siebie i dla siebie
-        if (!isSelfCreatedForMyself) {
+        // I cannot modify anything now, tasks are immutable
+        if (true) {
             throw new IllegalArgumentException("Cannot modify action that is not waiting for acceptance ");
         }
         caDB.setDueDate(taskODB.getDueDate());

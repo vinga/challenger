@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -141,7 +143,7 @@ public class FakeDataLogic implements CommandLineRunner {
 
         TaskProgressODB tp = new TaskProgressODB();
         tp.setDone(true);
-        tp.setProgressTime(DateUtil.getMidnight(new Date()));
+        tp.setProgressTime(LocalDate.now());
         tp.setTask(ac4);
         em.persist(tp);
 
@@ -155,7 +157,7 @@ public class FakeDataLogic implements CommandLineRunner {
         ac5.setDifficulty(2);
         ac5.setIcon("fa-shopping-basket");
         ac5.setTaskType(TaskType.onetime);
-        ac5.setDueDate(DateUtil.addDays(new Date(), 10));
+        ac5.setDueDate(LocalDateTime.now().plusDays(10));
         em.persist(ac5);
         approveTaskForCreator(ac5);
 

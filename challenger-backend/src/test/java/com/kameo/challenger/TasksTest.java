@@ -16,6 +16,7 @@ import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
+import cucumber.api.java.en.Given;
 import cucumber.api.java8.En;
 import org.junit.Assert;
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
@@ -23,6 +24,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,6 +55,71 @@ public class TasksTest implements En {
     public TasksTest() {
         seeingChallengerActionsDefinitions();
 
+        Given("^\"([^\"]*)\" marked task \"([^\"]*)\" as done every day$",
+                (String userLogin, String taskName) -> {
+                    UserODB u=testHelper.resolveUserByLogin(userLogin);
+                    TaskODB t=testHelper.resolveTask(taskName);
+
+                    LocalDateTime ld=t.getCreateDate();
+                    while (ld.isBefore(LocalDateTime.now())) {
+                        taskDao.markTaskDone(u.getId(),t.getChallenge().getId(), t.getId(),ld.toLocalDate(),true);
+                        ld=ld.plusDays(1);
+                    }
+
+                });
+        Given("^\"([^\"]*)\" marked task \"([^\"]*)\" as done for (\\d+) last days$",
+                (String userLogin, String taskName, Integer days) -> {
+                    UserODB u=testHelper.resolveUserByLogin(userLogin);
+                    TaskODB t=testHelper.resolveTask(taskName);
+
+                    int d=days;
+                    LocalDate ld=LocalDate.now();
+                    while (d-->0) {
+                        taskDao.markTaskDone(u.getId(), t.getChallenge().getId(), t.getId(),ld,true);
+                        ld=ld.minusDays(1);
+                    }
+
+                });
+
+
+        Given("^\"([^\"]*)\" created in challenge \"([^\"]*)\" new task \"([^\"]*)\" for \"([^\"]*)\" (\\d+) days ago$",
+                (String person1, String challengeContractName, String actionName, String person2, Integer daysAgo) -> {
+            UserODB u1=testHelper.resolveUserByLogin(person1);
+            UserODB u2=testHelper.resolveUserByLogin(person2);
+            ChallengeODB cc = testHelper.resolveChallenge(challengeContractName);
+            TaskODB ca = new TaskODB();
+                    ca.setCreateDate(LocalDateTime.now().minusDays(daysAgo));
+            ca.setTaskType(TaskType.daily);
+            ca.setIcon("fa-car");
+            ca.setLabel(actionName);
+            ca.setChallenge(cc);
+            ca.setUser(u2);
+            taskDao.createTask(u1.getId(), ca);
+        });
+        Given("^\"([^\"]*)\" created in challenge \"([^\"]*)\" new difficult task \"([^\"]*)\" for \"([^\"]*)\" (\\d+) days ago$",
+                (String person1, String challengeContractName, String actionName, String person2, Integer daysAgo) -> {
+                    UserODB u1=testHelper.resolveUserByLogin(person1);
+                    UserODB u2=testHelper.resolveUserByLogin(person2);
+                    ChallengeODB cc = testHelper.resolveChallenge(challengeContractName);
+                    TaskODB ca = new TaskODB();
+                    ca.setCreateDate(LocalDateTime.now().minusDays(daysAgo));
+                    //TODO magic number, replace with constant
+                    ca.setDifficulty(2);
+                    ca.setTaskType(TaskType.daily);
+                    ca.setIcon("fa-car");
+                    ca.setLabel(actionName);
+                    ca.setChallenge(cc);
+                    ca.setUser(u2);
+                    taskDao.createTask(u1.getId(), ca);
+                });
+
+        Given("^\"([^\"]*)\" accepted task \"([^\"]*)\" in challenge \"([^\"]*)\"$",
+                (String person1, String taskName, String challengeName) -> {
+                    final UserODB userODB = testHelper.resolveUserByLogin(person1);
+                    final ChallengeODB challenge = testHelper.resolveChallenge(challengeName);
+                    final TaskODB taskODB = testHelper.resolveTask(taskName);
+                    taskDao.changeTaskStatus(challenge.getId(), taskODB.getId(), Sets.newHashSet(userODB.getId()), TaskStatus.accepted, null);
+                });
 
         Given("^my friend created new \"([^\"]*)\" action for me$", (String arg1) -> {
             Assert.assertTrue(Sets.newHashSet("onetime", "daily", "monthly", "weekly").contains(arg1));
@@ -71,7 +140,7 @@ public class TasksTest implements En {
 
             ca.setUser(testHelper.myself());
             ca.setChallenge(cc);
-            ca.setDueDate(DateUtil.addDays(new Date(), -1));
+            ca.setDueDate(LocalDateTime.now().minusDays(1));
             ca.setTaskType(TaskType.onetime);
             taskDao.createTask(testHelper.myFriend().getId(), ca);
         });
@@ -105,12 +174,11 @@ public class TasksTest implements En {
             ChallengeODB cc = testHelper
                     .getActiveChallengeBetween(testHelper.myself(), testHelper.myFriend());
             List<TaskODB> actions = challengerService
-                    .getTasks(testHelper.myself().getId(), cc.getId(), new Date())
+                    .getTasks(testHelper.myself().getId(), cc.getId(), LocalDate.now())
                     .stream().filter(t->t.getUser().getId()==testHelper.myself().getId()).collect(Collectors.toList());
             Assert.assertEquals(arg1.longValue(), actions.size());
         });
     }
-
     private void seeingChallengerActionsDefinitions() {
         // Given "I" created in challenge "boom" new action "testAction" for "me"
         Given("^\"([^\"]*)\" created in challenge \"([^\"]*)\" new action \"([^\"]*)\" for \"([^\"]*)\"", (String person1, String challengeContractName, String actionName, String person2) -> {
@@ -168,7 +236,7 @@ public class TasksTest implements En {
 
             ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
-            List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(), new Date())
+            List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(), LocalDate.now())
                     .stream().filter(t->t.getUser().getId()==myself.getId()).collect(Collectors.toList());
             Assert.assertFalse(actions.isEmpty());
         });
@@ -177,7 +245,7 @@ public class TasksTest implements En {
             UserODB myFriend = testHelper.myFriend();
             ChallengeODB cc = testHelper.getChallengeBetween(myself, myFriend);
 
-            List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(), new Date())
+            List<TaskODB> actions = challengerService.getTasks(myself.getId(), cc.getId(),LocalDate.now())
                     .stream().filter(t->t.getUser().getId()==myFriend.getId()).collect(Collectors.toList());
             Assert.assertFalse(actions.isEmpty());
         });
@@ -209,12 +277,10 @@ public class TasksTest implements En {
         });
 
 
-
-
         When("^\"([^\"]*)\" view todo list of challenge \"([^\"]*)\"$", (String arg1, String arg2) -> {
             UserODB user1 = testHelper.resolveUserByLogin(arg1);
             ChallengeODB challengeODB = testHelper.resolveChallenge(arg2);
-            challengerService.getTasks(user1.getId(),challengeODB.getId(), new Date());
+            challengerService.getTasks(user1.getId(),challengeODB.getId(), LocalDate.now());
         });
 
         Then("^\"([^\"]*)\" last visible challenge is \"([^\"]*)\"$", (String arg1, String arg2) -> {

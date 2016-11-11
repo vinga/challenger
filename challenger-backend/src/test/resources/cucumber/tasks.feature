@@ -37,11 +37,11 @@ Feature: Challenger tasks
     And "my friend" cannot modify action "testAction"
     And action "testAction" is not accepted
 
-  Scenario: I can edit challenge actions created by me for myself
+  Scenario: I cannot edit challenge actions created by me for myself
     Given "I" have accepted challenge "boom" with "my friend"
     Given "I" created in challenge "boom" new action "testAction" for "me"
-    Then "I" can modify action "testAction"
-    And action "testAction" is accepted
+    Then "I" cannot modify action "testAction"
+    And action "testAction" is not accepted
 
 
   Scenario: I can modify last visible challenge - 1

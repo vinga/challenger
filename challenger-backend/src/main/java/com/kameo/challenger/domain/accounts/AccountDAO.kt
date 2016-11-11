@@ -136,5 +136,11 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         }).id
     }
 
+    open fun  checkIfLoginExists(login: String): Boolean {
+        return anyDaoNew.exists(UserODB::class){
+            it get UserODB::login eq login
+        }
+    }
+
 
 }
