@@ -54,6 +54,7 @@ export function loginUserAction(login: string, password: string, primary: boolea
                     }
                 }
             ).catch((response:XMLHttpRequest)=> {
+            console.log("resss",response);
                 dispatch(LOGIN_USER_RESPONSE_FAILURE.new({
                     login,
                     textStatus: response.responseText,

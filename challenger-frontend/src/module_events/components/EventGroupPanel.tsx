@@ -11,6 +11,7 @@ import {EventType, DateDiscrimUI, DisplayedEventUI} from "../EventDTO";
 import {TaskDTO} from "../../module_tasks/TaskDTO";
 import Chip from "material-ui/Chip";
 import {getColorSuperlightenForUser} from "../../views/common-components/Colors";
+import {HidableComponent} from "../../views/Constants";
 
 
 interface Props {
@@ -119,11 +120,19 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
              '10px solid transparent',marginRight:'20px',borderBottom: "1px solid #ddd", width:"100%"}}>{ddisc.title}</div>;
         } else {//if (ev instanceof DisplayedEventUI) {
             var dd = ev as DisplayedEventUI;
+
+            var taskLabel=null;
+            if (dd.task!=null && this.props.task==null) { // it it's filtered by the task then label will be redundant information
+                taskLabel=" ["+dd.task.label+"]";
+            }
+
             if (dd.eventType == EventType.POST)
-                return <span><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span> {dd.postContent} {dd.isNew && "*"} </span>;
+                return <span><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span>{taskLabel} {dd.postContent} {dd.isNew && "*"} </span>;
             else return <span><i> {dd.postContent} {dd.isNew && "*"} </i></span>;
         }
     }
+
+
 
     renderTaskName = () => {
         if (this.props.task != null)

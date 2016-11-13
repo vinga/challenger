@@ -4,6 +4,7 @@ import HTMLAttributes = __React.HTMLAttributes;
 
 
 export var ResizeAware:any;
+export var HidableComponent:any;
 
 
 import ReactElement = __React.ReactElement;

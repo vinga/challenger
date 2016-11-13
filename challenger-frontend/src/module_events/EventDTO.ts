@@ -44,7 +44,8 @@ export interface DisplayedEventUI {
     eventType: string
     isNew: boolean,
     readDate?: Date,
-    sentDate: Date
+    sentDate: Date,
+    task?: TaskDTO
 }
 export interface DateDiscrimUI {
     kind: 'DateDiscrimUI'

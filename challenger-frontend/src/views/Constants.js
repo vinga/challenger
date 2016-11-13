@@ -75,6 +75,16 @@ export var ResizeAware = ComposedComponent => class extends React.Component {
     }
 };
 
+export var HidableComponent = (ComposedComponent) => class extends React.Component {
+    render() {
+        if ((this.props.shouldHide!=null && this.props.shouldHide()) || this.props.hidden)
+            return null;
+        return <ComposedComponent {...this.props}  />;
+    }
+};
+
+
+
 Date.prototype.addDays = function(days)
 {
     var dat = new Date(this.valueOf());

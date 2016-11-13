@@ -4,8 +4,9 @@ import {TaskTableList} from "../module_tasks/index";
 import {loggedUserSelector, SecondUserAuthorizePopover, AccountDTO} from "../module_accounts/index";
 import {selectedChallengeIdSelector, challengeAccountsSelector} from "../module_challenges/index";
 import {EventGroupPanel} from "../module_events/index";
-import {ChallengeDTO} from "../module_challenges/ChallengeDTO";
 import {EditChallengeDialog} from "../module_challenges/components/EditChallengeDialog";
+import Chart = require("chart.js");
+
 
 interface ReduxProps {
     challengeId?: number,
@@ -20,7 +21,54 @@ class LoggedView extends React.Component<ReduxProps,void> {
     private secondUserAuthorizePopover: any;
 
 
+    componentDidMount = () => {
+        console.log("DDD");
+        var myChart = new Chart("myChart" as any, {
+            type: 'bar',
+            data: {
+                labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [12, 19, 3, 5, 2, 3],
+
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+        var myChart2 = new Chart("myChart2" as any, {
+            type: 'bar',
+            data: {
+                labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [12, 19, 3, 5, 2, 3],
+
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    }
+
     render() {
+
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
                 <div className="section">
@@ -47,13 +95,22 @@ class LoggedView extends React.Component<ReduxProps,void> {
                 }
 
 
+                <div className="row">
+                    <div className="col m6">
+                        <canvas id="myChart" width="200" height="50px"></canvas>
+                    </div>
+                    <div className="col m6">
+                        <canvas id="myChart2" width="200" height="50px"></canvas>
+                    </div>
+                </div>
+
                 <SecondUserAuthorizePopover
                     ref={ (c) =>this.secondUserAuthorizePopover=c}
                     challengeAccounts={this.props.challengeAccounts}
                 />
                 {
                     this.props.editChallenge == true &&
-                     <EditChallengeDialog/>
+                    <EditChallengeDialog/>
                 }
 
             </div>);

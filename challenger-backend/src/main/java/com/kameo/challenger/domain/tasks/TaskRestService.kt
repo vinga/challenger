@@ -2,6 +2,8 @@ package com.kameo.challenger.domain.tasks
 
 import com.kameo.challenger.config.ServerConfig
 import com.kameo.challenger.domain.events.EventGroupDAO
+import com.kameo.challenger.domain.events.EventGroupDAO.TaskCheckUncheckEventInfo
+import com.kameo.challenger.domain.events.EventGroupDAO.TaskRejectedEventInfo
 import com.kameo.challenger.domain.events.db.EventType.*
 import com.kameo.challenger.domain.tasks.ITaskRestService.*
 import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
@@ -13,7 +15,6 @@ import com.kameo.challenger.web.rest.ChallengerSess
 import com.kameo.challenger.web.rest.MultiUserChallengerSess
 import org.springframework.stereotype.Component
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Provider
@@ -103,7 +104,8 @@ class TaskRestService : ITaskRestService {
             if (ta.taskStatus == accepted)
                 eventGroupDao.createTaskEventAfterServerAction(user_ = challengerLogic.getUserById(userId), task = taskODB, eventType = ACCEPT_TASK);
             else
-                eventGroupDao.createTaskEventAfterServerAction(user_ = challengerLogic.getUserById(userId), task = taskODB, eventType = REJECT_TASK, rejectReason = ta.rejectionReason);
+                eventGroupDao.createTaskEventAfterServerAction(user_ = challengerLogic.getUserById(userId), task = taskODB, eventType = REJECT_TASK, eventInfo =
+                TaskRejectedEventInfo(ta.rejectionReason!!));
         }
         return TaskDTO.fromOdb(taskODB)
     }
@@ -119,10 +121,14 @@ class TaskRestService : ITaskRestService {
         //TODO
 
         val tpOdb = taskDao.markTaskDone(callerId, challengeId, tp.taskId, tp.getLocalDate(), tp.done)
-        if (tp.done)
-            eventGroupDao.createTaskEventAfterServerAction(user_ = challengerLogic.getUserById(callerId), task = tpOdb.task, eventType = CHECKED_TASK);
-        else
-            eventGroupDao.createTaskEventAfterServerAction(user_ = challengerLogic.getUserById(callerId), task = tpOdb.task, eventType = UNCHECKED_TASK);
+        val eventType = if (tp.done) CHECKED_TASK else UNCHECKED_TASK;
+
+        eventGroupDao.createTaskEventAfterServerAction(
+                user_ = challengerLogic.getUserById(callerId),
+                task = tpOdb.task,
+                eventType = eventType,
+                eventInfo = TaskCheckUncheckEventInfo(tp.getLocalDate()));
+
         return TaskProgressDTO.fromOdb(tpOdb)
     }
 

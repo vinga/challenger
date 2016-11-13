@@ -8,3 +8,4 @@
 /// <reference path="globals/redux-thunk/index.d.ts" />
 /// <reference path="globals/redux/index.d.ts" />
 /// <reference path="globals/reselect/reselect.d.ts" />
+/// <reference path="modules/chart.js/index.d.ts" />

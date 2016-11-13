@@ -62,7 +62,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
                 return Object.assign({}, u);
         });
     } else if (isAction(action, LOGIN_USER_RESPONSE_FAILURE)) {
-        console.log("login failure");
+        console.log("login failure",action);
         return state.map((u: AccountDTO) => {
             if (u.login == action.login) {
                 return Object.assign({}, u, {

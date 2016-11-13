@@ -3,16 +3,18 @@ package com.kameo.challenger.domain.events
 import com.kameo.challenger.config.ServerConfig
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
-import com.kameo.challenger.domain.events.db.EventType.POST
 import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.domain.events.db.EventReadODB
 import com.kameo.challenger.domain.events.db.EventType
+import com.kameo.challenger.domain.events.db.EventType.CHECKED_TASK
+import com.kameo.challenger.domain.events.db.EventType.POST
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Provider
@@ -24,8 +26,14 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                          @Inject val eventPushDao: Provider<EventPushDAO>,
                          @Inject val permissionDao: PermissionDAO) {
 
+    interface IEventInfo {
 
-    open fun createTaskEventAfterServerAction(user_: UserODB? = null, task: TaskODB, eventType: EventType, rejectReason: String? = null) {
+    }
+
+    class TaskCheckUncheckEventInfo(val taskCheckUncheckDate: LocalDate, val checkDate: LocalDate = LocalDate.now()) : IEventInfo ;
+    class TaskRejectedEventInfo(val rejectionReason: String) : IEventInfo ;
+
+    open fun createTaskEventAfterServerAction(user_: UserODB? = null, task: TaskODB, eventType: EventType, eventInfo: IEventInfo? = null) {
         val user = user_ ?: anyDaoNew.em.find(UserODB::class.java, task.createdByUser.id)
         val e = EventODB()
         e.eventType = eventType
@@ -34,9 +42,22 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             EventType.POST -> e.content
             EventType.UPDATE_TASK -> user.getLoginOrEmail() + " updated " + task.label
             EventType.ACCEPT_TASK -> user.getLoginOrEmail() + " accepted " + task.label
-            EventType.REJECT_TASK -> user.getLoginOrEmail() + " rejected " + task.label + " because of " + rejectReason
-            EventType.CHECKED_TASK -> user.getLoginOrEmail() + " checked " + task.label
-            EventType.UNCHECKED_TASK -> user.getLoginOrEmail() + " unchecked " + task.label
+            EventType.REJECT_TASK ->
+                user.getLoginOrEmail() + " rejected " + task.label + " because of " + (eventInfo as TaskRejectedEventInfo).rejectionReason
+            EventType.UNCHECKED_TASK,
+            EventType.CHECKED_TASK -> {
+                var effectiveDay = (eventInfo!! as TaskCheckUncheckEventInfo).taskCheckUncheckDate
+                var checkDay = (eventInfo!! as TaskCheckUncheckEventInfo).checkDate
+
+                val daystring = if (!effectiveDay.isEqual(checkDay))
+                    " for day " + effectiveDay.toString()
+                else "";
+                val actionType=if (eventType==CHECKED_TASK) "checked" else "unchecked";
+
+
+                "${user.getLoginOrEmail()} $actionType ${task.label}$daystring";
+            }
+
             EventType.DELETE_TASK -> user.getLoginOrEmail() + " deleted " + task.label
         }
         e.challenge = task.challenge
@@ -45,7 +66,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
         anyDaoNew.em.persist(e)
 
-        anyDaoNew.find(ChallengeODB::class,task.challenge.id).participants.forEach {
+        anyDaoNew.find(ChallengeODB::class, task.challenge.id).participants.forEach {
             anyDaoNew.persist(EventReadODB(it.user, it.challenge, e))
         }
 
@@ -64,7 +85,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
 
-        anyDaoNew.persist( p )
+        anyDaoNew.persist(p)
 
         anyDaoNew.find(ChallengeODB::class, challengeId).participants.forEach {
             var er = EventReadODB(it.user, it.challenge, p);
@@ -77,7 +98,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
     open fun markEventAsRead(callerId: Long, challengeId: Long, eventId: Long, readDate: Date) {
-       anyDaoNew.update(EventReadODB::class) {
+        anyDaoNew.update(EventReadODB::class) {
             it.set(EventReadODB::read, readDate)
             it.get(EventReadODB::event) eqId eventId
             it get (EventReadODB::user) eqId callerId
@@ -199,7 +220,6 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             }
         }
     }
-
 
 
 }

@@ -8,10 +8,14 @@ import {authPromiseErr} from "../module_accounts/accountActions";
 
 export function sendEvent(authorId: number, content: string) {
     return function (dispatch, getState: ()=>ReduxState) {
+        var taskId=getState().eventsState.selectedTask !=null ?
+            getState().eventsState.selectedTask.id:
+            null;
+
         var eventDTO: EventDTO = {
             id: -new Date().getTime(),
             challengeId: getState().challenges.selectedChallengeId,
-            taskId: null,
+            taskId: taskId,
             content: content,
             authorId: authorId,
             sentDate: new Date().getTime(),

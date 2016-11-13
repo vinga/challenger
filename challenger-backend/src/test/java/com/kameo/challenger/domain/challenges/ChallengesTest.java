@@ -11,6 +11,7 @@ import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import com.kameo.challenger.utils.odb.AnyDAONew;
+import cucumber.api.PendingException;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
 import org.junit.Assert;
@@ -121,7 +122,12 @@ public class ChallengesTest implements En {
             Assert.assertEquals(3, ch.getParticipants().size());
 
         });
-
+        Given("^\"([^\"]*)\" created challenge \"([^\"]*)\" with user \"([^\"]*)\"$", (String u1, String challenge, String u2) -> {
+            // Write code here that turns the phrase above into concrete actions
+            List<UserODB> users = testHelper.createUsers(u1, u2);
+            UserODB uu1 = users.get(0);
+            ChallengeODB ch = testHelper.createPendingChallengeWithLabel(challenge, users.iterator());
+        });
 
         Then("^challenge \"([^\"]*)\" is waiting for acceptance of \"([^\"]*)\"$", (String ch, String u2) -> {
             UserODB user2 = testHelper.resolveUserByLogin(u2);

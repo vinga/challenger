@@ -2,7 +2,7 @@ import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
 import {TouchTapEvent, FlatButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
 import {updateChallenge} from "../challengeActions";
-import {CLOSE_EDIT_CHALLENGE} from "../challengeActionTypes";
+import {CLOSE_EDIT_CHALLENGE, DELETE_CHALLENGE_PARTICIPANT} from "../challengeActionTypes";
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import TextField from "material-ui/TextField";
@@ -28,7 +28,8 @@ interface ReduxProps {
 interface PropsFunc {
     onCloseFunc?: (event?: TouchTapEvent) => void,
     onChallengeSuccessfullyUpdatedFunc: (challenge: ChallengeDTO)=>void;
-    updateChallengeParticipant: (loginOrEmail: string) => void
+    updateChallengeParticipant: (loginOrEmail: string) => void,
+    deleteChallengeParticipant: (label: string) => void
 }
 interface State {
     challenge: ChallengeDTO,
@@ -69,8 +70,8 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
     }
 
-    handleRequestDelete = (event) => {
-
+    handleRequestDelete = (label) => {
+       this.props.deleteChallengeParticipant(label)
     }
 
     handleUpdateInput = (value) => {
@@ -115,37 +116,44 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                         onChange={this.handleActionNameFieldChange}
 
                     />
-                    </div><div>
-
-
-
-
-                    <AutoComplete
-                        searchText={this.state.searchText}
-                        hintText="Type username or email address"
-                        dataSource={this.props.possibleLabels}
-                        onUpdateInput={this.handleUpdateInput}
-                        onNewRequest={this.handleNewRequest}
-                    />
-
-
-                    <div style={{display:"flex", flexFlow:"wrap"}}>
-                        {
-                            this.props.challenge.userLabels.map(ch =>
-                                <Chip
-                                    style={{marginRight:'5px', marginBottom:'5px'}}
-                                    key={ch.label}
-                                    onRequestDelete={this.handleRequestDelete}
-                                    onTouchTap={this.handleChipTouchTap}
-                                >
-                                    <i className={validateEmail(ch.label)? "fa fa-envelope-o": "fa fa-user"}></i>  {ch.label}
-                                </Chip>
-                            )
-                        }
-                    </div>
+                </div><div>
+                <div style={{fontSize: '10px', marginTop: '10px'}}>
+                    Selected Participants
                 </div>
+                <div style={{display:"flex", flexFlow:"wrap", marginTop: '10px'}}>
+
+
+                    {
+                        this.props.challenge.userLabels.map(ch =>
+                            <Chip
+                                style={{marginRight:'5px', marginBottom:'5px'}}
+                                key={ch.label}
+                                onRequestDelete={() => this.handleRequestDelete(ch.label)}
+                                onTouchTap={this.handleChipTouchTap}
+                            >
+                                <i className={validateEmail(ch.label)? "fa fa-envelope-o": "fa fa-user"}></i>  {ch.label}
+                            </Chip>
+                        )
+                    }
+                </div>
+
+
+                <AutoComplete
+                    errorText="HHahaha zle"
+                    searchText={this.state.searchText}
+                    hintText="Type username or email address"
+                    dataSource={this.props.possibleLabels}
+                    onUpdateInput={this.handleUpdateInput}
+                    onNewRequest={this.handleNewRequest}
+                />
+
+
+
+            </div>
             </Dialog>
         </div>);
+
+
     }
 }
 
@@ -169,6 +177,9 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         },
         updateChallengeParticipant: (loginOrEmail: string) => {
             dispatch(updateChallengeParticipants(loginOrEmail));
+        },
+        deleteChallengeParticipant: (label: string) => {
+            dispatch(DELETE_CHALLENGE_PARTICIPANT.new({label}))
         }
 
     }
