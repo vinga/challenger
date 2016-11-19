@@ -17,7 +17,7 @@ interface ReduxProps {
     authorizingUser?: AccountDTO,
 }
 interface ReduxPropsFunc {
-    doLoginFunc: (login: string, password: string)=>(any);
+    doLoginFunc: (login: string, password: string, userId?: number)=>(any);
 
 }
 interface State {
@@ -39,13 +39,13 @@ class SecondUserAuthorizePopoverInternal extends React.Component<Props& ReduxPro
     showAuthorizeFuncIfNeeded = (eventTarget: any, userId: number): JQueryPromise<boolean> => {
 
         this.state.deferred = null;
-        if (this.props.challengeAccounts.some(a=>a.userId == userId && a.jwtToken != null)) {
+        if (this.props.challengeAccounts.some(a=>a.id == userId && a.jwtToken != null)) {
             var dfd = $.Deferred();
             dfd.resolve(true);
             return dfd.promise();
         } else {
             this.state.popoverAnchorEl = eventTarget;
-            this.state.authorizingUser = this.props.challengeAccounts.find(a=>a.userId == userId);
+            this.state.authorizingUser = this.props.challengeAccounts.find(a=>a.id == userId);
             var dfd = $.Deferred();
             this.state.deferred = dfd;
             this.setState(this.state);
@@ -62,7 +62,7 @@ class SecondUserAuthorizePopoverInternal extends React.Component<Props& ReduxPro
     componentDidUpdate() {
 
         if (this.state.deferred != null && this.state.authorizingUser != null
-            && this.props.challengeAccounts.find(a=>a.jwtToken != null && a.userId == this.state.authorizingUser.userId)) {
+            && this.props.challengeAccounts.find(a=>a.jwtToken != null && a.id == this.state.authorizingUser.id)) {
 
 
             this.state.deferred.resolve(true);
@@ -91,8 +91,8 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): any => {
 
 const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
-        doLoginFunc: (login: string, password: string) => {
-            dispatch(loginUserAction(login, password, false));
+        doLoginFunc: (login: string, password: string, userId?: number) => {
+            dispatch(loginUserAction(login, password, false, userId));
         }
     }
 };

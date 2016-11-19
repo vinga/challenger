@@ -37,7 +37,7 @@ export interface TaskDTOState {
 
 
 export function createTaskDTOListKey(challengeId: number, day: Date):string {
-   return  "" + challengeId + "-" + day.toISOString().slice(0, 10)
+   return  "" + challengeId + "-" + day.yyyy_mm_dd();
 }
 
 

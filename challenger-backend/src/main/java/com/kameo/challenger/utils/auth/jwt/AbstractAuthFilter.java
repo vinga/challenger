@@ -68,6 +68,7 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 }
 
                 if (isResourceARenewTokenGenerator(httpReq)) {
+                    setRequestScopeVariable(tokensList);
                     E tokenInfo = renewToken(httpReq, httpRes);
 
                     printTokenToResponse(httpRes, tokenInfo);

@@ -20,10 +20,13 @@ export function accounts(state: Array<AccountDTO> = [], action) {
         return [];
     }
     else if (isAction(action, LOGIN_USER_REQUEST)) {
+
+
+
         var nstate: Array<AccountDTO> = [
             ...state,
             {
-                userId: -1,
+                id: action.userId!=null ? action.userId: -1,
                 login: action.login,
                 errorDescription: null,
                 infoDescription: null,
@@ -48,7 +51,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
                 // co jak issued at bedzie
 
                 return Object.assign({}, u, {
-                    userId: jwtDecode(action.jwtToken).info.userId,
+                    id: jwtDecode(action.jwtToken).info.userId,
                     login: action.login,
                     jwtToken: action.jwtToken,
                     lastUpdated: Date.now(),
@@ -65,20 +68,21 @@ export function accounts(state: Array<AccountDTO> = [], action) {
         console.log("login failure",action);
         return state.map((u: AccountDTO) => {
             if (u.login == action.login) {
-                return Object.assign({}, u, {
+                var uu= Object.assign({}, u, {
                     jwtToken: null,
                     tokenExpirationDate: null,
                     errorDescription: getErrorDescriptionForLogin(action.status, action.textStatus, action.responseText),
                     inProgress: false
                 });
-
+        console.log("UU ",uu);
+                return uu;
             } else
                 return Object.assign({}, u);
         });
     } else if (isAction(action, ON_LOGOUT_SECOND_USER)) {
         console.log("second ser " + action.userId);
         return state.map((u: AccountDTO) => {
-            if (u.userId == action.userId) {
+            if (u.id == action.userId) {
                 return Object.assign({}, u, {jwtToken: null, tokenExpirationDate: null});
             } else
                 return Object.assign({}, u);

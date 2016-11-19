@@ -48,7 +48,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             EventType.CHECKED_TASK -> {
                 var effectiveDay = (eventInfo!! as TaskCheckUncheckEventInfo).taskCheckUncheckDate
                 var checkDay = (eventInfo!! as TaskCheckUncheckEventInfo).checkDate
-
+                e.forDay=effectiveDay
                 val daystring = if (!effectiveDay.isEqual(checkDay))
                     " for day " + effectiveDay.toString()
                 else "";
@@ -62,7 +62,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
         }
         e.challenge = task.challenge
         e.author = user
-        e.task = task
+        e.taskId = task?.id
 
         anyDaoNew.em.persist(e)
 
@@ -111,7 +111,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun getEventsForTask(callerId: Long, challengeId: Long, taskId: Long): List<EventODB> {
         permissionDao.checkHasPermissionToTask(callerId, taskId)
         return anyDaoNew.getAll(EventODB::class) {
-            it get EventODB::task eqId taskId
+            it get EventODB::taskId eq taskId
             it get EventODB::challenge eqId challengeId
         }
     }
@@ -124,10 +124,22 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             it get EventReadODB::user eqId callerId
             it get EventReadODB::challenge eqId challengeId
             it.get(EventReadODB::read).isNull()
-            it orderByAsc (+EventReadODB::id)
-            it.select(it, it.get(EventReadODB::event))
+            it orderByAsc +EventReadODB::id
+            it.select(it, it get EventReadODB::event)
         }.sortedWith(sortEventsReadAsc())
     }
+
+
+    open fun getLaterEventsForChallenge(callerId: Long, challengeId: Long, lastReadEventId: Long, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
+        return anyDaoNew.getAll(EventReadODB::class) {
+            it get EventReadODB::user eqId callerId
+            it get EventReadODB::challenge eqId challengeId
+            it get +EventReadODB::event get +EventODB::id gt lastReadEventId
+            it orderByAsc +EventReadODB::id
+            it.select(it, it get EventReadODB::event)
+        }.sortedWith(sortEventsReadAsc())
+    }
+
 
     open fun getLastEventsForChallenge(callerId: Long, challengeId: Long, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
         permissionDao.checkHasPermissionToChallenge(callerId, challengeId)
@@ -149,14 +161,14 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 it get EventReadODB::challenge eqId challengeId
                 it orderByDesc EventReadODB::read
                 it limit desiredMaxEvents
-                it.select(it, it.get(EventReadODB::event))
+                it.select(it, it get EventReadODB::event )
             }
         } else {
             // at least one is unread, getch it and all later
             anyDaoNew.getAll(EventReadODB::class) {
                 it get EventReadODB::user eqId callerId
                 it get EventReadODB::challenge eqId challengeId
-                it.greaterThanOrEqualTo(+EventReadODB::id, firstNotRead.id)
+                it get +EventReadODB::id ge firstNotRead.id
                 it.select(it, it.get(EventReadODB::event))
             }.let {
                 // in case if it is still to small add to it some previous read message
@@ -165,9 +177,9 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                     it + anyDaoNew.getAll(EventReadODB::class) {
                         it get EventReadODB::user eqId callerId
                         it get EventReadODB::challenge eqId challengeId
-                        it.lessThan(+EventReadODB::id, firstNotRead.id)
+                        it get +EventReadODB::id lt firstNotRead.id
                         it limit desiredMaxEvents - notReadSize
-                        it.select(it, it.get(EventReadODB::event))
+                        it.select(it, it get EventReadODB::event)
                     }
                 } else
                     it
@@ -210,12 +222,12 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
     private fun checkHasPermissionToTaskIfExists(callerId: Long, p: EventODB) {
-        val task = p.task ?: null
-        if (task != null) {
-            permissionDao.checkHasPermissionToTask(callerId, task.id)
+        val taskId = p.taskId
+        if (taskId != null) {
+            permissionDao.checkHasPermissionToTask(callerId, taskId)
             // it ensures that  task & challenge id are correct
             anyDaoNew.exists(TaskODB::class) {
-                it eqId task.id
+                it eqId taskId
                 it get TaskODB::challenge eqId p.challenge.id
             }
         }

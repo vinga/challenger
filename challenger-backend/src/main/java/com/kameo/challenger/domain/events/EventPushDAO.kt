@@ -28,10 +28,14 @@ open class EventPushDAO {
      * if yes, return that immediately
      * otherwise add asyncResponse to list
      */
-    open fun listenToNewEvents(callerId: Long, asyncResponse: AsyncResponse, challengeId: Long) {
+    open fun listenToNewEvents(uniqueClientIdentifier: String, callerId: Long, asyncResponse: AsyncResponse, challengeId: Long, lastReadEventId: Long?) {
         permissionDAO.checkHasPermissionToChallenge(callerId, challengeId);
 
-        val subscriber = Subscriber(callerId, asyncResponse)
+        val subscriber = Subscriber(uniqueClientIdentifier = uniqueClientIdentifier,
+                userId = callerId,
+                challengeId = challengeId,
+                asyncResponse = asyncResponse,
+                lastReadEventId = lastReadEventId)
 
 
         val challengeSubscribers: ChallengeSubscribers? = subscribers[challengeId]
@@ -57,7 +61,9 @@ open class EventPushDAO {
         asyncResponse.setTimeout(500, TimeUnit.SECONDS);
         asyncResponse.setTimeoutHandler { it.cancel() }
 
-        broadcastAllPendingEvents(callerId, challengeId);
+        //broadcastAllUnreadEvents(callerId, challengeId);
+
+        broadcastEventsToCustomClient(subscriber)
 
     }
 
@@ -67,9 +73,8 @@ open class EventPushDAO {
 
         subscribers.get(challengeId)?.let {
             synchronized(it) {
-                println("ANY USERS " + it.users.size)
                 it.users.toList().forEach {
-                    broadcastAllPendingEvents(it.userId, challengeId)
+                    broadcastEventsToCustomClient(it)
                 }
             }
         }
@@ -78,11 +83,41 @@ open class EventPushDAO {
     /**
      * check if there are any unread posts, if yes, send them immediatelly
      */
-    private fun broadcastAllPendingEvents(callerId: Long, challengeId: Long) {
+    private fun broadcastAllUnreadEvents(callerId: Long, challengeId: Long) {
         eventGroupDAO.getUnreadEventsForChallenge(callerId, challengeId)
                 .map { EventDTO.fromODB(it) }
                 .toTypedArray()
                 .let { internalBroadcastNewEvent(*it) }
+    }
+
+    /**
+     * check if there are any posts with greater ID, if yes, send them immediatelly
+     */
+    private fun broadcastEventsToCustomClient(subscriber: Subscriber) {
+        if (subscriber.lastReadEventId==null) {
+            // first time after login we don't have last read event id
+            broadcastAllUnreadEvents(subscriber.userId, subscriber.challengeId)
+            return;
+
+        }
+        var events = eventGroupDAO.getLaterEventsForChallenge(subscriber.userId, subscriber.challengeId, subscriber.lastReadEventId)
+                .map { EventDTO.fromODB(it) }
+
+        if (events.isEmpty())
+            return;
+        if (events.groupBy { it.challengeId }.keys.size > 1)
+            throw IllegalArgumentException("Only events from same event may be broadcasted together")
+
+        subscribers[subscriber.challengeId]?.let {
+            synchronized(it) {
+                var sub = it.users.find { it.uniqueClientIdentifier == subscriber.uniqueClientIdentifier };
+                if (sub != null) {
+                    it.users.remove(sub);
+                    sub.asyncResponse.resume(events.toTypedArray())
+                }
+            }
+        }
+
     }
 
 
@@ -95,7 +130,7 @@ open class EventPushDAO {
             return
         }
         if (eventDtoArray.groupBy { it.challengeId }.keys.size > 1)
-            throw IllegalArgumentException("Only events from same event may be broadcasted together")
+            throw IllegalArgumentException("Only events from same challenge can be broadcast together")
 
 
 
@@ -111,7 +146,10 @@ open class EventPushDAO {
 
     private class ChallengeSubscribers(val users: MutableList<Subscriber> = mutableListOf())
 
-    private class Subscriber(val userId: Long, val asyncResponse: AsyncResponse)
+    private class Subscriber(val uniqueClientIdentifier: String,
+                             val userId: Long,
+                             val challengeId: Long,
+                             val asyncResponse: AsyncResponse, val lastReadEventId: Long?)
 
 
 }

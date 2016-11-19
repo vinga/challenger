@@ -5,7 +5,7 @@ import {ActionType} from "../redux/ReduxTask";
 import {RegisterResponseDTO} from "./RegisterResponseDTO";
 
 
-export const LOGIN_USER_REQUEST: ActionType<{login: string, password: string, primary: boolean}> = new ActionType<any>('LOGIN_USER_REQUEST');
+export const LOGIN_USER_REQUEST: ActionType<{login: string, password: string, primary: boolean, userId?: number}> = new ActionType<any>('LOGIN_USER_REQUEST');
 export const LOGIN_USER_RESPONSE_SUCCESS: ActionType<{login: string, jwtToken: string}> = new ActionType<any>('LOGIN_USER_RESPONSE_SUCCESS');
 export const LOGIN_USER_RESPONSE_FAILURE: ActionType<{login: string, status: number, textStatus: string, responseText: string}> = new ActionType<any>('LOGIN_USER_RESPONSE_FAILURE');
 export const LOGOUT: ActionType<{}> = new ActionType<any>('LOGOUT');

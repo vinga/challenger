@@ -12,9 +12,11 @@ import org.springframework.web.context.annotation.RequestScope;
 public class ChallengerSess extends TokenInfo {
     long userId;
 
+
     public long getUserId() {
         return userId;
     }
+
 
     public void setUserId(long userId) {
         this.userId = userId;

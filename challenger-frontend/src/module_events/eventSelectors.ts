@@ -19,7 +19,6 @@ const taskDtoStateSelector: Selector<ReduxState, Map<string,TaskDTOListForDay>> 
 const allChallengeTasksSelector: Selector<ReduxState,Array<TaskDTO>> = createSelector(
     taskDtoStateSelector,
     (taskDtoState: Map<string,TaskDTOListForDay>) => {
-        console.log(taskDtoState);
         var arr: Array<TaskDTO> = [];
         for (var key in taskDtoState) {
             if (taskDtoState.hasOwnProperty(key)) {

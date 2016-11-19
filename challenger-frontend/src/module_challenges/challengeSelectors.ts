@@ -29,11 +29,11 @@ export const challengeAccountsSelector: Selector<ReduxState,Array<AccountDTO>> =
     getAccountsSelector,
     (selectedChallengeUsers: Array<ChallengeParticipantDTO>, accounts: Array<AccountDTO>): Array<AccountDTO> => {
         return selectedChallengeUsers.map(us=> {
-            var account: AccountDTO = accounts.find(u=>u.userId == us.id);
+            var account: AccountDTO = accounts.find(u=>u.id == us.id);
             if (account != null) {
                 return copy(account).and(us);
             } else {
-                return Object.assign({}, us, {userId: us.id} as AccountDTO);
+                return Object.assign({}, us, {id: us.id} as AccountDTO);
             }
         });
     }
@@ -62,7 +62,14 @@ export const possibleChallengeParticipantsSelector: Selector<ReduxState,Array<Ch
         return uniqueParticipants;
     });
 
-
+export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<String>> = createSelector(
+    challengeAccountsSelector,
+    (challengeAccounts: Array<AccountDTO>): Array<String> => {
+        var jwtTokensOfApprovingUsers: Array<String> = challengeAccounts.filter(a=>a.jwtToken != null)
+            .map(a=>a.jwtToken);
+        return jwtTokensOfApprovingUsers;
+    }
+);
 
 
 

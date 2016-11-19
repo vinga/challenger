@@ -2,7 +2,7 @@ import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
 import {TouchTapEvent, FlatButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
 import {updateChallenge} from "../challengeActions";
-import {CLOSE_EDIT_CHALLENGE, DELETE_CHALLENGE_PARTICIPANT} from "../challengeActionTypes";
+import {CLOSE_EDIT_CHALLENGE, DELETE_CHALLENGE_PARTICIPANT, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION} from "../challengeActionTypes";
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import TextField from "material-ui/TextField";
@@ -23,20 +23,20 @@ interface ReduxProps {
     currentUserId: number,
     possibleParticipants: Array<ChallengeParticipantDTO>,
     possibleLabels: Array<string>,
+    errorText: string,
 }
 
 interface PropsFunc {
     onCloseFunc?: (event?: TouchTapEvent) => void,
     onChallengeSuccessfullyUpdatedFunc: (challenge: ChallengeDTO)=>void;
     updateChallengeParticipant: (loginOrEmail: string) => void,
-    deleteChallengeParticipant: (label: string) => void
+    deleteChallengeParticipant: (label: string) => void,
+    updateErrorText: (errorText: string) => void
 }
 interface State {
     challenge: ChallengeDTO,
     submitDisabled: boolean,
     searchText: string,
-
-
 }
 
 class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
@@ -75,6 +75,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     }
 
     handleUpdateInput = (value) => {
+        this.props.updateErrorText(null)
         this.state.searchText=value
         this.setState(this.state);
     }
@@ -139,7 +140,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
 
                 <AutoComplete
-                    errorText="HHahaha zle"
+                    errorText={this.props.errorText}
                     searchText={this.state.searchText}
                     hintText="Type username or email address"
                     dataSource={this.props.possibleLabels}
@@ -161,10 +162,10 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 
     return {
         challenge: state.challenges.editedChallenge,
-        currentUserId: loggedUserSelector(state).userId,
+        currentUserId: loggedUserSelector(state).id,
         possibleParticipants: possibleChallengeParticipantsSelector(state),
         possibleLabels: possibleChallengeParticipantsSelector(state).map(u=>u.label),
-
+        errorText: state.challenges.errorText,
     }
 };
 const mapDispatchToProps = (dispatch): PropsFunc => {
@@ -180,6 +181,9 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         },
         deleteChallengeParticipant: (label: string) => {
             dispatch(DELETE_CHALLENGE_PARTICIPANT.new({label}))
+        },
+        updateErrorText: (errorText: string) => {
+            dispatch(UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION.new({errorText}))
         }
 
     }

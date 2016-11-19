@@ -1,6 +1,6 @@
 
 export interface AccountDTO {
-    userId: number,
+    id: number,
     login: string,
     label?: string,
     errorDescription?: string,

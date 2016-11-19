@@ -4,6 +4,7 @@ import {challenges} from "../module_challenges/challengeReducers";
 import {tasksState} from "../module_tasks/taskReducers";
 import {eventsState} from "../module_events/eventReducers";
 import {accounts, registerState} from "../module_accounts/accountReducers";
+import {reportsState} from "../module_reports/reportReducers";
 
 
 export const rootReducer = combineReducers({
@@ -13,6 +14,7 @@ export const rootReducer = combineReducers({
     tasksState,
     eventsState,
     accounts,
+    reportsState
 });
 
 

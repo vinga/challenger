@@ -2,6 +2,7 @@ import {EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC, SHO
 import {copy, copyAndReplace} from "../redux/ReduxState";
 import {isAction} from "../redux/ReduxTask";
 import {EventState, EventDTO, EventGroupDTO} from "./EventDTO";
+import _ = require("lodash");
 
 const getInitialState = (): EventState => {
     return {
@@ -49,13 +50,27 @@ export function eventsState(state: EventState = getInitialState(), action): Even
         var posts: Array<EventDTO> = action.events;
 
         var newState = state;
+
+
+
+
+
+
         posts.map(p=> {
             var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == p.challengeId);
 
             var newPosts = eg.posts.filter(po=>po.id > 0 && po.id != p.id).concat(p); // replace old ones with new
-            eg = Object.assign({}, eg, {posts: newPosts});
 
-            newState = copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == p.challengeId)});
+            var maxEventId=eg.maxEventId;
+            if (newPosts.length>0) {
+                maxEventId= _.maxBy(newPosts, it => it.id).id;
+
+            }
+
+            eg = Object.assign({}, eg, {posts: newPosts, maxEventId: maxEventId});
+
+
+            newState = copy(newState).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == p.challengeId)});
         })
 
         return newState

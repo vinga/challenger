@@ -225,6 +225,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
     inline fun <E : Any, reified RESULT : Any> getAll(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
         return getAll(clz.java, RESULT::class.java, query)
     }
+
     inline fun <E : Any, reified RESULT : Any> getAllMutable(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): MutableList<RESULT> {
         return getAll(clz.java, RESULT::class.java, query) as MutableList<RESULT>
     }

@@ -7,7 +7,7 @@ import {
 import {fetchWebChallenges} from "../module_challenges/index";
 import {WEB_STATUS_UNAUTHORIZED} from "../logic/domain/Common";
 import {validateEmail} from "../views/common-components/TextFieldExt";
-import {UPDATE_CHALLENGE_PARTICIPANTS} from "../module_challenges/challengeActionTypes";
+import {UPDATE_CHALLENGE_PARTICIPANTS, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION} from "../module_challenges/challengeActionTypes";
 import {ChallengeParticipantDTO} from "../module_challenges/ChallengeDTO";
 
 function renewToken(login: string, jwtToken: string) {
@@ -28,27 +28,22 @@ function queueRenewAccessToken(login) {
             console.log("queueAccessToken");
             // one minute before expiration time
             var requestTimeMillis = u.tokenExpirationDate.getTime() - 1000 * 60;
-            requestTimeMillis = new Date().getTime() + 6000;
-            console.log(u.tokenExpirationDate + " " + new Date(requestTimeMillis));
-
+            var offset=requestTimeMillis-Date.now();
             setTimeout(() => {
                 dispatch(renewToken(login, u.jwtToken))
-            }, 5000)
+            }, offset)
         });
-        /* setTimeout(() => {
-         store.dispatch({ type: 'HIDE_NOTIFICATION' })
-         }, 5000)*/
     }
 }
 
 
-export function loginUserAction(login: string, password: string, primary: boolean) {
+export function loginUserAction(login: string, password: string, primary: boolean, userId?: number) {
     return function (dispatch) {
-        dispatch(LOGIN_USER_REQUEST.new({login, password, primary}));
+        dispatch(LOGIN_USER_REQUEST.new({login, password, primary, userId}));
         return webCall.login(login, password).then(
                 jwtToken=> {
                     dispatch(LOGIN_USER_RESPONSE_SUCCESS.new({login, jwtToken}));
-                      //  dispatch(queueRenewAccessToken(login));
+                    dispatch(queueRenewAccessToken(login));
                     if (primary) {
                         dispatch(fetchWebChallenges());
                     }
@@ -102,7 +97,10 @@ export function updateChallengeParticipants(loginOrEmail: string) {
                 exists => {
                     if (exists) {
                         dispatch(UPDATE_CHALLENGE_PARTICIPANTS.new({loginOrEmail: loginOrEmail}))
+                    } else {
+                        dispatch(UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION.new({errorText: "Invalid login or email"}))
                     }
+
                 }
             ).catch((reason)=>authPromiseErr(reason,dispatch));
         }

@@ -16,12 +16,16 @@ export function sendEvent(event: EventDTO): Promise<EventDTO> {
 export function sendEventWithAuthFailure(event: EventDTO, failure: boolean): Promise<EventDTO> {
     return Promise.resolve(baseWebCall.postWithFailureIfTrue(`/challenges/${event.challengeId}/events`, event, failure));
 }
-export function loadEventsForChallengeAsync(challengeId: number): Promise<EventDTO[]> {
-    return Promise.resolve(baseWebCall.post(`/async/challenges/${challengeId}/events`,null));
+export function loadEventsForChallengeAsync(challengeId: number, lastEventId?: number): Promise<EventDTO[]> {
+    if (lastEventId != null) {
+        return Promise.resolve(baseWebCall.post(`/async/challenges/${challengeId}/events?lastEventId=${lastEventId}`, null));
+    }
+    return Promise.resolve(baseWebCall.post(`/async/challenges/${challengeId}/events`, null));
 }
 
-export function markEventRead(challengeId: number, eventId: number, dateInMillis: number ): Promise<void> {
-    return Promise.resolve(baseWebCall.post(`/challenges/${challengeId}/events/${eventId}/markRead`,dateInMillis));
+
+export function markEventRead(challengeId: number, eventId: number, dateInMillis: number): Promise<void> {
+    return Promise.resolve(baseWebCall.post(`/challenges/${challengeId}/events/${eventId}/markRead`, dateInMillis));
 }
 
 

@@ -1,17 +1,25 @@
 import {
-    WEB_CHALLENGES_REQUEST, CHANGE_CHALLENGE, WEB_CHALLENGES_RESPONSE, CLOSE_EDIT_CHALLENGE, CREATE_NEW_CHALLENGE, UPDATE_CHALLENGE_PARTICIPANTS,
-    DELETE_CHALLENGE_PARTICIPANT
+    WEB_CHALLENGES_REQUEST,
+    CHANGE_CHALLENGE,
+    WEB_CHALLENGES_RESPONSE,
+    CLOSE_EDIT_CHALLENGE,
+    CREATE_NEW_CHALLENGE,
+    UPDATE_CHALLENGE_PARTICIPANTS,
+    DELETE_CHALLENGE_PARTICIPANT,
+    UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION
 } from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {VisibleChallengesDTO, ChallengeStatus} from "./ChallengeDTO";
 import {copy} from "../redux/ReduxState";
+import _ = require("lodash");
 
 
 const initial = (): VisibleChallengesDTO => {
     return {
         selectedChallengeId: -1,
         visibleChallenges: [],
-        editedChallenge: undefined
+        editedChallenge: undefined,
+        errorText: null
     }
 }
 
@@ -25,9 +33,9 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         return copy(state).and({selectedChallengeId: action.challengeId});
     } else if (isAction(action, WEB_CHALLENGES_RESPONSE)) {
         state.visibleChallenges.map(vc=> {
-            var ord=0;
+            var ord = 0;
             vc.userLabels.forEach(ul=> {
-                ul.ordinal=ord++;
+                ul.ordinal = ord++;
             })
         });
         return action;
@@ -43,10 +51,11 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
                 challengeStatus: ChallengeStatus.ACTIVE,
                 creatorId: 0,
                 myId: 0,
-                userLabels: []}
+                userLabels: []
+            }
         })
     } else if (isAction(action, UPDATE_CHALLENGE_PARTICIPANTS)) {
-        if (state.editedChallenge.userLabels.some(chp=>chp.label==action.loginOrEmail))
+        if (state.editedChallenge.userLabels.some(chp=>chp.label == action.loginOrEmail))
             return state;
 
         var participant = {
@@ -56,7 +65,7 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         }
 
         var editedChCopy = Object.assign({}, state.editedChallenge, {
-           userLabels: state.editedChallenge.userLabels.concat(participant)
+            userLabels: state.editedChallenge.userLabels.concat(participant)
         })
 
         return Object.assign({}, state, {
@@ -72,6 +81,11 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         return Object.assign({}, state, {
             editedChallenge: editedChCopy
         })
+    } else if (isAction(action, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION)) {
+        return Object.assign({}, state, {
+            errorText: action.errorText
+        })
     }
+
     return state
 }

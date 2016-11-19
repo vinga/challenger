@@ -1,11 +1,12 @@
 package com.kameo.challenger.domain.reports
 
 import com.kameo.challenger.config.ServerConfig
-import com.kameo.challenger.domain.reports.IReportRestService.DayProgressiveReportDTO
+import com.kameo.challenger.domain.reports.IReportRestService.ReportDataDTO
+import com.kameo.challenger.domain.reports.IReportRestService.ReportType.progressive
+import com.kameo.challenger.domain.reports.ReportDAO.ProgressiveReportDTO
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus
 import com.kameo.challenger.web.rest.ChallengerSess
 import io.swagger.annotations.Api
-import org.joda.time.format.DateTimeFormat
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 import javax.inject.Inject
@@ -19,7 +20,7 @@ import javax.ws.rs.core.MediaType
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Api
-class ReportRestService :IReportRestService{
+class ReportRestService : IReportRestService {
 
 
     @Inject
@@ -32,17 +33,31 @@ class ReportRestService :IReportRestService{
     @Path("/async/challenges/{challengeId}/progressiveReport")
     override fun getProgessiveReport(@Suspended asyncResponse: AsyncResponse,
                                      @PathParam("challengeId") challengeId: Long,
-                                     @QueryParam("fromDay") fromDay: String /*ISO_LOCAL_DATE _yyyy-MM-dd*/): DayProgressiveReportDTO {
-
+                                     @QueryParam("fromDay") fromDay: String /*ISO_LOCAL_DATE _yyyy-MM-dd*/): Array<ReportDataDTO> {
 
 
         val dayFrom = LocalDate.parse(fromDay);
-        val rep=DayProgressiveReportDTO();
 
 
-        reportDAO.getProgressiveReport(session.userId, challengeId, dayFrom);
+        val prep: ProgressiveReportDTO = reportDAO.getProgressiveReport(session.userId, challengeId, dayFrom, true, false);
 
-        return rep;
+
+        val resList = prep.data.map {
+            val userId = it.key
+
+
+            val sortedMap = it.value;
+
+            var labels = sortedMap.keys.map { it.toString() }
+            var values = sortedMap.values.map { it }
+
+            ReportDataDTO(challengeId, progressive, userId, labels, values);
+
+
+        }
+
+        asyncResponse.resume(resList.toTypedArray())
+        return resList.toTypedArray();
 
     }
 

@@ -4,6 +4,7 @@ import {TaskDTOState} from "../module_tasks/index";
 import {RegisterState} from "../module_accounts/index";
 import {EventState} from "../module_events/index";
 import {AccountDTO} from "../module_accounts/AccountDTO";
+import {ReportState} from "../module_reports/ReportUserDTO";
 
 
 export interface CurrentSelection {
@@ -17,7 +18,8 @@ export interface ReduxState {
     tasksState: TaskDTOState,
     accounts: Array<AccountDTO>,
     eventsState: EventState;
-    currentSelection: CurrentSelection
+    reportsState: ReportState;
+    currentSelection: CurrentSelection,
 }
 
 

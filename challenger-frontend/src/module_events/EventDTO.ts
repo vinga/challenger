@@ -3,10 +3,14 @@ export const EventType = {
     POST:"POST",
     CREATE_TASK:"CREATE_TASK",
     UPDATE_TASK:"UPDATE_TASK",
+    ACCEPT_TASK: "ACCEPT_TASK",
     REJECT_TASK:"REJECT_TASK",
     CHECKED_TASK:"CHECKED_TASK",
     UNCHECKED_TASK:"UNCHECKED_TASK",
+    DELETE_TASK: "DELETE_TASK"
 };
+
+
 
 export interface EventDTO {
     id: number,
@@ -14,6 +18,7 @@ export interface EventDTO {
     taskId: number,
     content: string,
     sentDate: number,
+    forDay: number,
     authorId: number,
     eventType: string,
     readDate?: number; // if message has been read for that user
@@ -22,7 +27,8 @@ export interface EventDTO {
 export interface EventGroupDTO {
     challengeId?: number
     taskId?: number
-    posts: Array<EventDTO>
+    posts: Array<EventDTO>,
+    maxEventId?: number
 }
 
 export interface EventState {

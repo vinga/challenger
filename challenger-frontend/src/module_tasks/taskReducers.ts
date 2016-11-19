@@ -55,6 +55,7 @@ function tasks(state: Map<string,TaskDTOListForDay>, action) {
         newState[key] = Object.assign({}, action);
 
 
+
         return newState;
     } else if (isAction(action, MARK_TASK_DONE_OPTIMISTIC)) {
         var key: string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));

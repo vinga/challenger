@@ -12,7 +12,7 @@ interface Props {
     close: ()=>void
 }
 interface PropsFunc {
-    doLoginFunc: (login: string, password: string)=>(any);
+    doLoginFunc: (login: string, password: string, userId: number)=>(any);
 }
 
 
@@ -27,7 +27,7 @@ export class SecondUserAuthorizePopoverDialog extends React.Component<Props& Pro
 
 
     handleLogin = () => {
-        this.props.doLoginFunc(this.props.user.login, this.passwordField.getValue());
+        this.props.doLoginFunc(this.props.user.login, this.passwordField.getValue(), this.props.user.id);
         this.internalClose();
     };
     internalClose = () => {

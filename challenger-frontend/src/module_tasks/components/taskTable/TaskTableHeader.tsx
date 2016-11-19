@@ -5,40 +5,28 @@ import {TaskDTO, TaskStatus, TaskType, TaskUserDTO} from "../../TaskDTO";
 import colors from "../../../views/common-components/Colors";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {TaskTableHeaderAccountPanel} from "../../../module_accounts/index";
+import {makeCalculateAllAndCheckedCount} from "../../taskSelectors";
 
 
 interface Props {
-    tasksList: Array<TaskDTO>,
     user: TaskUserDTO,
     challengeId: number,
     no: number
+    onOpenDialogForLoginSecondUser: (event: EventTarget)=>void;
 }
 
+interface ReduxProps {
+    allPoints: number,
+    checkedPoints: number
+}
 interface ReduxPropsFunc {
     onAddNewTaskFunc: (task: TaskDTO)=>void;
 
 }
-interface PropsFunc {
-    onOpenDialogForLoginSecondUser: (event: EventTarget)=>void;
-}
 
-class TaskTableHeaderInternal extends React.Component<Props & ReduxPropsFunc & PropsFunc,void> {
+class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & ReduxPropsFunc ,void> {
     constructor(props) {
         super(props);
-
-
-    }
-
-    calculateCheckedCount() {
-        return this.props.tasksList.filter(t=>t.taskStatus == TaskStatus.accepted && t.done)
-            .map(t=>t.difficulty + 1)
-            .reduce((total, num)=>total + num, 0);
-    }
-
-    calculateAllCount() {
-        this.props.tasksList
-            .map(t=>t.difficulty + 1)
-            .reduce((total, num)=>total + num, 0);
     }
 
 
@@ -71,10 +59,11 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxPropsFunc & P
                 userId={this.props.user.id}
                 userLabel={this.props.user.label}
                 userLogin={this.props.user.login}
-            />
+            >{this.props.children}</TaskTableHeaderAccountPanel>
 
             <div style={{clear: 'both'}}></div>
-            <span className="left" style={{margin: '3px'}}>Points: {this.calculateCheckedCount()}</span>
+            <span className="left" style={{margin: '3px'}}>Points: {this.props.checkedPoints}</span>
+
             <div className="right" style={{display: "inline-block"}}>
                 <FlatButton
                     onClick={()=>this.props.onAddNewTaskFunc(this.createNewTask())}
@@ -90,9 +79,21 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxPropsFunc & P
 
 }
 
-const mapStateToProps = (state: ReduxState, ownProps: Props & PropsFunc): {} => {
-    return {};
-};
+
+
+const mapStateToProps = () => {
+    // component instance
+    var calculateAllAndCheckedCount=makeCalculateAllAndCheckedCount();
+
+
+    return (state: ReduxState, ownProps: Props ): ReduxProps => {
+        var obj=calculateAllAndCheckedCount(state,ownProps.user.id);
+        return {
+            allPoints: obj.allPoints,
+            checkedPoints: obj.checkedPoints
+        };
+    };
+}
 const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
         onAddNewTaskFunc: (task: TaskDTO) => {
@@ -101,7 +102,7 @@ const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
 
     }
 };
-export const TaskTableHeader = connect(mapStateToProps, mapDispatchToProps)(TaskTableHeaderInternal);
+export const TaskTableHeader = connect(mapStateToProps as any, mapDispatchToProps)(TaskTableHeaderInternal) as React.ComponentClass<Props>;
 
 
 

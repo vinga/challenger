@@ -5,14 +5,14 @@ export interface ChallengeDTO {
     challengeStatus: string;
     creatorId: number;
     myId: number;
-    userLabels: Array<ChallengeParticipantDTO>
-
+    userLabels: Array<ChallengeParticipantDTO>,
 }
 
 export interface VisibleChallengesDTO {
     selectedChallengeId: number,
     visibleChallenges: Array<ChallengeDTO>
-    editedChallenge: ChallengeDTO
+    editedChallenge: ChallengeDTO,
+    errorText?: string
 }
 
 export const ChallengeStatus = {

@@ -6,6 +6,7 @@ import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.domain.events.db.EventReadODB
 import com.kameo.challenger.domain.events.db.EventType
 import lombok.Data
+import java.time.ZoneOffset
 import javax.ws.rs.PathParam
 
 /**
@@ -30,6 +31,7 @@ interface IEventGroupRestService {
                         var authorId: Long = 0,
                         var content: String = "",
                         var sentDate: Long = 0,
+                        var forDay: Long = 0,
                         var taskId: Long? = null,
                         var challengeId: Long =0,
                         var eventType: EventType = EventType.POST,
@@ -53,7 +55,8 @@ interface IEventGroupRestService {
                         authorId = c.author.id,
                         content = c.content,
                         sentDate = c.createDate.time,
-                        taskId = c.task?.id ?: null,
+                        forDay = c.forDay.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+                        taskId = c.taskId,
                         challengeId = c.challenge.id,
                         eventType = c.eventType
                 );

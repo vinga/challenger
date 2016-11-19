@@ -4,14 +4,14 @@ import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import Paper from "material-ui/Paper";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import ChallengeTableCheckbox from "./ChallengeTableCheckbox.tsx";
-import {TaskDTO, TaskProgressDTO, createTaskDTOListKey, TaskDTOListForDay, TaskUserDTO} from "../../TaskDTO";
-import {WebState} from "../../../logic/domain/Common";
+import {TaskDTO, TaskProgressDTO, TaskDTOListForDay, TaskUserDTO} from "../../TaskDTO";
 import {markTaskDoneOrUndone} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {ResizeAware} from "../../../views/Constants";
 import {TaskLabel} from "../TaskLabel";
 import {TaskTableHeader} from "./TaskTableHeader";
 import {SHOW_TASK_EVENTS} from "../../../module_events/eventActionTypes";
+import {taskDTOListKeySelector, makeGetTasksForUserAndDay, makeBusyTasksSelectorForUserAndDay} from "../../taskSelectors";
 
 const styles = {
     icon: {
@@ -47,7 +47,7 @@ interface ReduxProps {
 interface ReduxPropsFunc {
     onTaskCheckedStateChangedFunc: (caller: TaskUserDTO, challengeId: number, taskProgress: TaskProgressDTO)=>void;
     onEditTask: (task: TaskDTO)=>void;
-    onShowTaskEvents:(task:TaskDTO, no:number) => void;
+    onShowTaskEvents: (task: TaskDTO, no: number) => void;
 
 }
 
@@ -77,16 +77,7 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
             Object.assign(other, {opacity: "0.4"});
         }
 
-        return (
-            <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
-                <TaskTableHeader no={this.props.no}
-                                 user={this.props.user}
-                                 tasksList={this.props.tasksList }
-                                 challengeId={this.props.challengeId}
-                                 onOpenDialogForLoginSecondUser=
-                                     {(eventTarget:EventTarget)=>this.props.showAuthorizeFuncIfNeeded(eventTarget, this.props.user.id)}
-                />
-                <Paper style={{padding: '10px', display: "inline-block"}}>
+        return (<Paper style={{padding: '10px', display: "inline-block"}}>
                     <div style={other}>
                         <Table selectable={false}
                                fixedHeader={true}
@@ -130,31 +121,29 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                     </div>
                 </Paper>
 
-
-            </div>
         );
     }
 }
+const mapStateToProps = () => {
+    // component instance selectors
+    const tasksForUserAndDay = makeGetTasksForUserAndDay();
+    const busyTasksSelectorForUserAndDay = makeBusyTasksSelectorForUserAndDay();
 
 
-const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
-    var key: string = createTaskDTOListKey(ownprops.challengeId, state.currentSelection.day);
-    var currentTaskListDTO: TaskDTOListForDay = state.tasksState.tasks[key];
-    var tasksList;
-    var busy = false;
-    if (currentTaskListDTO != null) {
-        tasksList = currentTaskListDTO.taskList.filter((t: TaskDTO)=>t.userId == ownprops.user.id);
-        busy = currentTaskListDTO.webState == WebState.FETCHING_VISIBLE;
-        if (busy) {
-            busy = tasksList.filter((t: TaskDTO)=>currentTaskListDTO.invalidTasksIds.contains(t.id)).length > 0;
+    // real mapStateToProps function
+    const mapStateToPropsInternal = (state: ReduxState, ownprops: Props): ReduxProps => {
+
+        var tasksLists=tasksForUserAndDay(state, ownprops.user.id);
+        return {
+            currentDate: state.currentSelection.day,
+            tasksList: tasksLists,
+            busy: busyTasksSelectorForUserAndDay(state, tasksLists)
         }
-    } else tasksList = [];
-    return {
-        currentDate: state.currentSelection.day,
-        tasksList: tasksList,
-        busy: busy
     }
-};
+    return mapStateToPropsInternal
+}
+
+
 
 const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
@@ -164,7 +153,7 @@ const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
         onEditTask: (task: TaskDTO) => {
             dispatch(OPEN_EDIT_TASK.new(task))
         },
-        onShowTaskEvents: (task: TaskDTO, no:number) => {
+        onShowTaskEvents: (task: TaskDTO, no: number) => {
             dispatch(SHOW_TASK_EVENTS.new({task, no}))
         }
 
@@ -172,5 +161,5 @@ const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
 };
 
 
-export const TaskTable = connect(mapStateToProps, mapDispatchToProps)(ResizeAware(TaskTableInternal));
+export const TaskTable = connect(mapStateToProps as any, mapDispatchToProps)(ResizeAware(TaskTableInternal)) as React.ComponentClass<Props>;
 

@@ -54,8 +54,8 @@ class EventGroupRestService : IEventGroupRestService {
     @POST
     @Path("/async/challenges/{challengeId}/events")
     @WebResponseStatus(WebResponseStatus.ACCEPTED)
-    fun listenTo(@Suspended asyncResponse: AsyncResponse, @PathParam("challengeId") challengeId: Long) {
-        eventPushDAO.listenToNewEvents(session.userId, asyncResponse, challengeId);
+    fun listenTo(@Suspended asyncResponse: AsyncResponse, @PathParam("challengeId") challengeId: Long, @QueryParam("lastEventId") lastEventId: Long?) {
+        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, challengeId, lastEventId);
     }
 
     @POST
@@ -71,7 +71,7 @@ class EventGroupRestService : IEventGroupRestService {
         val callerId = session.getUserId();
         val postsForTask = eventGroupDAO.getLastEventsForChallenge(callerId, challengeId).map { EventDTO.fromODB(it) }
                 .toTypedArray();
-        return EventGroupDTO(challengeId, null, postsForTask);
+        return EventGroupDTO(challengeId, null, postsForTask)
     }
 
     @POST
@@ -79,19 +79,19 @@ class EventGroupRestService : IEventGroupRestService {
     @Path("/challenges/{challengeId}/events")
     override fun createEvent(@PathParam("challengeId") challengeId: Long, eventDTO: EventDTO): EventDTO {
         if (challengeId != eventDTO.challengeId)
-            throw IllegalArgumentException();
-        val callerId = session.getUserId();
+            throw IllegalArgumentException()
+        val callerId = session.userId
 
-        var ev = EventODB(0);
-        ev.author = UserODB(eventDTO.authorId);
-        ev.challenge = ChallengeODB(eventDTO.challengeId);
-        ev.task = if (eventDTO.taskId != null) TaskODB(eventDTO.taskId ?: throw IllegalArgumentException()) else null;
-        ev.content = eventDTO.content;
-        ev.createDate = Date(eventDTO.sentDate);
-        ev.eventType = EventType.POST;
+        var ev = EventODB(0)
+        ev.author = UserODB(eventDTO.authorId)
+        ev.challenge = ChallengeODB(eventDTO.challengeId)
+        ev.taskId = eventDTO.taskId
+        ev.content = eventDTO.content
+        ev.createDate = Date(eventDTO.sentDate)
+        ev.eventType = EventType.POST
 
-        var updatedEvent = eventGroupDAO.createEventFromClient(callerId, challengeId, ev);
+        var updatedEvent = eventGroupDAO.createEventFromClient(callerId, challengeId, ev)
 
-        return EventDTO.fromODB(updatedEvent);
+        return EventDTO.fromODB(updatedEvent)
     }
 }

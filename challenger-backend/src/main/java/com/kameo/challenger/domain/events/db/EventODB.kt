@@ -6,6 +6,7 @@ import com.kameo.challenger.domain.events.db.EventType
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.odb.api.IIdentity
 import org.crsh.cli.Man
+import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
 import javax.persistence.TemporalType.TIMESTAMP
@@ -18,9 +19,9 @@ data class EventODB(@Id
                    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
                    override val id: Long = 0) : IIdentity {
 
-    @ManyToOne
-    @JoinColumn(updatable = false)
-    var task: TaskODB? = null
+
+    @Column(updatable = false)
+    var taskId: Long? = null
 
 
     @ManyToOne
@@ -35,6 +36,10 @@ data class EventODB(@Id
     @Temporal(TIMESTAMP)
     var createDate: Date = Date();
     lateinit var content: String;
+
+
+    @JoinColumn(updatable = false)
+    var forDay: LocalDate = LocalDate.now();
 
     @ManyToOne
     @JoinColumn(updatable = false)

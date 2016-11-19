@@ -7,4 +7,14 @@ import org.joda.time.DateTime;
 public class TokenInfo {
     private DateTime issued;
     private DateTime expires;
+
+
+    String jwtToken;
+    public String getJwtToken() {
+        return jwtToken;
+    }
+    public void setJwtToken(String jwtToken) {
+        this.jwtToken = jwtToken;
+    }
+
 }

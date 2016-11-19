@@ -40,7 +40,7 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
                 {this.props.no != 0 && (this.props.user.jwtToken != null ?
 
                         <IconButton
-                            onClick={() => {this.props.onSecondUserLogout(this.props.user.userId)}}>
+                            onClick={() => {this.props.onSecondUserLogout(this.props.user.id)}}>
                             &nbsp;<i className={'fa fa-power-off' }
                                      style={{marginTop: '3px',fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
                         </IconButton>
@@ -54,7 +54,11 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
                                      style={{marginTop: '3px',fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
                         </IconButton>
 
-                )}{this.props.user.errorDescription != null &&
+                )}
+<div style={{display:"block", float:"right"}}>
+                {this.props.children}
+    </div>
+                {this.props.user.errorDescription != null &&
                 <span className="red-text text-darken-3"
                       style={{fontSize:'15px'}}>
                         {this.props.user.errorDescription}</span>}

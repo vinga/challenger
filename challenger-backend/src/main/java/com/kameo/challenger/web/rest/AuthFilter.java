@@ -80,6 +80,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     @Override
     protected ChallengerSess renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
         String login = req.getParameter("login");
+        //System.out.println("LOGIN "+login+" "+myTokenInfo.getUserId()+" "+accountDao.getUserIdByLogin(login));
         if (myTokenInfo.getUserId() != accountDao.getUserIdByLogin(login))
             throw new IllegalArgumentException();
         ChallengerSess td = new ChallengerSess();

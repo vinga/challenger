@@ -22,6 +22,7 @@ import org.joda.time.DateTime;
 
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -136,11 +137,11 @@ public class JWTVerifier<E extends TokenInfo> {
                     checker);
             JsonToken jt;
             try {
-                // System.out.println("TOKEN TO VERIFY " + token + " " + new Date());
+                 System.out.println("TOKEN TO VERIFY |" + token + "| " + new Date());
 
                 verify(token);
 
-                System.out.println("------------------------");
+
                 jt = parser.verifyAndDeserialize(token);
 
             } catch (SignatureException e) {
@@ -155,6 +156,7 @@ public class JWTVerifier<E extends TokenInfo> {
                 E e = gson.fromJson(info, clzE);
                 e.setIssued(new DateTime(payload.getAsJsonPrimitive("iat").getAsLong() * 1000));
                 e.setExpires(new DateTime(payload.getAsJsonPrimitive("exp").getAsLong() * 1000));
+                e.setJwtToken(token);
 
                 //System.out.println("issued " + e.getIssued() + ", expires " + e.getExpires());
                 return e;

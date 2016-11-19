@@ -4,8 +4,8 @@ import {MODIFY_TASK_OPTIMISTIC, MODIFY_TASK_REQUEST, DELETE_TASK_OPTIMISTIC, MAR
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
 import * as webCall from "./taskWebCalls";
-import {jwtTokensOfChallengeParticipants} from "../module_glue/index";
 import {authPromiseErr} from "../module_accounts/accountActions";
+import {jwtTokensOfChallengeParticipants} from "../module_challenges/index";
 
 
 export function updateTask(task: TaskDTO) {
