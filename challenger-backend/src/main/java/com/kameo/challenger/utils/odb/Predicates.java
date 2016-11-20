@@ -98,12 +98,12 @@ class Predicates extends ArrayList<Predicate> {
 
 	public <E> void addIfPresent(Optional<IRestrictions<E>> rest, CriteriaQuery<?> crit, Root<E> msg) {
 		if (rest.isPresent())
-			addAll(Arrays.asList(rest.get().apply(cb, crit, msg)));
+			addAll(Collections.singletonList(rest.get().apply(cb, crit, msg)));
 	}
 
 	public <E> void addIfPresent(Optional<IPathRestrictions<E>> rest, CriteriaQuery<?> crit, Path<E> msg) {
 		if (rest.isPresent())
-			addAll(Arrays.asList(rest.get().apply(cb, crit, msg)));
+			addAll(Collections.singletonList(rest.get().apply(cb, crit, msg)));
 	}
 
 	public void addIfPresent(Optional<Predicate> p) {

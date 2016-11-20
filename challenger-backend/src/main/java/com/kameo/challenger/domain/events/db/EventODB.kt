@@ -2,10 +2,7 @@ package com.kameo.challenger.domain.events.db
 
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
-import com.kameo.challenger.domain.events.db.EventType
-import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.odb.api.IIdentity
-import org.crsh.cli.Man
 import java.time.LocalDate
 import java.util.*
 import javax.persistence.*
@@ -24,7 +21,7 @@ data class EventODB(@Id
 
     @ManyToOne
     @JoinColumn(updatable = false)
-    lateinit var author: UserODB;
+    lateinit var author: UserODB
 
     @ManyToOne
     @JoinColumn(updatable = false)
@@ -32,18 +29,18 @@ data class EventODB(@Id
 
     @JoinColumn(updatable = false)
     @Temporal(TIMESTAMP)
-    var createDate: Date = Date();
-    lateinit var content: String;
+    var createDate: Date = Date()
+    lateinit var content: String
 
 
     @JoinColumn(updatable = false)
-    var forDay: LocalDate = LocalDate.now();
+    var forDay: LocalDate = LocalDate.now()
 
     @ManyToOne
     @JoinColumn(updatable = false)
-    lateinit var challenge: ChallengeODB;
+    lateinit var challenge: ChallengeODB
 
     @Enumerated
-    lateinit var eventType: EventType;
+    lateinit var eventType: EventType
 
 }

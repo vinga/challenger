@@ -24,9 +24,9 @@ class ReportRestService : IReportRestService {
 
 
     @Inject
-    private lateinit var reportDAO: ReportDAO;
+    private lateinit var reportDAO: ReportDAO
     @Inject
-    private lateinit var session: ChallengerSess;
+    private lateinit var session: ChallengerSess
 
     @GET
     @WebResponseStatus(WebResponseStatus.ACCEPTED)
@@ -36,28 +36,28 @@ class ReportRestService : IReportRestService {
                                      @QueryParam("fromDay") fromDay: String /*ISO_LOCAL_DATE _yyyy-MM-dd*/): Array<ReportDataDTO> {
 
 
-        val dayFrom = LocalDate.parse(fromDay);
+        val dayFrom = LocalDate.parse(fromDay)
 
 
-        val prep: ProgressiveReportDTO = reportDAO.getProgressiveReport(session.userId, challengeId, dayFrom, true, false);
+        val prep: ProgressiveReportDTO = reportDAO.getProgressiveReport(session.userId, challengeId, dayFrom, true, false)
 
 
         val resList = prep.data.map {
             val userId = it.key
 
 
-            val sortedMap = it.value;
+            val sortedMap = it.value
 
             var labels = sortedMap.keys.map { it.toString() }
             var values = sortedMap.values.map { it }
 
-            ReportDataDTO(challengeId, progressive, userId, labels, values);
+            ReportDataDTO(challengeId, progressive, userId, labels, values)
 
 
         }
 
         asyncResponse.resume(resList.toTypedArray())
-        return resList.toTypedArray();
+        return resList.toTypedArray()
 
     }
 

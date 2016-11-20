@@ -2,10 +2,10 @@ package com.kameo.challenger.domain.tasks.db
 
 import com.kameo.challenger.odb.api.IIdentity
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
-import javax.persistence.*
-import javax.persistence.TemporalType.DATE
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.ManyToOne
 import javax.validation.constraints.NotNull
 
 @Entity

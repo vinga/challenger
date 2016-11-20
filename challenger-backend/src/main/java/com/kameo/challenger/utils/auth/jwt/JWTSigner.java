@@ -81,7 +81,7 @@ public class JWTSigner {
         Map<String, Object> map = new HashMap<>();
         for (Method m : methods) {
             if (m.getName().startsWith("get")) {
-                Object value = (Object) m.invoke(entity);
+                Object value = m.invoke(entity);
                 if (value != null) {
                     map.put(String.valueOf(m.getName().charAt(3)).toLowerCase()+m.getName().substring(4), value);
                 }

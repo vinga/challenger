@@ -5,8 +5,10 @@ import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.tasks.db.*
 import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
 import lombok.Data
-import java.time.*
-import java.util.*
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
 
 
 interface ITaskRestService {
@@ -27,7 +29,7 @@ interface ITaskRestService {
 
         }
         fun getLocalDate(): LocalDate {
-            return Instant.ofEpochMilli(progressTime).atZone(ZoneId.systemDefault()).toLocalDate();
+            return Instant.ofEpochMilli(progressTime).atZone(ZoneId.systemDefault()).toLocalDate()
         }
     }
 
@@ -79,13 +81,13 @@ interface ITaskRestService {
                         taskStatus = odb.taskStatus,
                         userId = odb.user.id,
                         done = odb.done,
-                        createdByUserId = odb.createdByUser.id);
+                        createdByUserId = odb.createdByUser.id)
             }
             
             
         }
         fun toODB(): TaskODB {
-            var task = TaskODB()
+            val task = TaskODB()
             task.taskStatus = this.taskStatus
             task.taskType = this.taskType
             task.icon = this.icon
@@ -95,10 +97,10 @@ interface ITaskRestService {
             task.createdByUser = UserODB(this.createdByUserId)
             task.difficulty = this.difficulty
             if (this.dueDate != null)
-                task.dueDate =  Instant.ofEpochMilli(this.dueDate).atZone(ZoneId.systemDefault()).toLocalDateTime();
+                task.dueDate =  Instant.ofEpochMilli(this.dueDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
             if (this.id > 0)
                 task.id = this.id
-            return task;
+            return task
         }
 
 

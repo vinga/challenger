@@ -1,13 +1,9 @@
 package com.kameo.challenger.domain.events
 
-import com.kameo.challenger.domain.challenges.IChallengeRestService
-import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.domain.events.db.EventReadODB
 import com.kameo.challenger.domain.events.db.EventType
-import lombok.Data
 import java.time.ZoneOffset
-import javax.ws.rs.PathParam
 
 
 interface IEventGroupRestService {
@@ -18,11 +14,7 @@ interface IEventGroupRestService {
 
     fun createEvent(challengeId: Long, eventDTO: EventDTO): EventDTO
 
-    data class EventGroupDTO(val challengeId: Long, val taskId: Long? = null, val posts: Array<EventDTO> = emptyArray())  {
-
-
-    }
-
+    data class EventGroupDTO(val challengeId: Long, val taskId: Long? = null, val posts: Array<EventDTO> = emptyArray())
 
 
     data class EventDTO(val id: Long=0,
@@ -43,7 +35,7 @@ interface IEventGroupRestService {
 
         companion object {
             fun fromODB(pair : Pair<EventReadODB, EventODB>): EventDTO {
-                val co = fromODB(pair.second);
+                val co = fromODB(pair.second)
                 co.readDate=pair.first.read?.time ?: null
                 co.eventReadId=pair.first.id
                 return co
@@ -57,7 +49,7 @@ interface IEventGroupRestService {
                         taskId = c.taskId,
                         challengeId = c.challenge.id,
                         eventType = c.eventType
-                );
+                )
                 return co
             }
         }

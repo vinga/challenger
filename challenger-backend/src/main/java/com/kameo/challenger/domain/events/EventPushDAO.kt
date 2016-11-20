@@ -20,7 +20,7 @@ open class EventPushDAO {
     lateinit var eventGroupDAO: EventGroupDAO
     @Inject
     lateinit var permissionDAO: PermissionDAO
-    private var subscribers = mutableMapOf<Long, ChallengeSubscribers>();
+    private var subscribers = mutableMapOf<Long, ChallengeSubscribers>()
 
 
     /**
@@ -29,7 +29,7 @@ open class EventPushDAO {
      * otherwise add asyncResponse to list
      */
     open fun listenToNewEvents(uniqueClientIdentifier: String, callerId: Long, asyncResponse: AsyncResponse, challengeId: Long, lastReadEventId: Long?) {
-        permissionDAO.checkHasPermissionToChallenge(callerId, challengeId);
+        permissionDAO.checkHasPermissionToChallenge(callerId, challengeId)
 
         val subscriber = Subscriber(uniqueClientIdentifier = uniqueClientIdentifier,
                 userId = callerId,
@@ -50,7 +50,7 @@ open class EventPushDAO {
                         challengeSubscribersSynch.users.add(subscriber)
                     })
                 }
-            });
+            })
 
         } else {
             synchronized(challengeSubscribers, {
@@ -58,7 +58,7 @@ open class EventPushDAO {
             })
         }
 
-        asyncResponse.setTimeout(500, TimeUnit.SECONDS);
+        asyncResponse.setTimeout(500, TimeUnit.SECONDS)
         asyncResponse.setTimeoutHandler { it.cancel() }
 
         //broadcastAllUnreadEvents(callerId, challengeId);
@@ -71,7 +71,7 @@ open class EventPushDAO {
     open fun broadcastNewEvent(challengeId: Long) {
         // fetch everyhing unread for those challenge and subscribers
 
-        subscribers.get(challengeId)?.let {
+        subscribers[challengeId]?.let {
             synchronized(it) {
                 it.users.toList().forEach {
                     broadcastEventsToCustomClient(it)
@@ -97,22 +97,22 @@ open class EventPushDAO {
         if (subscriber.lastReadEventId==null) {
             // first time after login we don't have last read event id
             broadcastAllUnreadEvents(subscriber.userId, subscriber.challengeId)
-            return;
+            return
 
         }
-        var events = eventGroupDAO.getLaterEventsForChallenge(subscriber.userId, subscriber.challengeId, subscriber.lastReadEventId)
+        val events = eventGroupDAO.getLaterEventsForChallenge(subscriber.userId, subscriber.challengeId, subscriber.lastReadEventId)
                 .map { EventDTO.fromODB(it) }
 
         if (events.isEmpty())
-            return;
+            return
         if (events.groupBy { it.challengeId }.keys.size > 1)
             throw IllegalArgumentException("Only events from same event may be broadcasted together")
 
         subscribers[subscriber.challengeId]?.let {
             synchronized(it) {
-                var sub = it.users.find { it.uniqueClientIdentifier == subscriber.uniqueClientIdentifier };
+                val sub = it.users.find { it.uniqueClientIdentifier == subscriber.uniqueClientIdentifier }
                 if (sub != null) {
-                    it.users.remove(sub);
+                    it.users.remove(sub)
                     sub.asyncResponse.resume(events.toTypedArray())
                 }
             }

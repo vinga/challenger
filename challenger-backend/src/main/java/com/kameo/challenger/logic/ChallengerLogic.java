@@ -1,6 +1,5 @@
 package com.kameo.challenger.logic;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
@@ -65,6 +64,7 @@ public class ChallengerLogic {
     }
 
     public List<String> findUsersWithLoginsStartingWith(String friend) {
+        //noinspection ConstantConditions
         return anyDao.streamAll(UserODB.class).where(u ->
                 JPQL.like(u.getLogin(), friend + "%")
         ).map(UserODB::getLogin).sorted().collect(Collectors.toList());

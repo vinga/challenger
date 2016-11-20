@@ -146,10 +146,10 @@ open class TaskDAO {
 
 
         if (userIds.isEmpty())
-            throw IllegalArgumentException("Callers not specified");
+            throw IllegalArgumentException("Callers not specified")
         for (userId in userIds) {
-            permissionDao.checkHasPermissionToTask(userId, taskId);
-            permissionDao.checkHasPermissionToChallenge(userId, challengeId);
+            permissionDao.checkHasPermissionToTask(userId, taskId)
+            permissionDao.checkHasPermissionToChallenge(userId, challengeId)
         }
         if (taskStatus == TaskStatus.waiting_for_acceptance)
             throw IllegalArgumentException()

@@ -26,8 +26,8 @@ open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO
                                   progressive: Boolean,
                                   countFromStart: Boolean
     ): ProgressiveReportDTO {
-        permissionDAO.checkHasPermissionToChallenge(callerId, challengeId);
-        val challengeODB = anyDaoNew.find(ChallengeODB::class, challengeId);
+        permissionDAO.checkHasPermissionToChallenge(callerId, challengeId)
+        val challengeODB = anyDaoNew.find(ChallengeODB::class, challengeId)
         val allTasks = anyDaoNew.getAll(TaskProgressODB::class) {
             it get TaskProgressODB::task get TaskODB::challenge eqId challengeId
             it get TaskProgressODB::task get TaskODB::taskStatus eq TaskStatus.accepted
@@ -39,7 +39,7 @@ open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO
 
         val report = ProgressiveReportDTO(dayFromMidnight)
 
-        val userToTasks = allTasks.groupBy { it.task.user.id };
+        val userToTasks = allTasks.groupBy { it.task.user.id }
         // fill not existing users
         challengeODB.participants.map {
             val userId = it.user.id
@@ -53,7 +53,7 @@ open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO
 
             // iterate through days, add not existing days
             val values = TreeMap<LocalDate, Int>()
-            var startDate = (userDayMapFromDatabase.keys + dayFromMidnight).min()!!
+            val startDate = (userDayMapFromDatabase.keys + dayFromMidnight).min()!!
             for (temp in startDate..LocalDate.now()) {
                 val points = userDayMapFromDatabase[temp] ?: 0
                 values[temp] = points
@@ -69,7 +69,7 @@ open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO
             report.userLabels[userId] = it.user.getLoginOrEmail()
             report.data[userId] = values
         }
-        return report;
+        return report
     }
 
 

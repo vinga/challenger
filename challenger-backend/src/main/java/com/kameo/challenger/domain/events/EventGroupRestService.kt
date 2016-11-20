@@ -7,7 +7,6 @@ import com.kameo.challenger.domain.events.IEventGroupRestService.EventDTO
 import com.kameo.challenger.domain.events.IEventGroupRestService.EventGroupDTO
 import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.domain.events.db.EventType
-import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus.CREATED
 import com.kameo.challenger.web.rest.ChallengerSess
@@ -31,7 +30,7 @@ class EventGroupRestService : IEventGroupRestService {
     @Inject
     private lateinit var eventGroupDAO: EventGroupDAO
     @Inject
-    private lateinit var session: ChallengerSess;
+    private lateinit var session: ChallengerSess
     @Inject
     private lateinit var eventPushDAO: EventPushDAO
 
@@ -41,13 +40,13 @@ class EventGroupRestService : IEventGroupRestService {
     @Path("/challenges/{challengeId}/tasks/{taskId}/events")
     @ApiOperation("Gets events for task")
     override fun getEventsForTask(@PathParam("challengeId") challengeId: Long, @PathParam("taskId") taskId: Long): EventGroupDTO {
-        val callerId = session.getUserId();
+        val callerId = session.userId
 
         val postsForTask = eventGroupDAO.getEventsForTask(callerId, challengeId, taskId).map(
                 { EventDTO.fromODB(it) })
-                .toTypedArray();
+                .toTypedArray()
 
-        return EventGroupDTO(challengeId, taskId, postsForTask);
+        return EventGroupDTO(challengeId, taskId, postsForTask)
     }
 
 
@@ -55,7 +54,7 @@ class EventGroupRestService : IEventGroupRestService {
     @Path("/async/challenges/{challengeId}/events")
     @WebResponseStatus(WebResponseStatus.ACCEPTED)
     fun listenTo(@Suspended asyncResponse: AsyncResponse, @PathParam("challengeId") challengeId: Long, @QueryParam("lastEventId") lastEventId: Long?) {
-        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, challengeId, lastEventId);
+        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, challengeId, lastEventId)
     }
 
     @POST
@@ -68,9 +67,9 @@ class EventGroupRestService : IEventGroupRestService {
     @GET
     @Path("/challenges/{challengeId}/events")
     override fun getEventsForChallenge(@PathParam("challengeId") challengeId: Long): EventGroupDTO {
-        val callerId = session.getUserId();
+        val callerId = session.userId
         val postsForTask = eventGroupDAO.getLastEventsForChallenge(callerId, challengeId).map { EventDTO.fromODB(it) }
-                .toTypedArray();
+                .toTypedArray()
         return EventGroupDTO(challengeId, null, postsForTask)
     }
 

@@ -49,7 +49,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                 u.failedLoginsNumber = u.failedLoginsNumber + 1
                 if (u.failedLoginsNumber > 10) {
                     u.userStatus = UserStatus.SUSPENDED
-                    u.suspendedDueDate = LocalDateTime.now().plusMinutes(20);
+                    u.suspendedDueDate = LocalDateTime.now().plusMinutes(20)
                 }
                 anyDaoNew.em.merge(u)
                 throw AbstractAuthFilter.AuthException("Wrong credentials")
@@ -77,7 +77,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         return user
     }
 
-    class InternalRegisterResponseDTO(val error: String? = null, val requireEmailConfirmation: Boolean = false);
+    class InternalRegisterResponseDTO(val error: String? = null, val requireEmailConfirmation: Boolean = false)
 
     open fun registerUser(login: String, password: String, email: String): InternalRegisterResponseDTO {
         val challengeParticipant = anyDaoNew.getFirst(ChallengeParticipantODB::class, {
@@ -91,12 +91,12 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                 it.get(UserODB::login) eq login
             })
             if (existingUser != null)
-                return InternalRegisterResponseDTO("Login " + login + " is already registered.")
+                return InternalRegisterResponseDTO("Login $login is already registered.")
             val existingEmail = anyDaoNew.getFirst(UserODB::class, {
                 it.get(UserODB::email) eq email
             })
             if (existingEmail != null)
-                return InternalRegisterResponseDTO("Email " + email + " is already registered.")
+                return InternalRegisterResponseDTO("Email $email is already registered.")
 
 
             val user = UserODB()

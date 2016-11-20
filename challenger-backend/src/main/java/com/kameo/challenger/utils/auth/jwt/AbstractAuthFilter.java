@@ -102,7 +102,6 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
      * Example implementation:
      * return "/api/newToken".equals(req.getPathInfo());
      *
-     * @param req
      * @return
      */
     protected abstract boolean isResourceANewTokenGenerator(HttpServletRequest req);

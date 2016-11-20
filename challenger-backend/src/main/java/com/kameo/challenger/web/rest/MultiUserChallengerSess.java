@@ -2,9 +2,7 @@ package com.kameo.challenger.web.rest;
 
 
 import com.google.common.collect.Sets;
-import lombok.Data;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 

@@ -31,10 +31,7 @@ public class ComparisionHelper {
 	}
 
 	public static boolean equalsNullSafe(Object a, Object b) {
-		if (a == b) {
-			return true;
-		}
-		return !(a == null || b == null) && a.equals(b);
+		return a == b || !(a == null || b == null) && a.equals(b);
 	}
 
 	public static <E extends Comparable<E>> Integer compareNullSafe(E a, E b) {

@@ -40,6 +40,7 @@ public class ChallengeRestService implements IChallengeRestService {
     }
 
 
+    @NotNull
     @GET
     @Path("challenges")
     public VisibleChallengesDTO getVisibleChallenges() {

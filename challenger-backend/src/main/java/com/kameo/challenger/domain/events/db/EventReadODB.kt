@@ -2,7 +2,6 @@ package com.kameo.challenger.domain.events.db
 
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
-import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.odb.api.IIdentity
 import java.util.*
 import javax.persistence.*
@@ -21,17 +20,17 @@ data class EventReadODB(@Id
 
     @ManyToOne
     @JoinColumn(updatable = false)
-    lateinit var user: UserODB;
+    lateinit var user: UserODB
 
     @ManyToOne
     @JoinColumn(updatable = false)
-    lateinit var challenge: ChallengeODB;
+    lateinit var challenge: ChallengeODB
 
     @ManyToOne
     @JoinColumn(updatable = false)
-    lateinit var event: EventODB;
+    lateinit var event: EventODB
 
     @Temporal(TIMESTAMP)
-    var read: Date? = null;
+    var read: Date? = null
 
 }

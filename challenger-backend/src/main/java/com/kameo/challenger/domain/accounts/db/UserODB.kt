@@ -1,13 +1,11 @@
 package com.kameo.challenger.domain.accounts.db
 
 
-import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.odb.api.IIdentity
-import org.hibernate.validator.constraints.Length
 import java.time.LocalDateTime
-import java.util.*
-import javax.persistence.*
-import javax.persistence.TemporalType.TIMESTAMP
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
 import javax.validation.constraints.Size
 
 

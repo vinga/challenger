@@ -19,9 +19,7 @@ interface IChallengeRestService {
     @Data
     class UserLabelDTO(val id: Long=0,
                        val label: String="",
-                       val login: String?=null) {
-
-    }
+                       val login: String?=null)
 
     @Data
     data class VisibleChallengesDTO(val selectedChallengeId: Long) {

@@ -8,10 +8,8 @@ import javax.inject.Inject
 import javax.persistence.EntityManager
 import javax.persistence.Tuple
 import javax.persistence.criteria.CriteriaBuilder
-import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Selection
-import javax.swing.text.html.HTML
 import kotlin.reflect.KClass
 
 
@@ -152,7 +150,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
         em.persist(entity)
     }
     fun <E : Any> find(clz: KClass<E>, primaryKey: Any): E {
-        return em.find(clz.java, primaryKey);
+        return em.find(clz.java, primaryKey)
     }
 
 

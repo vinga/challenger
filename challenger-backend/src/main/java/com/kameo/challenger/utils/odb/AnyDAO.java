@@ -539,6 +539,7 @@ public class AnyDAO {
         return EntityHelper.getOne(em, clz);
     }
 
+    @SafeVarargs
     public static <E extends IIdentity> long getMaxCountGroupedBy(EntityManager em, Class<E> clz, IRestrictions<E> rest, SingularAttribute<E, ?>... groupByAttr) {
         return EntityHelper.getCountGroupedBy(em, clz, rest, groupByAttr);
     }
@@ -786,7 +787,8 @@ public class AnyDAO {
         return streams.streamAll(em, clz).where(where).getOnlyValue();
     }
 
-    public <E> E getOnlyOne(Class<E> clz, JinqStream.Where<E, ?> ww, JinqStream.Where<E, ?>... where) {
+    @SafeVarargs
+    public final <E> E getOnlyOne(Class<E> clz, JinqStream.Where<E, ?> ww, JinqStream.Where<E, ?>... where) {
         JPAJinqStream<E> ws = streams.streamAll(em, clz);
         ws = ws.where(ww);
         for (JinqStream.Where w : where) {

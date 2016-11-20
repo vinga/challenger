@@ -93,9 +93,7 @@ public class EntityHelper {
 				if (f != null) {
 					res.add(f);
 				}
-			} catch (IllegalAccessException | IllegalArgumentException e1) {
-				e1.printStackTrace();
-			} catch (InvocationTargetException e1) {
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -145,14 +143,10 @@ public class EntityHelper {
 			if (e.getId()==id)
 				return Optional.of(e);
 		}
-		return Optional.<E>empty();
+		return Optional.empty();
 	}
 	public static <E extends IIdentity> List<E> getAll(Collection<E> col,Collection<Long> ids ) {
-		List<E> list= new ArrayList<>();
-		for (E e: col) {
-			if (ids.contains(e.getId()))
-				list.add(e);
-		}
+		List<E> list= col.stream().filter(e -> ids.contains(e.getId())).collect(Collectors.toList());
 		return list;
 	}
 
@@ -228,6 +222,7 @@ public class EntityHelper {
 	}
 
 	// can be also done with subquery which may be faster (need to check)
+	@SafeVarargs
 	public static <E extends IIdentity> long getCountGroupedBy(EntityManager em, Class<E> clz, IRestrictions<E> rest, SingularAttribute<E, ?>... groupByAttr) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<Long> criteria = cb.createQuery(Long.class);

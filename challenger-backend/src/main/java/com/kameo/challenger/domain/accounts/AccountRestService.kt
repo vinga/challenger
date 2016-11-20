@@ -2,7 +2,6 @@ package com.kameo.challenger.domain.accounts
 
 import com.kameo.challenger.config.ServerConfig
 import org.springframework.stereotype.Component
-import java.util.*
 import javax.inject.Inject
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
@@ -24,9 +23,9 @@ class AccountRestService : IAccountRestService {
     override fun registerUser(rr: IAccountRestService.RegisterRequestDTO): IAccountRestService.RegisterResponseDTO {
         val internalResponse = accountDao.registerUser(rr.login,
                 rr.password,
-                rr.email);
+                rr.email)
 
-        var errorInfo: String? = null;
+        var errorInfo: String? = null
         if (internalResponse.error!=null) {
            errorInfo=internalResponse.error
         }
@@ -49,7 +48,7 @@ class AccountRestService : IAccountRestService {
     @GET
     @Path("/accounts")
     fun checkIfLoginExists(@QueryParam("login") login: String): Boolean {
-        return accountDao.checkIfLoginExists(login);
+        return accountDao.checkIfLoginExists(login)
     }
 
 

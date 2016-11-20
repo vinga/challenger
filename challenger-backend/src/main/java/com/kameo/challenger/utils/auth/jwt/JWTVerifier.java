@@ -81,7 +81,7 @@ public class JWTVerifier<E extends TokenInfo> {
                 SignatureAlgorithm sigAlg = SignatureAlgorithm.getFromJsonName(algorithmName.getAsString());
                 JsonElement keyIdJson = header.get("kid");
                 String keyId = keyIdJson == null ? null : keyIdJson.getAsString();
-                String baseString = toDotFormat(new String[]{jwtHeaderSegment, jwtPayloadSegment});
+                String baseString = toDotFormat(jwtHeaderSegment, jwtPayloadSegment);
                 JsonToken jsonToken = new JsonToken(payload, clock);
                 List verifiers = locators.getVerifierProvider(sigAlg)
                                          .findVerifier(jsonToken.getIssuer(), keyId);
@@ -89,12 +89,9 @@ public class JWTVerifier<E extends TokenInfo> {
                     throw new IllegalArgumentException("No valid verifier for issuer: " + jsonToken.getIssuer());
                 } else {
                     boolean sigVerified = false;
-                    Iterator now = verifiers.iterator();
-
-                    while (now.hasNext()) {
-                        Verifier expiration = (Verifier) now.next();
+                    for (Object verifier : verifiers) {
+                        Verifier expiration = (Verifier) verifier;
                         AsciiStringVerifier issuedAt = new AsciiStringVerifier(expiration);
-
                         try {
                             issuedAt.verifySignature(baseString, signature);
                             sigVerified = true;

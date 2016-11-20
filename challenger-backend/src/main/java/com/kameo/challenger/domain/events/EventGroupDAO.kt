@@ -26,12 +26,10 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                          @Inject val eventPushDao: Provider<EventPushDAO>,
                          @Inject val permissionDao: PermissionDAO) {
 
-    interface IEventInfo {
+    interface IEventInfo
 
-    }
-
-    class TaskCheckUncheckEventInfo(val taskCheckUncheckDate: LocalDate, val checkDate: LocalDate = LocalDate.now()) : IEventInfo ;
-    class TaskRejectedEventInfo(val rejectionReason: String) : IEventInfo ;
+    class TaskCheckUncheckEventInfo(val taskCheckUncheckDate: LocalDate, val checkDate: LocalDate = LocalDate.now()) : IEventInfo
+    class TaskRejectedEventInfo(val rejectionReason: String) : IEventInfo
 
     open fun createTaskEventAfterServerAction(user_: UserODB? = null, task: TaskODB, eventType: EventType, eventInfo: IEventInfo? = null) {
         val user = user_ ?: anyDaoNew.em.find(UserODB::class.java, task.createdByUser.id)
@@ -46,16 +44,16 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 user.getLoginOrEmail() + " rejected " + task.label + " because of " + (eventInfo as TaskRejectedEventInfo).rejectionReason
             EventType.UNCHECKED_TASK,
             EventType.CHECKED_TASK -> {
-                var effectiveDay = (eventInfo!! as TaskCheckUncheckEventInfo).taskCheckUncheckDate
-                var checkDay = (eventInfo!! as TaskCheckUncheckEventInfo).checkDate
+                val effectiveDay = (eventInfo!! as TaskCheckUncheckEventInfo).taskCheckUncheckDate
+                val checkDay = (eventInfo!! as TaskCheckUncheckEventInfo).checkDate
                 e.forDay=effectiveDay
                 val daystring = if (!effectiveDay.isEqual(checkDay))
                     " for day " + effectiveDay.toString()
-                else "";
-                val actionType=if (eventType==CHECKED_TASK) "checked" else "unchecked";
+                else ""
+                val actionType=if (eventType==CHECKED_TASK) "checked" else "unchecked"
 
 
-                "${user.getLoginOrEmail()} $actionType ${task.label}$daystring";
+                "${user.getLoginOrEmail()} $actionType ${task.label}$daystring"
             }
 
             EventType.DELETE_TASK -> user.getLoginOrEmail() + " deleted " + task.label
@@ -88,7 +86,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
         anyDaoNew.persist(p)
 
         anyDaoNew.find(ChallengeODB::class, challengeId).participants.forEach {
-            var er = EventReadODB(it.user, it.challenge, p);
+            val er = EventReadODB(it.user, it.challenge, p)
             anyDaoNew.persist(er)
         }
 
@@ -143,7 +141,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
     open fun getLastEventsForChallenge(callerId: Long, challengeId: Long, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
         permissionDao.checkHasPermissionToChallenge(callerId, challengeId)
-        val desiredMaxEvents = maxEvents ?: serverConfig.maxEventsSize;
+        val desiredMaxEvents = maxEvents ?: serverConfig.maxEventsSize
         // first try to fetch all unread
         val firstNotRead = anyDaoNew.getFirst(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
@@ -172,7 +170,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 it.select(it, it.get(EventReadODB::event))
             }.let {
                 // in case if it is still to small add to it some previous read message
-                var notReadSize = it.size;
+                val notReadSize = it.size
                 if (it.size < desiredMaxEvents) {
                     it + anyDaoNew.getAll(EventReadODB::class) {
                         it get EventReadODB::user eqId callerId
@@ -190,18 +188,16 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
     private fun sortEventsReadAsc(): Comparator<Pair<EventReadODB, EventODB>> {
-        return object : Comparator<Pair<EventReadODB, EventODB>> {
-            override fun compare(o1: Pair<EventReadODB, EventODB>, o2: Pair<EventReadODB, EventODB>): Int {
-                return if (o1.first.read != null && o2.first.read != null)
-                    o1.first.read!!.compareTo(o2.first.read);
-                else if (o1.first.read == null && o2.first.read == null)
-                    o1.first.id.compareTo(o2.first.id)
-                else if (o1.first.read == null)
-                    -1
-                else if (o2.first.read == null)
-                    1
-                else 0
-            }
+        return Comparator<Pair<EventReadODB, EventODB>> { o1, o2 ->
+            if (o1.first.read != null && o2.first.read != null)
+                o1.first.read!!.compareTo(o2.first.read);
+            else if (o1.first.read == null && o2.first.read == null)
+                o1.first.id.compareTo(o2.first.id)
+            else if (o1.first.read == null)
+                -1
+            else if (o2.first.read == null)
+                1
+            else 0
         }
     }
 

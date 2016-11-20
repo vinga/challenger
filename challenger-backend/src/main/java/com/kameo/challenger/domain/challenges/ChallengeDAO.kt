@@ -3,7 +3,6 @@ package com.kameo.challenger.domain.challenges
 import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.kameo.challenger.domain.accounts.AccountDAO
-import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
@@ -84,7 +83,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
                         it.eq(ChallengeODB::challengeStatus, ChallengeStatus.REFUSED)
                                 .get(ChallengeODB::createdBy).eqId(callerId)
                     })
-                    .finish();
+                    .finish()
         })
 
         res.visibleChallenges = challengeParticipantsForThisUser.map { it.challenge }
