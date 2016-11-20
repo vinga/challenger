@@ -102,6 +102,11 @@ Date.prototype.yyyy_mm_dd = function() {
     var dd = this.getDate();
     return [this.getFullYear(),  mm, dd].join('-');
 };
+Date.prototype.mm_dd = function() {
+    var mm = this.getMonth() + 1;
+    var dd = this.getDate();
+    return [mm, dd].join('-');
+};
 export {
     DiffHardIcon as DiffHardIcon,
     DiffMediumIcon as DiffMediumIcon,

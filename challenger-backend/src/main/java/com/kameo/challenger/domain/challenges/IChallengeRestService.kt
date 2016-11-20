@@ -1,18 +1,25 @@
 package com.kameo.challenger.domain.challenges
 
 import com.google.common.collect.Lists
+import com.kameo.challenger.domain.accounts.db.UserODB
+import com.kameo.challenger.domain.challenges.IChallengeRestService.VisibleChallengesDTO.ChallengeDTO
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
+import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import lombok.Data
+import java.time.LocalDateTime
+import javax.ws.rs.PathParam
 
 
 interface IChallengeRestService {
 
     fun getVisibleChallenges(): IChallengeRestService.VisibleChallengesDTO
+    fun createChallenge(challengeDTO: ChallengeDTO): ChallengeDTO
 
     @Data
-    class UserLabelDTO(val id: Long,
-                       val label: String,
-                       val login: String?) {
+    class UserLabelDTO(val id: Long=0,
+                       val label: String="",
+                       val login: String?=null) {
 
     }
 
@@ -20,20 +27,22 @@ interface IChallengeRestService {
     data class VisibleChallengesDTO(val selectedChallengeId: Long) {
         val visibleChallenges: MutableList<ChallengeDTO> = Lists.newArrayList<ChallengeDTO>()
 
-        @Data class ChallengeDTO(val id: Long,
-                                 val label: String?,
-                                 val challengeStatus: String,
-                                 val creatorId: Long,
-                                 val userLabels: Array<UserLabelDTO>) {
+        @Data class ChallengeDTO(val id: Long=0,
+                                 val label: String?=null,
+                                 val challengeStatus: String=ChallengeStatus.WAITING_FOR_ACCEPTANCE.name,
+                                 val creatorId: Long=0,
+                                 val userLabels: Array<UserLabelDTO> = arrayOf()) {
 
 
             var myId: Long = 0
 
             fun setCallerId(callerId: Long) {
-                myId=callerId
-                userLabels.sortBy { if (it.id==callerId) "A" else "Z"+it.label }
+                myId = callerId
+                userLabels.sortBy { if (it.id == callerId) "A" else "Z" + it.label }
             }
+
             companion object {
+                @JvmStatic
                 fun fromODB(c: ChallengeODB): ChallengeDTO {
                     val co = ChallengeDTO(
                             id = c.id,
@@ -44,6 +53,27 @@ interface IChallengeRestService {
                                     .map({ u -> UserLabelDTO(u.id, u.getLoginOrEmail(), u.login) })
                                     .toTypedArray())
                     return co
+                }
+                @JvmStatic
+                fun toODB(c: ChallengeDTO, existingUsers: List<UserODB>): ChallengeODB {
+                    val odb = ChallengeODB();
+                    if (c.id > 0)
+                        odb.id = c.id;
+                    odb.challengeStatus = ChallengeStatus.valueOf(c.challengeStatus);
+                    odb.createDate = LocalDateTime.now();
+                    odb.createdBy = UserODB(c.creatorId);
+                    odb.label = c.label;
+                    odb.participants = c.userLabels.map {
+                        participant ->
+                        val cp = ChallengeParticipantODB(0);
+                        cp.challenge = odb
+                        cp.user = existingUsers.find { it.getLoginOrEmail().equals(participant.label) }
+                                ?:
+                                let { val u = UserODB(); u.email = participant.label; u }
+
+                        cp
+                    }
+                    return odb;
                 }
             }
         }

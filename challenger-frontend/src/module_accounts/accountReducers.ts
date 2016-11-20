@@ -39,6 +39,7 @@ export function accounts(state: Array<AccountDTO> = [], action) {
         return state.map((u: AccountDTO) => {
             if (u.login == action.login) {
 
+                console.log("update token "+u.primary+" "+baseWebCall.webToken+" "+action.jwtToken);
                 if (u.primary) {
                     baseWebCall.webToken = action.jwtToken;
                 }

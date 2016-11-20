@@ -8,7 +8,7 @@ import kotlin.Unit;
 import javax.persistence.metamodel.SingularAttribute;
 
 
-public class SugarTest {
+class SugarTest {
 
     public void foo(AnyDAONew ad) {
         SingularAttribute<TaskODB, UserODB> _user = (SingularAttribute) ad.getEm().getMetamodel().entity(UserODB.class).getDeclaredAttribute("user");

@@ -9,6 +9,7 @@ import com.kameo.challenger.domain.challenges.ChallengeDAO;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.tasks.TaskDAO;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
+import com.kameo.challenger.domain.tasks.db.TaskODB.TaskDifficulty;
 import com.kameo.challenger.domain.tasks.db.TaskStatus;
 import com.kameo.challenger.domain.tasks.db.TaskType;
 import com.kameo.challenger.logic.ChallengerLogic;
@@ -103,8 +104,7 @@ public class TasksTest implements En {
                     ChallengeODB cc = testHelper.resolveChallenge(challengeContractName);
                     TaskODB ca = new TaskODB();
                     ca.setCreateDate(LocalDateTime.now().minusDays(daysAgo));
-                    //TODO magic number, replace with constant
-                    ca.setDifficulty(2);
+                    ca.setDifficulty(TaskDifficulty.HARD.ordinal());
                     ca.setTaskType(TaskType.daily);
                     ca.setIcon("fa-car");
                     ca.setLabel(actionName);

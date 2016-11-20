@@ -62,7 +62,8 @@ interface ITaskRestService {
             val taskStatus: TaskStatus = TaskStatus.waiting_for_acceptance,
             val done: Boolean = false,
             val deleted: Boolean? = null,
-            var taskApproval: TaskApprovalDTO? = null) {
+            var taskApproval: TaskApprovalDTO? = null,
+            var taskApprovals: Array<TaskApprovalDTO>? = null) {
 
         companion object {
 

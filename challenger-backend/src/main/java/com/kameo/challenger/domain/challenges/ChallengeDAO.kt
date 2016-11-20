@@ -20,7 +20,7 @@ import javax.inject.Inject
 open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao: AccountDAO) {
 
 
-    open fun createNewChallenge(userId: Long, cb: ChallengeODB) {
+    open fun createNewChallenge(userId: Long, cb: ChallengeODB): ChallengeODB {
 
 
 
@@ -58,7 +58,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
                 accountDao.createAndSendChallengeConfirmationLink(cb, cp)
             }
         }
-
+       return cb
 
     }
 

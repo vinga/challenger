@@ -117,6 +117,15 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
             return InternalRegisterResponseDTO("Cannot register")
     }
 
+    open fun getUsersForLabels(labels: List<String>): List<UserODB> {
+        return anyDaoNew.getAll(UserODB::class) {
+            it.newOr {
+                it.get(UserODB::email) isIn  labels
+                it.get(UserODB::login) isIn  labels
+            }
+        };//TODO comparator with enums, first user active.sortedBy { it.userStatus }
+    }
+
     open fun sendResetMyPasswordLink(email: String) {
         val u = anyDaoNew.getFirst(UserODB::class, {
             it get UserODB::email eq email

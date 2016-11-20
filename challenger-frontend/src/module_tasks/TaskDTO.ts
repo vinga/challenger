@@ -14,6 +14,7 @@ export interface TaskDTO {
     createdByUserId:number,
     deleted?: boolean,
     taskApproval?: TaskApprovalDTO;
+    taskApprovals?: TaskApprovalDTO[];
 }
 
 

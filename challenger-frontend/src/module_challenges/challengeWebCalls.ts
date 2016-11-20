@@ -1,8 +1,12 @@
 import {baseWebCall} from "../logic/WebCall";
-import {VisibleChallengesDTO, ChallengeParticipantDTO} from "./ChallengeDTO";
+import {VisibleChallengesDTO, ChallengeParticipantDTO, ChallengeDTO} from "./ChallengeDTO";
 
 export function loadVisibleChallenges(): Promise<VisibleChallengesDTO> {
-    return baseWebCall.get("/challenge/visibleChallenges");
+    return baseWebCall.get("/challenges");
+}
+
+export function createChallenge(challenge: ChallengeDTO) : Promise<ChallengeDTO> {
+    return baseWebCall.post("/challenges", challenge);
 }
 
 

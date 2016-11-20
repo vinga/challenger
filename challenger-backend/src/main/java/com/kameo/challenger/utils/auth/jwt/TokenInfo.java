@@ -9,7 +9,7 @@ public class TokenInfo {
     private DateTime expires;
 
 
-    String jwtToken;
+    private String jwtToken;
     public String getJwtToken() {
         return jwtToken;
     }

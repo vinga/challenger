@@ -8,9 +8,7 @@ import java.util.*
 import javax.persistence.*
 import javax.persistence.TemporalType.TIMESTAMP
 
-/**
- * Created by Kamila on 2016-11-01.
- */
+
 @Entity
 data class EventReadODB(@Id
                         @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)

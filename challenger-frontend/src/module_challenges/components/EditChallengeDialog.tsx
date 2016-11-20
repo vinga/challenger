@@ -1,7 +1,7 @@
 import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
 import {TouchTapEvent, FlatButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
-import {updateChallenge} from "../challengeActions";
+import {createChallenge} from "../challengeActions";
 import {CLOSE_EDIT_CHALLENGE, DELETE_CHALLENGE_PARTICIPANT, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION} from "../challengeActionTypes";
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
@@ -28,7 +28,7 @@ interface ReduxProps {
 
 interface PropsFunc {
     onCloseFunc?: (event?: TouchTapEvent) => void,
-    onChallengeSuccessfullyUpdatedFunc: (challenge: ChallengeDTO)=>void;
+    onCreateChallengeFunc: (challenge: ChallengeDTO)=>void;
     updateChallengeParticipant: (loginOrEmail: string) => void,
     deleteChallengeParticipant: (label: string) => void,
     updateErrorText: (errorText: string) => void
@@ -50,7 +50,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     }
 
     handleSubmit = () => {
-        this.props.onChallengeSuccessfullyUpdatedFunc(this.state.challenge);
+        this.props.onCreateChallengeFunc(this.state.challenge);
         this.props.onCloseFunc();
     };
 
@@ -108,6 +108,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                 modal={true}
                 open={true}
                 style={{height: "600px", overflow: "none", display: "block"}}
+                title="Create new challenge"
             >
                 <div>
                     <TextField
@@ -125,11 +126,11 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
 
                     {
-                        this.props.challenge.userLabels.map(ch =>
+                        this.props.challenge.userLabels.map((ch,index) =>
                             <Chip
                                 style={{marginRight:'5px', marginBottom:'5px'}}
                                 key={ch.label}
-                                onRequestDelete={() => this.handleRequestDelete(ch.label)}
+                                onRequestDelete={index==0? null: () => this.handleRequestDelete(ch.label)}
                                 onTouchTap={this.handleChipTouchTap}
                             >
                                 <i className={validateEmail(ch.label)? "fa fa-envelope-o": "fa fa-user"}></i>  {ch.label}
@@ -170,8 +171,8 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 };
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
-        onChallengeSuccessfullyUpdatedFunc: (challenge: ChallengeDTO)=> {
-            dispatch(updateChallenge(challenge));
+        onCreateChallengeFunc: (challenge: ChallengeDTO)=> {
+            dispatch(createChallenge(challenge));
         },
         onCloseFunc: (event: TouchTapEvent)=> {
             dispatch(CLOSE_EDIT_CHALLENGE.new({}));

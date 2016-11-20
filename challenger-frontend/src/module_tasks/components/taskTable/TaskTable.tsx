@@ -4,7 +4,7 @@ import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import Paper from "material-ui/Paper";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import ChallengeTableCheckbox from "./ChallengeTableCheckbox.tsx";
-import {TaskDTO, TaskProgressDTO, TaskDTOListForDay, TaskUserDTO} from "../../TaskDTO";
+import {TaskDTO, TaskProgressDTO, TaskDTOListForDay, TaskUserDTO, TaskType} from "../../TaskDTO";
 import {markTaskDoneOrUndone} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {ResizeAware} from "../../../views/Constants";
@@ -102,7 +102,9 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                             />
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.taskType}>
-                                            {task.taskType}
+                                            {task.taskType==TaskType.onetime?
+                                                new Date(task.dueDate).mm_dd()
+                                                : task.taskType}
                                         </TableRowColumn>
                                         <TableRowColumn style={{width: '45px', padding: '10px'}}>
                                             <ChallengeTableCheckbox

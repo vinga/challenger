@@ -6,6 +6,9 @@ import {TaskStatus, TaskDTO, TaskApprovalDTO, TaskUserDTO} from "../TaskDTO";
 import TextInputDialog from "../../views/common-components/TextInputDialog";
 import {updateTaskStatus} from "../taskActions";
 import {showTaskEvents} from "../../module_events/index";
+import {loggedAccountByIdSelector} from "../../module_accounts/accountSelectors";
+import {challengeAccountsSelector, selectedChallengeParticipantsSelector} from "../../module_challenges/challengeSelectors";
+import _ = require("lodash");
 
 
 const styles = {
@@ -27,8 +30,11 @@ interface PropsFunc {
 }
 
 interface ReduxProps {
-    isTaskCreatorLogged?: Boolean,
-    taskCreatorOrdinal: Number
+    isTaskCreatorLogged?: boolean,
+    taskCreatorOrdinal: number,
+    userThatCanAcceptIsLogged: boolean
+    waitingForAcceptanceLabels: string
+    userThatCanAcceptOrdinal : number
 }
 
 interface Props {
@@ -107,7 +113,11 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
             }
 
             //  return <div style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
-        } else if (this.props.user.jwtToken == null && this.props.taskDTO.createdByUserId != this.props.user.id) {
+        }
+
+
+
+        if (!this.props.userThatCanAcceptIsLogged) {
 
             var chipWaiting = {
                 marginRight: '5px',
@@ -120,14 +130,14 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
                 <Chip style={chipWaiting} className="clickableChip">
                     <div style={{lineHeight:'12px',fontSize: '12px',
                     color:colors.userColorsLighten[this.props.no]}}>
-                        Waiting for {this.props.user.label}&apos;s<br/> acceptance <i className="fa fa-hourglass-o"></i>
+                        Waiting for {this.props.waitingForAcceptanceLabels} &apos;s<br/> acceptance <i className="fa fa-hourglass-o"></i>
                     </div>
                 </Chip>
             </div>);
 
 
         } else {
-            var chipStyle = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.no)});
+            var chipStyle = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.userThatCanAcceptOrdinal)});
 
             return (<div style={styles.wrapper}>
 
@@ -173,9 +183,47 @@ const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
     //var us: Array<UserDTO> = state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels;
     //var taskCreatorOrdinal: Number = us.findIndex(u=>u.id == task.createdByUserId);
 
+    var userThatCanAcceptIsLogged=false;
+    var waitingForAcceptanceLabels:string="";
+    if (task.taskStatus==TaskStatus.waiting_for_acceptance) {
+
+
+        // if anyof above user is logged, than show Accept Reject
+        if (task.taskApprovals!=null) {
+
+            var usersWaitingForAcceptance=task.taskApprovals.filter(ta=>ta.taskStatus==TaskStatus.waiting_for_acceptance)
+                .map(ta=>   challengeAccountsSelector(state,ta.userId).find(cp=>cp.id==ta.userId)).filter(a=>a!=null);
+
+
+
+            waitingForAcceptanceLabels=usersWaitingForAcceptance.map(a=>a.label).join();
+
+
+            // calculate ordinal of first user that can accept
+            var userThatCanAcceptOrdinal=-1;
+            var participants=selectedChallengeParticipantsSelector(state).some((chp, index)=> {
+               if (usersWaitingForAcceptance.find(a=>a.id==chp.id)!=null) {
+                   userThatCanAcceptOrdinal=index
+                   return true;
+               } else return false;
+            });
+
+
+
+            userThatCanAcceptIsLogged=task.taskApprovals.filter(ta=>ta.taskStatus==TaskStatus.waiting_for_acceptance)
+                .some(ta=>  {
+                 return loggedAccountByIdSelector(state,ta.userId)!=null });
+        }
+
+
+    }
+
     return {
         isTaskCreatorLogged: ownprops.user.jwtToken != null,
-        taskCreatorOrdinal: ownprops.no
+        taskCreatorOrdinal: ownprops.no,
+        userThatCanAcceptIsLogged: userThatCanAcceptIsLogged,
+        waitingForAcceptanceLabels: waitingForAcceptanceLabels,
+        userThatCanAcceptOrdinal: userThatCanAcceptOrdinal
     }
 };
 

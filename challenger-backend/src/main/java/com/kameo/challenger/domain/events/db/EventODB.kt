@@ -11,9 +11,7 @@ import java.util.*
 import javax.persistence.*
 import javax.persistence.TemporalType.TIMESTAMP
 
-/**
- * Created by Kamila on 2016-10-21.
- */
+
 @Entity
 data class EventODB(@Id
                    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)

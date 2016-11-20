@@ -3,7 +3,6 @@ package com.kameo.challenger.utils.auth.jwt;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.kameo.challenger.web.rest.ChallengerSess;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;

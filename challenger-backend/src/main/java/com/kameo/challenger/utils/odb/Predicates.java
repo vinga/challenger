@@ -6,7 +6,7 @@ import javax.persistence.criteria.*;
 import javax.persistence.metamodel.SingularAttribute;
 import java.util.*;
 
-public class Predicates extends ArrayList<Predicate> {
+class Predicates extends ArrayList<Predicate> {
 	private static final long serialVersionUID = 1L;
 	private final CriteriaBuilder cb;
 

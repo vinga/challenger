@@ -12,11 +12,13 @@ import IconMenuProps = __MaterialUI.Menus.IconMenuProps;
 import {selectedChallengeSelector} from "../challengeSelectors";
 import {changeChallengeAction} from "../challengeActions";
 import {CREATE_NEW_CHALLENGE} from "../challengeActionTypes";
+import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 
 interface Props {
     selectedChallengeLabel: string,
     visibleChallengesDTO: VisibleChallengesDTO,
     day: Date,
+    creatorLabel: string
 
 
 }
@@ -24,7 +26,7 @@ interface Props {
 interface PropsFunc {
     onIncrementDayFunc: (amount: number)=> void;
     onChangeChallenge: (challengeId: number)=>void;
-    onCreateNewChallenge: () => void;
+    onCreateNewChallenge: (creatorLabel: string) => void;
 
 }
 class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {  style: IconMenuProps },void> {
@@ -95,7 +97,7 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                     style={menuIconStyle}
                     className={"fa fa-plus-circle cyan-text"}/>}
                     primaryText="Create new challenge"
-                    onTouchTap={()=>this.props.onCreateNewChallenge()}
+                    onTouchTap={()=>this.props.onCreateNewChallenge(this.props.creatorLabel)}
                 />
             </IconMenu>
         </div>);
@@ -106,7 +108,8 @@ const mapStateToProps = (state: ReduxState): Props => {
     return {
         selectedChallengeLabel: selectedChallengeSelector(state) != null ? selectedChallengeSelector(state).label : "<not set>",
         visibleChallengesDTO: state.challenges,
-        day: state.currentSelection.day
+        day: state.currentSelection.day,
+        creatorLabel: loggedUserSelector(state).login
     }
 };
 const mapDispatchToProps = (dispatch): PropsFunc => {
@@ -117,8 +120,8 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         onIncrementDayFunc: (amount: number) => {
             dispatch(incrementDayAction(amount))
         },
-        onCreateNewChallenge: () => {
-            dispatch(CREATE_NEW_CHALLENGE.new({}))
+        onCreateNewChallenge: (creatorLabel: string) => {
+            dispatch(CREATE_NEW_CHALLENGE.new({creatorLabel: creatorLabel }))
         }
     }
 };

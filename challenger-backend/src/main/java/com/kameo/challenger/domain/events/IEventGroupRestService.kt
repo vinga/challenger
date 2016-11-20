@@ -9,9 +9,7 @@ import lombok.Data
 import java.time.ZoneOffset
 import javax.ws.rs.PathParam
 
-/**
- * Created by Kamila on 2016-10-21.
- */
+
 interface IEventGroupRestService {
 
     fun getEventsForTask(challengeId: Long, taskId: Long): EventGroupDTO

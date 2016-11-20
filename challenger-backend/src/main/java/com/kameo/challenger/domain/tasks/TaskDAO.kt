@@ -8,16 +8,13 @@ import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.domain.tasks.db.*
 import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
 import com.kameo.challenger.logic.PermissionDAO
-import com.kameo.challenger.utils.DateUtil
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.sql.Timestamp
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
-import java.util.stream.Collectors
 import javax.inject.Inject
 
 
@@ -44,7 +41,7 @@ open class TaskDAO {
                 /*if (taskODB.user.id == callerId)
                     TaskStatus.accepted
                 else*/
-                    TaskStatus.waiting_for_acceptance
+                TaskStatus.waiting_for_acceptance
 
         anyDaoNew.persist(taskODB)
         anyDaoNew.persist(TaskApprovalODB(taskODB.createdByUser, taskODB, TaskStatus.accepted))
@@ -70,9 +67,9 @@ open class TaskDAO {
             }
         }
         tasks.forEach {
-            println(""+it.dueDate+" "+dayMidnight+" "+dayMidnight.atStartOfDay())
-            if (it.dueDate!=null) {
-                println(""+Timestamp.valueOf(it.dueDate)+" "+Timestamp.valueOf(dayMidnight.atStartOfDay()))
+            println("" + it.dueDate + " " + dayMidnight + " " + dayMidnight.atStartOfDay())
+            if (it.dueDate != null) {
+                println("" + Timestamp.valueOf(it.dueDate) + " " + Timestamp.valueOf(dayMidnight.atStartOfDay()))
             }
         }
 
@@ -88,7 +85,7 @@ open class TaskDAO {
 
     open fun deleteTask(callerId: Long, taskId: Long): TaskODB {
         val task = anyDaoNew.find(TaskODB::class, taskId)
-        if (task.user.id != callerId)
+        if (task.createdByUser.id != callerId && task.user.id != callerId)
             throw IllegalArgumentException()
 
         anyDaoNew.remove(TaskProgressODB::class) { it get TaskProgressODB::task eqId taskId }
@@ -114,7 +111,7 @@ open class TaskDAO {
         val task = anyDaoNew.getOne(TaskODB::class) { it eqId taskId }
         if (task.user.id != callerId)
             throw IllegalArgumentException()
-        if (task.challenge.id!=challengeId)
+        if (task.challenge.id != challengeId)
             throw IllegalArgumentException()
 
         val taskProgress = anyDaoNew.getFirst(TaskProgressODB::class) {
@@ -140,11 +137,9 @@ open class TaskDAO {
     }
 
 
-
-
-    open fun changeTaskStatus(challengeId: Long, taskId: Long, userIds: Set<Long>, taskStatus: TaskStatus=accepted, rejectionReason: String?): TaskODB {
+    open fun changeTaskStatus(challengeId: Long, taskId: Long, userIds: Set<Long>, taskStatus: TaskStatus = accepted, rejectionReason: String?): TaskODB {
         val existingApprovals = anyDaoNew.getAllMutable(TaskApprovalODB::class) {
-            it get(TaskApprovalODB::task) eqId taskId
+            it get (TaskApprovalODB::task) eqId taskId
         }
         val task = anyDaoNew.find(TaskODB::class, taskId)
         val challenge = task.challenge
@@ -169,7 +164,7 @@ open class TaskDAO {
         challenge.participants.map { it.user }.forEach { u ->
             if (userIds.contains(u.id)) {
                 var ta = existingApprovals.find { ta -> ta.user.id == u.id }
-                if (ta!=null) {
+                if (ta != null) {
                     ta.rejectionReason = rejectionReason
                     ta.taskStatus = taskStatus
                     anyDaoNew.merge(ta)
@@ -192,4 +187,39 @@ open class TaskDAO {
         }
         return task
     }
+
+
+    /**
+     * task must be from same challenge
+     */
+    open fun getTasksApprovalsOtherThanAccepted(tasks: List<TaskODB>): List<TaskApprovalODB> {
+
+        val mergedTasks = tasks.map { anyDaoNew.merge(it) }
+        if (mergedTasks.isEmpty())
+            return emptyList();
+
+        val challenge=mergedTasks.first().challenge;
+        var approvals= anyDaoNew.getAll(TaskApprovalODB::class) {
+            it get TaskApprovalODB::task inIds mergedTasks.map { it.id }
+            it get TaskApprovalODB::task get TaskODB::taskStatus notEq TaskStatus.accepted
+            //it get TaskApprovalODB::taskStatus notEq TaskStatus.accepted
+        }
+
+        val pendingApprovals= mutableListOf<TaskApprovalODB>();
+        approvals.groupBy { it.task.id }.forEach {
+            val taskApprovals=it;
+
+            challenge.participants.forEach {
+                var participantid=it.user.id;
+                var approvalExists= taskApprovals.value.find {ta->ta.user.id==participantid } !=null;
+                if (!approvalExists)
+                    pendingApprovals.add(TaskApprovalODB(it.user, TaskODB(taskApprovals.key), TaskStatus.waiting_for_acceptance))
+
+            }
+
+
+        }
+        return approvals+pendingApprovals;
+    }
+
 }

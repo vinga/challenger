@@ -51,7 +51,7 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
                 challengeStatus: ChallengeStatus.ACTIVE,
                 creatorId: 0,
                 myId: 0,
-                userLabels: []
+                userLabels: [{id: 0, label: action.creatorLabel}]
             }
         })
     } else if (isAction(action, UPDATE_CHALLENGE_PARTICIPANTS)) {

@@ -94,10 +94,8 @@ public class EntityHelper {
 					res.add(f);
 				}
 			} catch (IllegalAccessException | IllegalArgumentException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (InvocationTargetException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -332,13 +330,11 @@ public class EntityHelper {
 	}
 
 	public static <F, E> Set<F> toSet(Collection<E> col, Function<E, F> y) {
-		Set<F> set = col.stream().map(y).collect(Collectors.toSet());
-		return set;
+		return col.stream().map(y).collect(Collectors.toSet());
 	}
 
 	public static <F, E> List<F> toList(Collection<E> col, Function<E, F> y) {
-		List<F> list = col.stream().map(y).collect(Collectors.toList());
-		return list;
+		return col.stream().map(y).collect(Collectors.toList());
 	}
 
 	public static <F, E> Map<F, E> toMap(Collection<E> col, Function<E, F> y) {
@@ -388,8 +384,7 @@ public class EntityHelper {
 	}
 
 	public static <E> Set<Long> filter(Collection<E> col, YieldLong<E> y) {
-		Set<Long> set = col.stream().map(y::yield).collect(Collectors.toSet());
-		return set;
+		return col.stream().map(y::yield).collect(Collectors.toSet());
 	}
 
 	public static <E> long getCount(EntityManager em, Class<E> clz) {

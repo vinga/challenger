@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Created by Kamila on 2016-10-27.
- */
+
 @Component
 @Primary
 public class CombinedSwaggerResourcesProvider implements SwaggerResourcesProvider {

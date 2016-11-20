@@ -11,10 +11,14 @@ import java.util.*
 import javax.persistence.*
 import javax.persistence.TemporalType.TIMESTAMP
 
+
+
 @Entity
 data class TaskODB(@Id
                    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
                    override var id: Long = 0) : IIdentity {
+
+
 
 
     @Enumerated
@@ -51,6 +55,10 @@ data class TaskODB(@Id
 
 
 
-
+    enum class TaskDifficulty {
+        EASY,
+        MEDIUM,
+        HARD
+    }
 
 }

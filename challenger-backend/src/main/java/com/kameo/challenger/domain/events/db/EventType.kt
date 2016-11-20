@@ -1,8 +1,6 @@
 package com.kameo.challenger.domain.events.db
 
-/**
- * Created by Kamila on 2016-10-23.
- */
+
 enum class EventType {
     POST,
     CREATE_TASK,

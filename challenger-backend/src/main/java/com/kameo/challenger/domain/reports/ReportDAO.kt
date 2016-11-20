@@ -3,6 +3,7 @@ package com.kameo.challenger.domain.reports
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.domain.tasks.db.TaskProgressODB
+import com.kameo.challenger.domain.tasks.db.TaskStatus
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.iterator
 import com.kameo.challenger.utils.odb.AnyDAONew
@@ -13,9 +14,7 @@ import java.time.LocalDate
 import java.util.*
 import javax.inject.Inject
 
-/**
- * Created by Kamila on 2016-11-10.
- */
+
 @Component
 @Transactional
 open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO: PermissionDAO) {
@@ -31,7 +30,7 @@ open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO
         val challengeODB = anyDaoNew.find(ChallengeODB::class, challengeId);
         val allTasks = anyDaoNew.getAll(TaskProgressODB::class) {
             it get TaskProgressODB::task get TaskODB::challenge eqId challengeId
-            it get TaskProgressODB::task get TaskODB::challenge eqId challengeId
+            it get TaskProgressODB::task get TaskODB::taskStatus eq TaskStatus.accepted
             it get TaskProgressODB::done eq true
             if (!countFromStart)
                 it.get(+TaskProgressODB::progressTime) ge dayFromMidnight

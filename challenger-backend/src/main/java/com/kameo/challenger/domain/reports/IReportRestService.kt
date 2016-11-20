@@ -4,9 +4,7 @@ import javax.ws.rs.PathParam
 import javax.ws.rs.container.AsyncResponse
 import javax.ws.rs.container.Suspended
 
-/**
- * Created by Kamila on 2016-11-10.
- */
+
 interface IReportRestService {
 
 

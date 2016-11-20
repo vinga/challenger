@@ -47,9 +47,28 @@ class TaskRestService : ITaskRestService {
         // val date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate()
         val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yy-MM-dd"))
         val tasks = challengerLogic.getTasks(callerId, contractId, date)
-        val taskApprovalODBs = challengerLogic.getTasksApprovalForRejectedTasks(tasks)
-        val taskDTOs = tasks.sortedBy { it.id }.map { TaskDTO.fromOdb(it) }
 
+
+        var taskApprovalsOtherThanAccepted=taskDao.getTasksApprovalsOtherThanAccepted(tasks).groupBy { it.task.id }
+
+        //TODO delete this
+        val taskApprovalODBs = challengerLogic.getTasksApprovalForRejectedTasks(tasks)
+        val taskDTOs = tasks.sortedBy { it.id }.map {
+
+            var taskDto=TaskDTO.fromOdb(it)
+
+            taskDto.taskApprovals=taskApprovalsOtherThanAccepted[it.id]?.map {
+                TaskApprovalDTO.fromODBtoDTO(it)
+            }?.toTypedArray()
+
+
+            taskDto
+        }
+
+
+
+
+        //TODO delete this
         taskApprovalODBs.forEach { taskApprovalODB ->
             taskDTOs.filter({ it.id == taskApprovalODB.task.id })
                     .forEach { it.taskApproval = TaskApprovalDTO.fromODBtoDTO(taskApprovalODB) }
@@ -116,10 +135,7 @@ class TaskRestService : ITaskRestService {
     fun updateTaskProgress(@PathParam("challengeId") challengeId: Long, @PathParam("taskId") taskId: Long, tp: TaskProgressDTO): TaskProgressDTO {
         if (taskId != tp.taskId)
             throw IllegalArgumentException();
-        //TODO check also challenge
         val callerId = session.userId
-        //TODO
-
         val tpOdb = taskDao.markTaskDone(callerId, challengeId, tp.taskId, tp.getLocalDate(), tp.done)
         val eventType = if (tp.done) CHECKED_TASK else UNCHECKED_TASK;
 

@@ -33,22 +33,14 @@ export function fetchWebChallenges() {
     }
 };
 
-export function updateChallenge(challenge: ChallengeDTO) {
+export function createChallenge(challenge: ChallengeDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
-        /*dispatch(MODIFY_TASK_OPTIMISTIC.new(task));
-         dispatch(MODIFY_TASK_REQUEST.new(task));
-         if (task.id <= 0) {
-         webCall.createTask(task)
-         .then((task: TaskDTO)=> {
-         dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-         }).catch((reason)=>authPromiseErr(reason,dispatch));
-         } else {
-         webCall.updateTask(task)
-         .then((task: TaskDTO)=> {
-         dispatch(fetchTasks(getState().challenges.selectedChallengeId, getState().currentSelection.day));
-         }).catch((reason)=>authPromiseErr(reason,dispatch));
-         }
-         dispatch(displayInProgressWebRequestsIfAny());*/
+        challenge.userLabels=getState().challenges.editedChallenge.userLabels
+        webCall.createChallenge(challenge).then(
+            ()=> {
+                dispatch(fetchWebChallenges());
+            }
+        ).catch((reason)=>authPromiseErr(reason, dispatch));
     }
 }
 
