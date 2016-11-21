@@ -14,6 +14,7 @@ data class UserODB(@Id
                    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
                    override val id: Long = 0) : IIdentity {
 
+
     //@Size(min=6,max=30)
     var login: String? = null
 

@@ -75,5 +75,6 @@ export interface TaskUserDTO {
     label: string,
     login?: string,
     jwtToken?: string
+    challengeStatus : string
 
 }

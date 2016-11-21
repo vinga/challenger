@@ -62,6 +62,7 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
             id: 0,
             label: action.loginOrEmail,
             ordinal: 0,
+            challengeStatus: ChallengeStatus.WAITING_FOR_ACCEPTANCE
         }
 
         var editedChCopy = Object.assign({}, state.editedChallenge, {

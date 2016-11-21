@@ -23,17 +23,18 @@ export const selectedChallengeParticipantsSelector: Selector<ReduxState,Array<Ch
 );
 
 
-// creates AccountDTO for all challenge  users
-export const challengeAccountsSelector: Selector<ReduxState,Array<AccountDTO>> = createSelector(
+
+
+export const challengeParticipantsSelector: Selector<ReduxState,Array<ChallengeParticipantDTO>> = createSelector(
     selectedChallengeParticipantsSelector,
     getAccountsSelector,
-    (selectedChallengeUsers: Array<ChallengeParticipantDTO>, accounts: Array<AccountDTO>): Array<AccountDTO> => {
+    (selectedChallengeUsers: Array<ChallengeParticipantDTO>, accounts: Array<AccountDTO>): Array<ChallengeParticipantDTO> => {
         return selectedChallengeUsers.map(us=> {
             var account: AccountDTO = accounts.find(u=>u.id == us.id);
             if (account != null) {
-                return copy(account).and(us);
+                return Object.assign({},account, {label: us.label, ordinal: us.ordinal, challengeStatus: us.challengeStatus})
             } else {
-                return Object.assign({}, us, {id: us.id} as AccountDTO);
+                return Object.assign({}, us, {id: us.id} );
             }
         });
     }
@@ -63,8 +64,8 @@ export const possibleChallengeParticipantsSelector: Selector<ReduxState,Array<Ch
     });
 
 export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<String>> = createSelector(
-    challengeAccountsSelector,
-    (challengeAccounts: Array<AccountDTO>): Array<String> => {
+    challengeParticipantsSelector,
+    (challengeAccounts: Array<ChallengeParticipantDTO>): Array<String> => {
         var jwtTokensOfApprovingUsers: Array<String> = challengeAccounts.filter(a=>a.jwtToken != null)
             .map(a=>a.jwtToken);
         return jwtTokensOfApprovingUsers;

@@ -1,13 +1,13 @@
 import * as React from "react";
-import {AccountDTO} from "../module_accounts/index";
 import {ChartPanel} from "../module_reports/index";
 import {TaskTableHeader, TaskTable} from "../module_tasks/index";
+import {ChallengeParticipantDTO} from "../module_challenges/ChallengeDTO";
 
 
 interface Props {
     challengeId: number,
     ordinal: number,
-    user: AccountDTO,
+    user: ChallengeParticipantDTO,
     showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>JQueryPromise<boolean>
 
 }
@@ -19,11 +19,12 @@ export class UserSlot extends React.Component<Props, void> {
         return    <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
 
 
-
+            { this.props.user.challengeStatus}
             <TaskTableHeader no={this.props.ordinal}
                              user={{ id: this.props.user.id,
                             label: this.props.user.label,
                             login: this.props.user.login,
+                            challengeStatus: this.props.user.challengeStatus,
                             jwtToken: this.props.user.jwtToken}}
                              challengeId={this.props.challengeId}
                              onOpenDialogForLoginSecondUser=
@@ -41,6 +42,7 @@ export class UserSlot extends React.Component<Props, void> {
                 user={{ id: this.props.user.id,
                             label: this.props.user.label,
                             login: this.props.user.login,
+                            challengeStatus: this.props.user.challengeStatus,
                             jwtToken: this.props.user.jwtToken}}
                 showAuthorizeFuncIfNeeded={this.props.showAuthorizeFuncIfNeeded}
                 userIsAuthorized={this.props.user.jwtToken!=null}

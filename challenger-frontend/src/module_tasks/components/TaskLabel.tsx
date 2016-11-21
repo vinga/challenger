@@ -7,7 +7,7 @@ import TextInputDialog from "../../views/common-components/TextInputDialog";
 import {updateTaskStatus} from "../taskActions";
 import {showTaskEvents} from "../../module_events/index";
 import {loggedAccountByIdSelector} from "../../module_accounts/accountSelectors";
-import {challengeAccountsSelector, selectedChallengeParticipantsSelector} from "../../module_challenges/challengeSelectors";
+import {challengeParticipantsSelector, selectedChallengeParticipantsSelector} from "../../module_challenges/challengeSelectors";
 import _ = require("lodash");
 
 
@@ -192,7 +192,7 @@ const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
         if (task.taskApprovals!=null) {
 
             var usersWaitingForAcceptance=task.taskApprovals.filter(ta=>ta.taskStatus==TaskStatus.waiting_for_acceptance)
-                .map(ta=>   challengeAccountsSelector(state,ta.userId).find(cp=>cp.id==ta.userId)).filter(a=>a!=null);
+                .map(ta=>   challengeParticipantsSelector(state,ta.userId).find(cp=>cp.id==ta.userId)).filter(a=>a!=null);
 
 
 

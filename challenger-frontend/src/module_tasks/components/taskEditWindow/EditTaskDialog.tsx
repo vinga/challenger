@@ -218,7 +218,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         closeYes={()=>{  this.props.onTaskDeleteFunc(this.state.task);  }}
                         closeDialog={()=>{this.state.taskDeleteConfirmation=false; this.setState(this.state);}}
                     >
-                        Do you want to remove this task? { this.state.task.id}
+                        Do you want to remove this task?
                     </YesNoConfirmationDialog>
                     }
                 </Dialog>

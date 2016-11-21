@@ -19,7 +19,9 @@ interface IChallengeRestService {
     @Data
     class UserLabelDTO(val id: Long=0,
                        val label: String="",
-                       val login: String?=null)
+                       val login: String?=null,
+                       val challengeStatus: String=ChallengeStatus.WAITING_FOR_ACCEPTANCE.name
+    )
 
     @Data
     data class VisibleChallengesDTO(val selectedChallengeId: Long) {
@@ -47,8 +49,8 @@ interface IChallengeRestService {
                             label = c.label,
                             challengeStatus = c.challengeStatus.name,
                             creatorId = c.createdBy.id,
-                            userLabels = c.participants.map({ cp -> cp.user })
-                                    .map({ u -> UserLabelDTO(u.id, u.getLoginOrEmail(), u.login) })
+                            userLabels = c.participants
+                                    .map({ cp -> UserLabelDTO(cp.user.id, cp.user.getLoginOrEmail(), cp.user.login, cp.challengeStatus.name) })
                                     .toTypedArray())
                     return co
                 }

@@ -8,6 +8,7 @@ export interface AccountDTO {
     inProgress: boolean,
     primary: boolean,
     jwtToken?: string,
-    tokenExpirationDate?: Date
+    tokenExpirationDate?: Date,
+    challengeStatus?: string, // filled dynamically
 }
 

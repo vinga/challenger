@@ -1,9 +1,10 @@
 
 
 import {ChallengeDTO, VisibleChallengesDTO, ChallengeParticipantDTO} from "./ChallengeDTO";
-import {challengeAccountsSelector, selectedChallengeIdSelector, selectedChallengeParticipantsSelector, jwtTokensOfChallengeParticipants} from "./challengeSelectors";
+import {challengeParticipantsSelector, selectedChallengeIdSelector, selectedChallengeParticipantsSelector, jwtTokensOfChallengeParticipants} from "./challengeSelectors";
 import {fetchWebChallenges} from "./challengeActions";
 import {ChallengeMenuNaviBar} from "./components/ChallengeMenuNaviBar";
+import {EditChallengeDialog} from "./components/EditChallengeDialog";
 
 
 export {
@@ -13,10 +14,11 @@ export {
     selectedChallengeIdSelector,
     selectedChallengeParticipantsSelector,
     jwtTokensOfChallengeParticipants,
-    challengeAccountsSelector,//temporary
+    challengeParticipantsSelector,//temporary
 
 
     ChallengeMenuNaviBar,
+    EditChallengeDialog,
 
 
     fetchWebChallenges

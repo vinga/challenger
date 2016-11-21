@@ -28,7 +28,9 @@ export interface ChallengeParticipantDTO {
     label: string,
     login?: string,
     ordinal: number, //  ordinal will be different for different users, because caller has always 0
-    email?: string
+    email?: string,
+    challengeStatus: string,
+    jwtToken?: string
 }
 
 

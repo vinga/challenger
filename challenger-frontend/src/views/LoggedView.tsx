@@ -1,17 +1,17 @@
 import * as React from "react";
 import {ReduxState, connect} from "../redux/ReduxState";
-import {loggedUserSelector, SecondUserAuthorizePopover, AccountDTO} from "../module_accounts/index";
-import {selectedChallengeIdSelector, challengeAccountsSelector} from "../module_challenges/index";
-import {EventGroupPanel} from "../module_events/index";
-import {EditChallengeDialog} from "../module_challenges/components/EditChallengeDialog";
 import {UserSlot} from "./UserSlot";
+import {loggedUserSelector, SecondUserAuthorizePopover} from "../module_accounts/index";
+import {EditChallengeDialog, selectedChallengeIdSelector, challengeParticipantsSelector} from "../module_challenges/index";
+import {EventGroupPanel} from "../module_events/index";
 import {TaskDTO, EditTaskDialog} from "../module_tasks/index";
+import {ChallengeParticipantDTO} from "../module_challenges/ChallengeDTO";
 
 
 interface ReduxProps {
     challengeId?: number,
     userId: number,
-    challengeAccounts: Array<AccountDTO>,
+    challengeAccounts: Array<ChallengeParticipantDTO>,
     editChallenge: boolean,
     editedTask?: TaskDTO,
 
@@ -65,7 +65,17 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
                 <SecondUserAuthorizePopover
                     ref={ (c) =>this.secondUserAuthorizePopover=c}
-                    challengeAccounts={this.props.challengeAccounts}
+                    challengeAccounts={this.props.challengeAccounts.map(
+                        e=>{
+                            return {
+                                id: e.id,
+                                login: e.login,
+                                label: e.label,
+                                inProgress: null,
+                                primary: false
+                            }
+                        }
+                    )}
                 />
                 {
                     this.props.editChallenge == true &&
@@ -84,7 +94,7 @@ const mapStateToProps = (state: ReduxState): ReduxProps => {
     return {
         userId: loggedUserSelector(state).id,
         challengeId: selectedChallengeIdSelector(state),
-        challengeAccounts: challengeAccountsSelector(state),
+        challengeAccounts: challengeParticipantsSelector(state),
         editChallenge: state.challenges.editedChallenge != null,
         editedTask: state.tasksState.editedTask,
     }
