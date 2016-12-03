@@ -8,8 +8,8 @@ import {ReportState} from "../module_reports/ReportUserDTO";
 
 
 export interface CurrentSelection {
-    day: Date
-
+    day: Date,
+    loginErrorDescription? :string
 }
 
 export interface ReduxState {

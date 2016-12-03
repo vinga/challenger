@@ -8,7 +8,7 @@ interface Props {
     challengeId: number,
     ordinal: number,
     user: ChallengeParticipantDTO,
-    showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>JQueryPromise<boolean>
+    showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>Promise<boolean>
 
 }
 
@@ -18,8 +18,6 @@ export class UserSlot extends React.Component<Props, void> {
     render() {
         return    <div style={{marginRight: '10px', marginLeft: '10px', marginTop: '20px', marginBottom: '20px'}}>
 
-
-            { this.props.user.challengeStatus}
             <TaskTableHeader no={this.props.ordinal}
                              user={{ id: this.props.user.id,
                             label: this.props.user.label,

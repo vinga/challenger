@@ -46,7 +46,7 @@ class TaskRestService : ITaskRestService {
         val callerId = session.userId
         // val date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate()
         val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yy-MM-dd"))
-        val tasks = challengerLogic.getTasks(callerId, contractId, date)
+        val tasks = taskDao.getTasks(callerId, contractId, date)
 
 
         var taskApprovalsOtherThanAccepted=taskDao.getTasksApprovalsOtherThanAccepted(tasks).groupBy { it.task.id }

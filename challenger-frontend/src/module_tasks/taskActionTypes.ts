@@ -8,6 +8,7 @@ export const MARK_TASK_DONE_OPTIMISTIC: ActionType<{challengeId: number, taskPro
 export const MODIFY_TASK_OPTIMISTIC: ActionType<TaskDTO> = new ActionType<any>('MODIFY_TASK_OPTIMISTIC');
 export const DELETE_TASK_OPTIMISTIC: ActionType<TaskDTO> = new ActionType<any>('DELETE_TASK_OPTIMISTIC');
 export const OPEN_EDIT_TASK: ActionType<TaskDTO> = new ActionType<any>('OPEN_EDIT_TASK');
+export const CREATE_AND_OPEN_EDIT_TASK: ActionType<{creatorId: number, forUserId: number, challengeId: number}> = new ActionType<any>('CREATE_AND_OPEN_EDIT_TASK');
 export const MODIFY_TASK_REQUEST: ActionType<TaskDTO> = new ActionType<any>('MODIFY_TASK_REQUEST');
 export const TASK_PROGRESS_REQUEST: ActionType<{challengeId: number, taskProgress:TaskProgressDTO}> = new ActionType<any>('TASKPROGRESS_REQUEST');
 export const CLOSE_EDIT_TASK: ActionType<{}> = new ActionType<any>('CLOSE_EDIT_TASK');

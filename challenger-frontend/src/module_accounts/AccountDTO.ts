@@ -3,7 +3,7 @@ export interface AccountDTO {
     id: number,
     login: string,
     label?: string,
-    errorDescription?: string,
+    //errorDescription?: string,
     infoDescription?: string,
     inProgress: boolean,
     primary: boolean,

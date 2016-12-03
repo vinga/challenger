@@ -95,18 +95,28 @@ Date.prototype.addDays = function(days)
 Date.prototype.yy_mm_dd = function() {
     var mm = this.getMonth() + 1;
     var dd = this.getDate();
-    return [this.getFullYear().toString().substr(2,2),  mm, dd].join('-');
+    return [this.getFullYear().toString().substr(2,2),  (mm<10)? "0"+mm: mm, (dd<10)? "0"+dd: dd].join('-');
 };
 Date.prototype.yyyy_mm_dd = function() {
     var mm = this.getMonth() + 1;
     var dd = this.getDate();
-    return [this.getFullYear(),  mm, dd].join('-');
+    return [this.getFullYear(),  (mm<10)? "0"+mm: mm, (dd<10)? "0"+dd: dd].join('-');
 };
 Date.prototype.mm_dd = function() {
     var mm = this.getMonth() + 1;
     var dd = this.getDate();
     return [mm, dd].join('-');
 };
+
+Date.prototype.dayMonth3 = function () {
+    var objDate = this;
+    var locale = "en-us";
+    var month = objDate.toLocaleString(locale, { month: "short" });
+    return this.getDate() + " " + month;
+}
+export class Grid extends Component {}
+export class Row extends Component {}
+export class Col extends Component {}
 export {
     DiffHardIcon as DiffHardIcon,
     DiffMediumIcon as DiffMediumIcon,

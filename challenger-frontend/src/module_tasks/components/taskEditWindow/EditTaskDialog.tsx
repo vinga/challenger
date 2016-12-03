@@ -11,26 +11,25 @@ import {TaskDTO, TaskType} from "../../TaskDTO";
 import {updateTask, deleteTask} from "../../taskActions";
 import {CLOSE_EDIT_TASK} from "../../taskActionTypes";
 import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "../../../views/Constants";
-import YesNoConfirmationDialog from "../../../views/common-components/YesNoConfirmationDialog";
-
+import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
 
 
 interface Props {
-    task:TaskDTO,
+    task: TaskDTO,
 }
 interface ReduxProps {
     creatorUserLabel: string
 }
 
 interface PropsFunc {
-    onTaskSuccessfullyUpdatedFunc:(task:TaskDTO)=>void;
-    onTaskDeleteFunc:(task:TaskDTO)=>void;
-    onCloseFunc?:(event?:TouchTapEvent) => void,
+    onTaskSuccessfullyUpdatedFunc: (task: TaskDTO)=>void;
+    onTaskDeleteFunc: (task: TaskDTO)=>void;
+    onCloseFunc?: (event?: TouchTapEvent) => void,
 }
 interface State {
-    task:TaskDTO,
-    submitDisabled:boolean,
-    taskDeleteConfirmation:boolean
+    task: TaskDTO,
+    submitDisabled: boolean,
+    taskDeleteConfirmation: boolean
 }
 
 /**
@@ -93,20 +92,25 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
     render() {
         if (this.props.task == null)
             return <div/>;
-        const actions = [
-            <FlatButton
-                label={this.getSubmitButtonTitle()}
-                primary={true}
-                disabled={this.state.submitDisabled}
-                onTouchTap={this.handleSubmit}
-            />,
+
+        const actions = [];
+        if (this.props.task.id <= 0) {
+            actions.push(
+                <FlatButton
+                    label={this.getSubmitButtonTitle()}
+                    primary={true}
+                    disabled={this.state.submitDisabled}
+                    onTouchTap={this.handleSubmit}
+                />);
+        }
+
+        actions.push(
             <FlatButton
                 label="Cancel"
                 primary={false}
                 onTouchTap={this.props.onCloseFunc}
-            />,
-        ];
-
+            />
+        );
 
         var datePicker = undefined;
         if (this.state.task.taskType === TaskType.onetime) {
@@ -227,22 +231,22 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
     }
 
 }
-const mapStateToProps = (state:ReduxState, ownProps:Props):ReduxProps => {
+const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 
 
     return {
-        creatorUserLabel: state.challenges.visibleChallenges.filter(ch=>ch.id==state.challenges.selectedChallengeId).pop().userLabels.filter(u=>u.id==state.tasksState.editedTask.createdByUserId).pop().label
+        creatorUserLabel: state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels.filter(u=>u.id == state.tasksState.editedTask.createdByUserId).pop().label
     }
 };
-const mapDispatchToProps = (dispatch):PropsFunc => {
+const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
-        onTaskSuccessfullyUpdatedFunc: (task:TaskDTO)=> {
+        onTaskSuccessfullyUpdatedFunc: (task: TaskDTO)=> {
             dispatch(updateTask(task));
         },
-        onTaskDeleteFunc: (task:TaskDTO)=> {
+        onTaskDeleteFunc: (task: TaskDTO)=> {
             dispatch(deleteTask(task));
         },
-        onCloseFunc: (event:TouchTapEvent)=> {
+        onCloseFunc: (event: TouchTapEvent)=> {
             dispatch(CLOSE_EDIT_TASK.new({}));
         },
 

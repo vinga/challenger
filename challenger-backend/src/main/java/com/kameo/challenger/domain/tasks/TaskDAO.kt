@@ -7,6 +7,7 @@ import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.domain.tasks.db.*
 import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
+import com.kameo.challenger.domain.tasks.db.TaskType.onetime
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
@@ -61,6 +62,13 @@ open class TaskDAO {
 
         val tasks = anyDaoNew.getAll(TaskODB::class) {
             it get TaskODB::challenge eqId challengeId
+
+
+            it get TaskODB::createDate before dayMidnight.plusDays(1).atStartOfDay()
+            it.newOr {
+                it.get(+TaskODB::closeDate).isNull()
+                it get +TaskODB::closeDate after dayMidnight
+            }
             it.newOr {
                 it get TaskODB::taskType notEq TaskType.onetime
                 it get (+TaskODB::dueDate) after dayMidnight.atStartOfDay()
@@ -118,12 +126,19 @@ open class TaskDAO {
             it.get(TaskProgressODB::task) eqId taskId
             it.get(TaskProgressODB::progressTime) eq dayMidnight
         }
+        if(task.taskType == onetime) {
+            task.closeDate = dayMidnight
+            anyDaoNew.merge(task)
+        }
+
         return if (taskProgress != null) {
             taskProgress.done = done
+
             anyDaoNew.update(TaskProgressODB::class) {
                 it.set(TaskProgressODB::done, done)
                         .eqId(taskProgress.id)
             }
+
             taskProgress
         } else {
             val tp = TaskProgressODB(task, dayMidnight, done)

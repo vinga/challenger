@@ -2,10 +2,13 @@ import * as React from "react";
 import {ReduxState, connect} from "../redux/ReduxState";
 import {UserSlot} from "./UserSlot";
 import {loggedUserSelector, SecondUserAuthorizePopover} from "../module_accounts/index";
-import {EditChallengeDialog, selectedChallengeIdSelector, challengeParticipantsSelector} from "../module_challenges/index";
+import {ChallengeParticipantDTO, EditChallengeDialog, selectedChallengeIdSelector, challengeParticipantsSelector} from "../module_challenges/index";
 import {EventGroupPanel} from "../module_events/index";
 import {TaskDTO, EditTaskDialog} from "../module_tasks/index";
-import {ChallengeParticipantDTO} from "../module_challenges/ChallengeDTO";
+
+
+
+
 
 
 interface ReduxProps {
@@ -22,7 +25,7 @@ class LoggedView extends React.Component<ReduxProps,void> {
     private secondUserAuthorizePopover: any;
 
 
-    showAuthorizeFuncIfNeeded = (eventTarget: EventTarget, userId: number): JQueryPromise<boolean> => {
+    showAuthorizeFuncIfNeeded = (eventTarget: EventTarget, userId: number): Promise<boolean> => {
         return this.secondUserAuthorizePopover.getWrappedInstance().showAuthorizeFuncIfNeeded(eventTarget, userId)
     }
 
@@ -51,8 +54,9 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-                <div className="section">
 
+
+                <div className="section">
                     <div>{rows}</div>
 
                 </div>
@@ -71,6 +75,7 @@ class LoggedView extends React.Component<ReduxProps,void> {
                                 id: e.id,
                                 login: e.login,
                                 label: e.label,
+                                jwtToken: e.jwtToken,
                                 inProgress: null,
                                 primary: false
                             }

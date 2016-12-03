@@ -683,9 +683,17 @@ class LocalDateTimePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathCon
         pc.add({ cb.lessThan(root as Expression<LocalDateTime>, f) })
         return this
     }
+    infix fun beforeOrEqual(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDateTime>, f) })
+        return this
+    }
 
     infix fun after(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.greaterThan(root as Expression<LocalDateTime>, f) })
+        return this
+    }
+    infix fun afterOrEqual(f: LocalDateTime): PathWrap<LocalDateTime, G> {
+        pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDateTime>, f) })
         return this
     }
     infix fun lessThan(f: LocalDateTime): PathWrap<LocalDateTime, G> {

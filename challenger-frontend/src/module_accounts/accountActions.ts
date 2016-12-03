@@ -2,13 +2,14 @@ import {ReduxState} from "../redux/ReduxState";
 import * as webCall from "./accountWebCalls";
 import {
     LOGIN_USER_RESPONSE_SUCCESS, LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_REQUEST, REGISTER_USER_REQUEST, REGISTER_USER_RESPONSE,
-    UNAUTHORIZED_WEB_RESPONSE, REGISTER_USER_RESPONSE_FAILURE
+    UNAUTHORIZED_WEB_RESPONSE, REGISTER_USER_RESPONSE_FAILURE, LOGOUT
 } from "./accountActionTypes";
 import {fetchWebChallenges} from "../module_challenges/index";
-import {WEB_STATUS_UNAUTHORIZED} from "../logic/domain/Common";
+import {WEB_STATUS_UNAUTHORIZED, WEB_STATUS_INTERNAL_ERROR} from "../logic/domain/Common";
 import {validateEmail} from "../views/common-components/TextFieldExt";
 import {UPDATE_CHALLENGE_PARTICIPANTS, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION} from "../module_challenges/challengeActionTypes";
 import {ChallengeParticipantDTO} from "../module_challenges/ChallengeDTO";
+import {INTERNAL_ERROR_WEB_RESPONSE} from "../redux/actions/actions";
 
 function renewToken(login: string, jwtToken: string) {
     return function (dispatch, getState: ()=>ReduxState) {
@@ -23,9 +24,8 @@ function renewToken(login: string, jwtToken: string) {
 
 function queueRenewAccessToken(login) {
     return function (dispatch, getState: ()=>ReduxState) {
-        getState().accounts.filter(u=>login == login).map(u=> {
-
-            console.log("queueAccessToken");
+        getState().accounts.filter(u=>u.login == login).map(u=> {
+            console.log("queueAccessToken "+u.tokenExpirationDate);
             // one minute before expiration time
             var requestTimeMillis = u.tokenExpirationDate.getTime() - 1000 * 60;
             var offset=requestTimeMillis-Date.now();
@@ -42,6 +42,7 @@ export function loginUserAction(login: string, password: string, primary: boolea
         dispatch(LOGIN_USER_REQUEST.new({login, password, primary, userId}));
         return webCall.login(login, password).then(
                 jwtToken=> {
+
                     dispatch(LOGIN_USER_RESPONSE_SUCCESS.new({login, jwtToken}));
                     dispatch(queueRenewAccessToken(login));
                     if (primary) {
@@ -49,7 +50,7 @@ export function loginUserAction(login: string, password: string, primary: boolea
                     }
                 }
             ).catch((response:XMLHttpRequest)=> {
-            console.log("resss",response);
+            console.log("failed login response",response);
                 dispatch(LOGIN_USER_RESPONSE_FAILURE.new({
                     login,
                     textStatus: response.responseText,
@@ -80,7 +81,12 @@ export function registerUserAction(email: string, login: string, password: strin
 }
 
 export function authPromiseErr(reason: any, dispatch) {
-    if (reason.status==WEB_STATUS_UNAUTHORIZED) {
+    if (reason.status==WEB_STATUS_INTERNAL_ERROR) {
+        dispatch(LOGOUT.new({}) );
+//TODO
+        dispatch(INTERNAL_ERROR_WEB_RESPONSE.new({jwtToken:reason.jwtToken}));
+
+    } else if (reason.status==WEB_STATUS_UNAUTHORIZED) {
         console.log("FOUND UNAUTHORIZED");
         dispatch(UNAUTHORIZED_WEB_RESPONSE.new({jwtToken:reason.jwtToken}));
     }

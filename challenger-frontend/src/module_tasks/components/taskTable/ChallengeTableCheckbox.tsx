@@ -9,11 +9,11 @@ interface Props {
     userId: number,
     authorized: boolean,
     taskDTO: TaskDTO,
-    showAuthorizeFuncIfNeeded: (event: EventTarget, userId: number)=>(JQueryPromise<boolean>);
+    showAuthorizeFuncIfNeeded: (event: EventTarget, userId: number)=>(Promise<boolean>);
     onTaskCheckedStateChangedFunc: (task: TaskDTO)=>void;
 }
 
-export default class ChallengeTableCheckbox extends React.Component<Props, void> {
+export default class TaskCheckbox extends React.Component<Props, void> {
 
     render() {
 

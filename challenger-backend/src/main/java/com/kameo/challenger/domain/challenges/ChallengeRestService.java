@@ -18,6 +18,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +58,12 @@ public class ChallengeRestService implements IChallengeRestService {
                                                .map(c -> {
                                                    c.setCallerId(callerId);
                                                    return c;
+                                               })
+                                               .sorted(new Comparator<ChallengeDTO>() {
+                                                   @Override
+                                                   public int compare(ChallengeDTO o1, ChallengeDTO o2) {
+                                                       return o1.getLabel().compareTo(o2.getLabel());
+                                                   }
                                                })
                                                .collect(Collectors.toList()));
 

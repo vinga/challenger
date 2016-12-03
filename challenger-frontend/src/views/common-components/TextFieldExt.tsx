@@ -20,7 +20,8 @@ interface Props {
     regexPattern?: string,
     checkEmailPattern?: boolean,
     name?: string,
-    onEnterKeyDown?: ()=>void;
+    onEnterKeyDown?: ()=>void,
+    fullWidth?: boolean
 }
 interface State {
     fieldValue: string,
@@ -132,6 +133,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
             onBlur={this.onBlur}
             name={this.props.name}
             onKeyDown={this.handleKeyDown}
+            fullWidth={this.props.fullWidth}
 
         />);
     }

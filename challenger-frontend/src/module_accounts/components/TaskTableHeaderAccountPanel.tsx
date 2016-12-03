@@ -5,13 +5,15 @@ import {ON_LOGOUT_SECOND_USER} from "../accountActionTypes";
 import TaskTableUserIcon from "./TaskTableUserIcon";
 import {IconButton} from "material-ui";
 import {anyUserAsAccountSelector} from "../accountSelectors";
+import {ChallengeStatus} from "../../module_challenges/ChallengeDTO";
 
 
 interface Props {
     userId: number,
     no: number,
     userLabel: string,
-    userLogin: string
+    userLogin: string,
+    challengeStatus: string
 }
 interface ReduxProps {
     user: AccountDTO
@@ -34,10 +36,11 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
         return <h5>
             <TaskTableUserIcon
                 userNo={this.props.no}
+                challengeStatus={this.props.challengeStatus}
             />
 
             <span style={{}}><span style={{lineHeight: '65px'}}>{this.props.user.label}</span>
-                {this.props.no != 0 && (this.props.user.jwtToken != null ?
+                {this.props.no != 0  && this.props.challengeStatus==ChallengeStatus.ACTIVE && (this.props.user.jwtToken != null ?
 
                         <IconButton
                             onClick={() => {this.props.onSecondUserLogout(this.props.user.id)}}>
@@ -58,10 +61,7 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
 <div style={{display:"block", float:"right"}}>
                 {this.props.children}
     </div>
-                {this.props.user.errorDescription != null &&
-                <span className="red-text text-darken-3"
-                      style={{fontSize:'15px'}}>
-                        {this.props.user.errorDescription}</span>}
+
                 </span>
 
         </h5>;

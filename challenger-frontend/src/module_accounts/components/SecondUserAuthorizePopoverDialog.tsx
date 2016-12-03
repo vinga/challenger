@@ -9,7 +9,9 @@ import ChallengeIcon from "../../views/common-components/ChallengeIcon";
 interface Props {
     user: AccountDTO,
     popoverAnchorEl?: React.ReactInstance;
-    close: ()=>void
+    open: boolean,
+    close: ()=>void,
+    errorDescription?: string
 }
 interface PropsFunc {
     doLoginFunc: (login: string, password: string, userId: number)=>(any);
@@ -28,17 +30,21 @@ export class SecondUserAuthorizePopoverDialog extends React.Component<Props& Pro
 
     handleLogin = () => {
         this.props.doLoginFunc(this.props.user.login, this.passwordField.getValue(), this.props.user.id);
-        this.internalClose();
+        //this.internalClose();
     };
     internalClose = () => {
         this.props.close();
     }
 
+// {this.props.user.errorDescription != null &&
+// <span className="red-text text-darken-3"
+//     style={{fontSize:'15px'}}>
+// {this.props.user.errorDescription}</span>}
 
     render() {
 
         return (<Popover
-            open={this.props.popoverAnchorEl!=null}
+            open={this.props.open}
             anchorEl={this.props.popoverAnchorEl}
             anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
             targetOrigin={{horizontal: 'left', vertical: 'top'}}
@@ -64,6 +70,10 @@ export class SecondUserAuthorizePopoverDialog extends React.Component<Props& Pro
                     <br/>
                 </div>
 
+
+                {this.props.errorDescription != null &&
+                    <div>{this.props.errorDescription}</div>
+                }
                 <div style={{marginBottom: '10px'}} className="right">
 
                     <FlatButton

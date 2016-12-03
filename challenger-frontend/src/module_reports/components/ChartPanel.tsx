@@ -35,7 +35,7 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
                 }]
             },
             options: {
-
+                elements: { point: { radius: 0 } },
                 legend: {
                     display: false
                 },

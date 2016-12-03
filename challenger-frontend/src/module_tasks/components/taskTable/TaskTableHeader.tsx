@@ -3,7 +3,7 @@ import {ReduxState, connect} from "../../../redux/ReduxState";
 import FlatButton from "material-ui/FlatButton";
 import {TaskDTO, TaskStatus, TaskType, TaskUserDTO} from "../../TaskDTO";
 import colors from "../../../views/common-components/Colors";
-import {OPEN_EDIT_TASK} from "../../taskActionTypes";
+import {OPEN_EDIT_TASK, CREATE_AND_OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {TaskTableHeaderAccountPanel} from "../../../module_accounts/index";
 import {makeCalculateAllAndCheckedCount} from "../../taskSelectors";
 
@@ -17,10 +17,11 @@ interface Props {
 
 interface ReduxProps {
     allPoints: number,
-    checkedPoints: number
+    checkedPoints: number,
+
 }
 interface ReduxPropsFunc {
-    onAddNewTaskFunc: (task: TaskDTO)=>void;
+    onAddNewTaskFunc: (creatorId: number, forUserId: number, challengeId: number)=>void;
 
 }
 
@@ -30,24 +31,7 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
     }
 
 
-    createNewTask() {
-        var today = new Date();
-        var taskDTO = {
-            id: 0,
-            icon: "fa-book",
-            difficulty: 0,
-            label: "Example task 1",
-            taskType: TaskType.onetime,
-            taskStatus: TaskStatus.waiting_for_acceptance,
-            dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
-            userId: this.props.user.id,
-            challengeId: this.props.challengeId,
-            done: false,
-            createdByUserId: this.props.user.id,
 
-        };
-        return taskDTO;
-    }
 
     render() {
 
@@ -59,6 +43,7 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
                 userId={this.props.user.id}
                 userLabel={this.props.user.label}
                 userLogin={this.props.user.login}
+                challengeStatus={this.props.user.challengeStatus}
             >{this.props.children}</TaskTableHeaderAccountPanel>
 
             <div style={{clear: 'both'}}></div>
@@ -66,7 +51,7 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
 
             <div className="right" style={{display: "inline-block"}}>
                 <FlatButton
-                    onClick={()=>this.props.onAddNewTaskFunc(this.createNewTask())}
+                    onClick={()=>this.props.onAddNewTaskFunc(this.props.user.id, this.props.user.id, this.props.challengeId)}
                     label="Add task"
                     labelPosition="before"
                     primary={true}
@@ -96,8 +81,8 @@ const mapStateToProps = () => {
 }
 const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
     return {
-        onAddNewTaskFunc: (task: TaskDTO) => {
-            dispatch(OPEN_EDIT_TASK.new(task))
+        onAddNewTaskFunc: (creatorId: number, forUserId: number, challengeId: number) => {
+            dispatch(CREATE_AND_OPEN_EDIT_TASK.new({creatorId, forUserId, challengeId}))
         }
 
     }

@@ -3,7 +3,7 @@ import {ReduxState, connect} from "../../../redux/ReduxState";
 import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import Paper from "material-ui/Paper";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
-import ChallengeTableCheckbox from "./ChallengeTableCheckbox.tsx";
+import TaskCheckbox from "./ChallengeTableCheckbox.tsx";
 import {TaskDTO, TaskProgressDTO, TaskDTOListForDay, TaskUserDTO, TaskType} from "../../TaskDTO";
 import {markTaskDoneOrUndone} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
@@ -12,6 +12,7 @@ import {TaskLabel} from "../TaskLabel";
 import {TaskTableHeader} from "./TaskTableHeader";
 import {SHOW_TASK_EVENTS} from "../../../module_events/eventActionTypes";
 import {taskDTOListKeySelector, makeGetTasksForUserAndDay, makeBusyTasksSelectorForUserAndDay} from "../../taskSelectors";
+import {currentSelection} from "../../../redux/reducers/currentSelection";
 
 const styles = {
     icon: {
@@ -34,7 +35,7 @@ interface Props {
     user: TaskUserDTO,
     userIsAuthorized: boolean,
     no: number,
-    showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>JQueryPromise<boolean>
+    showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>Promise<boolean>
 }
 
 interface ReduxProps {
@@ -67,6 +68,13 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
         this.props.onTaskCheckedStateChangedFunc(this.props.user, this.props.challengeId, taskProgressDTO);
     };
 
+    isDateFromFuture() {
+        if(this.props.currentDate > new Date())
+            return true;
+        return false;
+    }
+
+
 
     render() {
         var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 400) + "px";
@@ -77,11 +85,18 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
             Object.assign(other, {opacity: "0.4"});
         }
 
+
         return (<Paper style={{padding: '10px', display: "inline-block"}}>
                     <div style={other}>
+
+                        {this.props.tasksList.length == 0
+                        &&
+                        <div style={{padding: '10px',fontSize: '18px', color: "#BBB"}}>No tasks have been added or is visible for specified day</div>
+                        }
                         <Table selectable={false}
                                fixedHeader={true}
                         >
+
                             <TableBody displayRowCheckbox={false}>
                                 { this.props.tasksList.map(task =>
                                     <TableRow key={task.id}>
@@ -103,11 +118,12 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                         </TableRowColumn>
                                         <TableRowColumn style={styles.taskType}>
                                             {task.taskType==TaskType.onetime?
-                                                new Date(task.dueDate).mm_dd()
+                                                new Date(task.dueDate).dayMonth3()
                                                 : task.taskType}
                                         </TableRowColumn>
                                         <TableRowColumn style={{width: '45px', padding: '10px'}}>
-                                            <ChallengeTableCheckbox
+                                            {!this.isDateFromFuture() &&
+                                            <TaskCheckbox
                                                 no={this.props.no}
                                                 userId={this.props.user.id}
                                                 taskDTO={task}
@@ -115,6 +131,7 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                                 onTaskCheckedStateChangedFunc={this.onTaskCheckedStateChangedFunc}
                                                 authorized={this.props.userIsAuthorized}
                                             />
+                                            }
                                         </TableRowColumn>
                                     </TableRow>
                                 )}

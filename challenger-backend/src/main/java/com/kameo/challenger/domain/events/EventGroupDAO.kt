@@ -15,6 +15,7 @@ import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Provider
@@ -48,7 +49,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 val checkDay = (eventInfo!! as TaskCheckUncheckEventInfo).checkDate
                 e.forDay=effectiveDay
                 val daystring = if (!effectiveDay.isEqual(checkDay))
-                    " for day " + effectiveDay.toString()
+                    " for " + DateTimeFormatter.ofPattern("dd MMM").withLocale(Locale.ENGLISH).format(effectiveDay)
                 else ""
                 val actionType=if (eventType==CHECKED_TASK) "checked" else "unchecked"
 

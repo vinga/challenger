@@ -1,5 +1,8 @@
-import {TaskDTOListForDay, createTaskDTOListKey, TaskDTO, TaskDTOState} from "./TaskDTO";
-import {LOAD_TASKS_RESPONSE, MARK_TASK_DONE_OPTIMISTIC, MODIFY_TASK_OPTIMISTIC, DELETE_TASK_OPTIMISTIC, MODIFY_TASK_REQUEST, TASK_PROGRESS_REQUEST, OPEN_EDIT_TASK, CLOSE_EDIT_TASK} from "./taskActionTypes";
+import {TaskDTOListForDay, createTaskDTOListKey, TaskDTO, TaskDTOState, TaskType, TaskStatus} from "./TaskDTO";
+import {
+    LOAD_TASKS_RESPONSE, MARK_TASK_DONE_OPTIMISTIC, MODIFY_TASK_OPTIMISTIC, DELETE_TASK_OPTIMISTIC, MODIFY_TASK_REQUEST, TASK_PROGRESS_REQUEST, OPEN_EDIT_TASK, CLOSE_EDIT_TASK,
+    CREATE_AND_OPEN_EDIT_TASK
+} from "./taskActionTypes";
 import {isAction, Action} from "../redux/ReduxTask";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
@@ -9,11 +12,32 @@ const getInitialState = (): TaskDTOState => {
     return {tasks: new Map<string,TaskDTOListForDay>()};
 }
 
-export function tasksState(state: TaskDTOState = getInitialState(), action: Action) {
+export function tasksState(state: TaskDTOState = getInitialState(), action) {
     if (isAction(action, 'LOGOUT')) {
         return getInitialState();
     }
-    if (isAction(action, OPEN_EDIT_TASK)) {
+    if (isAction(action, CREATE_AND_OPEN_EDIT_TASK)) {
+        var today = new Date();
+        var taskDTO = {
+            id: 0,
+            icon: "fa-book",
+            difficulty: 0,
+            label: "Example task 1",
+            taskType: TaskType.onetime,
+            taskStatus: TaskStatus.waiting_for_acceptance,
+            dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
+            userId: action.forUserId,
+            challengeId: action.challengeId,
+            done: false,
+            createdByUserId: action.creatorId,
+
+        };
+        return Object.assign({}, state, {
+            tasks: tasks(state.tasks, taskDTO),
+            editedTask: taskDTO
+        });
+    }
+    else if (isAction(action, OPEN_EDIT_TASK)) {
         var taskCopy: TaskDTO = Object.assign({}, action as TaskDTO);
         return Object.assign({}, state, {
             tasks: tasks(state.tasks, action),

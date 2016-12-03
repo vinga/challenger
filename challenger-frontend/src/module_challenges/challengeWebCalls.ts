@@ -9,6 +9,10 @@ export function createChallenge(challenge: ChallengeDTO) : Promise<ChallengeDTO>
     return baseWebCall.post("/challenges", challenge);
 }
 
+export function acceptOrRejectChallenge(challengeId: number, accept: boolean) : Promise<ChallengeDTO> {
+    return baseWebCall.post(`/challenges/${challengeId}/acceptance`, accept);
+}
+
 
 
 

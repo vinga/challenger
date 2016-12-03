@@ -5,7 +5,7 @@ import {fetchTasksWhenNeeded} from "../module_tasks/index";
 import {fetchInitialEvents} from "../module_events/index";
 import {loadEventsAsyncAllTheTime} from "../module_events/eventActions";
 import {authPromiseErr} from "../module_accounts/accountActions";
-import {ChallengeDTO} from "./ChallengeDTO";
+import {ChallengeDTO, ChallengeStatus} from "./ChallengeDTO";
 import {downloadProgressiveReports} from "../module_reports/index";
 
 
@@ -37,6 +37,21 @@ export function createChallenge(challenge: ChallengeDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
         challenge.userLabels=getState().challenges.editedChallenge.userLabels
         webCall.createChallenge(challenge).then(
+            ()=> {
+                dispatch(fetchWebChallenges());
+            }
+        ).catch((reason)=>authPromiseErr(reason, dispatch));
+    }
+}
+
+
+export function acceptOrRejectChallenge(challengeId: number, accept: boolean) {
+    return function (dispatch, getState: ()=>ReduxState) {
+        /*var challenge = getState().challenges.visibleChallenges.find(ch => (ch.id == challengeId));
+        if(!accept)
+            challenge.challengeStatus = ChallengeStatus.REFUSED;*/
+
+        webCall.acceptOrRejectChallenge(challengeId, accept).then(
             ()=> {
                 dispatch(fetchWebChallenges());
             }

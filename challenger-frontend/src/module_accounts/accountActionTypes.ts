@@ -16,6 +16,7 @@ export const REGISTER_USER_REQUEST: ActionType<{}> = new ActionType<any>('REGIST
 export const REGISTER_USER_RESPONSE: ActionType<RegisterResponseDTO> = new ActionType<RegisterResponseDTO>('REGISTER_USER_RESPONSE_SUCCESS');
 export const REGISTER_USER_RESPONSE_FAILURE: ActionType<{login: string, status: number, textStatus: string, responseText: string}> = new ActionType<any>('REGISTER_USER_RESPONSE_FAILURE');
 export const REGISTER_SHOW_REGISTRATION_PANEL: ActionType<{}> = new ActionType<any>('REGISTER_SHOW_REGISTRATION_PANEL');
+export const REGISTER_EXIT_TO_LOGIN_PANEL: ActionType<{}> = new ActionType<any>('REGISTER_EXIT_TO_LOGIN_PANEL');
 
 
 

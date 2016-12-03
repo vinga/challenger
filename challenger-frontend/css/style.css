@@ -167,3 +167,16 @@ input[type=search],
 textarea.materialize-textarea {
     margin: inherit;
 }
+
+body {
+    margin:0;
+}
+
+/**flexboxgrid overrides */
+.row {
+     margin-right: 0rem;
+     margin-left: 0rem;
+     margin-bottom: 0rem;
+
+}
+.container{width:inherit}

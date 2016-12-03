@@ -88,7 +88,7 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
                         title = "Today";
                     else if (isYesterday)
                         title = "Yesterday";
-                    else title = checkDate.yy_mm_dd();
+                    else title = checkDate.dayMonth3();//yy_mm_dd();
 
                     lastDateDiscrim = {kind: 'DateDiscrimUI', date: checkDate, id: checkDate.getTime(), title: title}
                     arr.push(lastDateDiscrim as DateDiscrimUI)

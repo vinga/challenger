@@ -3,6 +3,7 @@ package com.kameo.challenger.domain.tasks.db
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.odb.api.IIdentity
+import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.persistence.*
 
@@ -43,6 +44,9 @@ data class TaskODB(@Id
 
 
     var dueDate: LocalDateTime? = null
+
+
+    var closeDate: LocalDate? = null
 
     @Transient
     var done: Boolean = false

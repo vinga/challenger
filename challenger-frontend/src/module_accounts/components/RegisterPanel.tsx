@@ -5,30 +5,35 @@ import TextFieldExt from "../../views/common-components/TextFieldExt.tsx";
 import {LoginPanel} from "./LoginPanel.tsx";
 import LinearProgress from "material-ui/LinearProgress";
 import {registerUserAction} from "../accountActions";
+import {Col, Row, RowCol} from "../../views/common-components/Flexboxgrid";
+import FlatButton from "material-ui/FlatButton";
+import {REGISTER_EXIT_TO_LOGIN_PANEL} from "../accountActionTypes";
 
 interface Props {
     registeredSuccessfully: boolean,
     requireEmailConfirmation: boolean,
     registerFailed: boolean,
     inProgress: boolean,
-    errorDescription : string
+    errorDescription: string
 }
 interface PropsFunc {
     onRegisterFunc: (email: string, login: string, pass: string)=>void;
+    onExitToLoginFunc: ()=>void;
 }
 interface State {
-    loginError?:string,
-    emailError?:string,
-    passwordError?:string,
+    loginError?: string,
+    emailError?: string,
+    passwordError?: string,
 }
 
 class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
-    private loginField:TextFieldExt;
-    private emailField:TextFieldExt;
-    private passwordField:TextFieldExt;
+    private loginField: TextFieldExt;
+    private emailField: TextFieldExt;
+    private passwordField: TextFieldExt;
+
     constructor(props) {
         super(props);
-        this.state={}
+        this.state = {}
     }
 
     onRegister = () => {
@@ -40,7 +45,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
         }
     };
 
-    validate = ():boolean => {
+    validate = (): boolean => {
 
         return this.loginField.checkIsValid() && this.passwordField.checkIsValid() && this.emailField.checkIsValid();
     }
@@ -48,16 +53,17 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
     render() {
         if (this.props.registeredSuccessfully) {
             if (this.props.requireEmailConfirmation)
-                return <div id="main" className="container " >
+                return <div id="main" className="container ">
                     <div className="section ">
 
-                            <div className="row valign" style={{height: '100px'}}>
-                                <div className="col s3 offset-s4">
-                                      <h5>Registration finished.</h5>
-                                      <h5>Please confirm your email address</h5>
-                                </div></div>
+                        <div className="row valign" style={{height: '100px'}}>
+                            <div className="col s3 offset-s4">
+                                <h5>Registration finished.</h5>
+                                <h5>Please confirm your email address</h5>
+                            </div>
                         </div>
-                    </div>;
+                    </div>
+                </div>;
 
             return <LoginPanel
                 infoDescription={<b>Registration finished.<br/> Please login to the system</b>}
@@ -68,74 +74,86 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
         }
         //var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200) + "px";
         return (
-            <div id="main" className="container " >
+            <div id="main" className="container ">
                 <div className="section ">
 
-                    <div className="row">
-                        <div className="row" style={{height: '100px'}}></div>
+                    {this.props.registerFailed &&
+                    <Row horizontal="center" style={{height: '120px', paddingTop:'50px'}}>
+                        <Col col="8">
+                            <p className="grey-text">
+                                There is problem with registration:<br/>
+                                <b className="red-text text-darken-3">{this.props.errorDescription}</b>
+                            </p>
+                        </Col>
+                    </Row> }
 
-
-
-                        {this.props.registerFailed ?
-                            <div className="row valign" style={{height: '100px'}}>
-                                <div className="col s3 offset-s4">
-                                    <p className="grey-text">
-                                        There is problem with registration:<br/>
-                                        <b className="red-text text-darken-3">{this.props.errorDescription}</b>
-                                    </p>
-                                </div>
-                            </div>
-                            :
-                            <div className="col s3 offset-s4">
+                    {!this.props.registerFailed &&
+                    <Row horizontal="center" style={{height: '120px', paddingTop:'50px'}}>
+                        <Col col="8-5-3">
+                            <RowCol horizontal="start">
                                 <h5>Register</h5>
-                            </div>
-                        }
+                            </RowCol>
+                        </Col>
+                    </Row>
+                    }
 
+                    <Row horizontal="center">
+                        <Col col="8-5-3">
+                            <RowCol>
+                                <TextFieldExt
+                                    fullWidth={true}
+                                    floatingLabelText="Email"
+                                    useRequiredValidator={true}
+                                    validateOnChange={true}
+                                    minLengthNumber={4}
+                                    maxLengthNumber={100}
+                                    checkEmailPattern={true}
+                                    fieldValue="newUser22@email.com"
+                                    ref={(c)=>{this.emailField=c}}/>
+                            </RowCol>
+                            <RowCol>
+                                <TextFieldExt
+                                    fullWidth={true}
+                                    useRequiredValidator={true}
+                                    validateOnChange={true}
+                                    minLengthNumber={6}
+                                    maxLengthNumber={30}
+                                    floatingLabelText="Login"
+                                    fieldValue="kami22"
+                                    ref={(c)=>{this.loginField=c}}/>
+                            </RowCol>
+                            <RowCol>
+                                <TextFieldExt
+                                    fullWidth={true}
+                                    floatingLabelText="Password"
+                                    validateOnChange={true}
+                                    fieldValue="kamipass22"
+                                    type="password"
+                                    minLengthNumber={6}
+                                    maxLengthNumber={30}
+                                    useRequiredValidator={true}
+                                    ref={(c)=>{this.passwordField=c}}/>
 
-                        <div className="col s3 offset-s4">
-                            <TextFieldExt
-                                floatingLabelText="Email"
-                                useRequiredValidator={true}
-                                validateOnChange={true}
-                                minLengthNumber={4}
-                                maxLengthNumber={100}
-                                checkEmailPattern={true}
-                                fieldValue="newUser22@email.com"
-                                ref={(c)=>{this.emailField=c}}/>
-                            <br />
-                            <TextFieldExt
-                                useRequiredValidator={true}
-                                validateOnChange={true}
-                                minLengthNumber={6}
-                                maxLengthNumber={30}
-                                floatingLabelText="Login"
-                                fieldValue="kami22"
-                                ref={(c)=>{this.loginField=c}}/>
-                            <br />
-                            <TextFieldExt
-                                floatingLabelText="Password"
-                                validateOnChange={true}
-                                fieldValue="kamipass22"
-                                type="password"
-                                minLengthNumber={6}
-                                maxLengthNumber={30}
-                                useRequiredValidator={true}
-                                ref={(c)=>{this.passwordField=c}}/>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col s1 offset-s3">
-                        </div>
-                        <div className="col s3" style={{paddingRight: '50px'}}>
-                            <RaisedButton
-                                label="Register"
-                                fullWidth={true}
-                                primary={true}
-                                className="right" onClick={this.onRegister}/>
-                            {this.props.inProgress && <LinearProgress mode="indeterminate"/> }
+                            </RowCol>
 
-                        </div>
-                    </div>
+                            <RowCol colStyle={{paddingTop: '20px', paddingBottom: '30px'}}>
+                                <div style={{display:"block"}}>
+                                    <RaisedButton
+                                        label="Register"
+                                        fullWidth={true}
+                                        primary={true}
+                                        className="right" onClick={this.onRegister}/>
+                                    {this.props.inProgress && <LinearProgress mode="indeterminate"/> }
+
+                                </div>
+                            </RowCol>
+                            <RowCol horizontal="end">
+
+                                Have an account? <FlatButton label="Login" onClick={this.props.onExitToLoginFunc}/>
+
+                            </RowCol>
+                        </Col>
+                    </Row>
 
 
                 </div>
@@ -143,19 +161,19 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
     }
 }
 
-const mapStateToProps = (state:ReduxState) => {
+const mapStateToProps = (state: ReduxState) => {
 
 
-    var errorDescription=state.registerState.registerError;
-    var inProgress=state.registerState.registerInProgress;
-    if (inProgress==undefined)
-        inProgress=false;
+    var errorDescription = state.registerState.registerError;
+    var inProgress = state.registerState.registerInProgress;
+    if (inProgress == undefined)
+        inProgress = false;
 
     return {
         errorDescription: errorDescription,
         inProgress: inProgress,
-        registerFailed: errorDescription!=null,
-        registeredSuccessfully:  state.registerState.registeredSuccessfully
+        registerFailed: errorDescription != null,
+        registeredSuccessfully: state.registerState.registeredSuccessfully
 
     }
 };
@@ -164,8 +182,13 @@ const mapDispatchToProps = (dispatch) => {
     return {
         onRegisterFunc: (email, login, pass) => {
             dispatch(registerUserAction(email, login, pass))
+        },
+        onExitToLoginFunc: () => {
+            dispatch(REGISTER_EXIT_TO_LOGIN_PANEL.new({}));
         }
+
     }
+
 };
 
 
