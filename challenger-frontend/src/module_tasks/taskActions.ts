@@ -60,6 +60,7 @@ export function markTaskDoneOrUndone(caller: TaskUserDTO, challengeId: number, t
 
         webCall.updateTaskProgress(challengeId, taskProgress, caller.jwtToken)
             .then((tpRes: TaskProgressDTO)=> {
+
                 // tpRes caused wrong date (previous day), cause response had zeroed hour
                dispatch(fetchTasks(challengeId, new Date(taskProgress.progressTime)));
             }).catch((reason)=>authPromiseErr(reason,dispatch));
@@ -87,7 +88,11 @@ export function fetchTasks(challengeId: number, day: Date): any {
 export function fetchTasksWhenNeeded(challengeId: number, day: Date): any {
     return function (dispatch, getState: ()=>ReduxState) {
         var key: string = createTaskDTOListKey(challengeId, day);
-        if (getState().tasksState.tasks[key] == null || getState().tasksState.tasks[key].webState == WebState.NEED_REFETCH) {
+        if (getState().tasksState.tasks[key] != null)
+        {
+            console.log("TASK Is "+day+" "+WebState[getState().tasksState.tasks[key].webState]);
+        }
+            if (getState().tasksState.tasks[key] == null || getState().tasksState.tasks[key].webState == WebState.NEED_REFETCH) {
             dispatch(fetchTasks(challengeId, day));
         }
     }

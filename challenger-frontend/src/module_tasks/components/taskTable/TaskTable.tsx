@@ -4,15 +4,13 @@ import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import Paper from "material-ui/Paper";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import TaskCheckbox from "./ChallengeTableCheckbox.tsx";
-import {TaskDTO, TaskProgressDTO, TaskDTOListForDay, TaskUserDTO, TaskType} from "../../TaskDTO";
+import {TaskDTO, TaskProgressDTO, TaskUserDTO, TaskType} from "../../TaskDTO";
 import {markTaskDoneOrUndone} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {ResizeAware} from "../../../views/Constants";
 import {TaskLabel} from "../TaskLabel";
-import {TaskTableHeader} from "./TaskTableHeader";
 import {SHOW_TASK_EVENTS} from "../../../module_events/eventActionTypes";
-import {taskDTOListKeySelector, makeGetTasksForUserAndDay, makeBusyTasksSelectorForUserAndDay} from "../../taskSelectors";
-import {currentSelection} from "../../../redux/reducers/currentSelection";
+import {makeGetTasksForUserAndDay, makeBusyTasksSelectorForUserAndDay} from "../../taskSelectors";
 
 const styles = {
     icon: {
@@ -69,15 +67,14 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
     };
 
     isDateFromFuture() {
-        if(this.props.currentDate > new Date())
+        if (this.props.currentDate > new Date())
             return true;
         return false;
     }
 
 
-
     render() {
-        var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 400) + "px";
+        var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 300) + "px";
         var other = {minHeight: height, height: height, overflowY: "auto", overflowX: "none"};
 
         //TODO delay wyszarzenie jesli call nie wrocil
@@ -87,58 +84,55 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
 
 
         return (<Paper style={{padding: '10px', display: "inline-block"}}>
-                    <div style={other}>
+                <div style={other}>
 
-                        {this.props.tasksList.length == 0
-                        &&
-                        <div style={{padding: '10px',fontSize: '18px', color: "#BBB"}}>No tasks have been added or is visible for specified day</div>
-                        }
-                        <Table selectable={false}
-                               fixedHeader={true}
-                        >
-
-                            <TableBody displayRowCheckbox={false}>
-                                { this.props.tasksList.map(task =>
-                                    <TableRow key={task.id}>
-                                        <TableRowColumn style={styles.icon}>
-                                            <DifficultyIconButton
-                                                no={this.props.no}
-                                                task={task}
-                                                onEditTask={this.props.onEditTask}
-                                                onShowTaskEvents={this.props.onShowTaskEvents}
-                                                showTooltip={true}
-                                            />
-                                        </TableRowColumn>
-                                        <TableRowColumn style={styles.label}>
-                                            <TaskLabel
-                                                no={this.props.no}
-                                                taskDTO={task}
-                                                user={this.props.user}
-                                            />
-                                        </TableRowColumn>
-                                        <TableRowColumn style={styles.taskType}>
-                                            {task.taskType==TaskType.onetime?
-                                                new Date(task.dueDate).dayMonth3()
-                                                : task.taskType}
-                                        </TableRowColumn>
-                                        <TableRowColumn style={{width: '45px', padding: '10px'}}>
-                                            {!this.isDateFromFuture() &&
-                                            <TaskCheckbox
-                                                no={this.props.no}
-                                                userId={this.props.user.id}
-                                                taskDTO={task}
-                                                showAuthorizeFuncIfNeeded={this.props.showAuthorizeFuncIfNeeded}
-                                                onTaskCheckedStateChangedFunc={this.onTaskCheckedStateChangedFunc}
-                                                authorized={this.props.userIsAuthorized}
-                                            />
-                                            }
-                                        </TableRowColumn>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-                </Paper>
+                    {this.props.tasksList.length == 0 &&
+                    <div style={{padding: '10px',fontSize: '18px', color: "#BBB"}}>No tasks have been added or is visible for specified day</div>
+                    }
+                    <Table selectable={false}
+                           fixedHeader={true}>
+                        <TableBody displayRowCheckbox={false}>
+                            { this.props.tasksList.map(task =>
+                                <TableRow key={task.id}>
+                                    <TableRowColumn style={styles.icon}>
+                                        <DifficultyIconButton
+                                            no={this.props.no}
+                                            task={task}
+                                            onEditTask={this.props.onEditTask}
+                                            onShowTaskEvents={this.props.onShowTaskEvents}
+                                            showTooltip={true}
+                                        />
+                                    </TableRowColumn>
+                                    <TableRowColumn style={styles.label}>
+                                        <TaskLabel
+                                            no={this.props.no}
+                                            taskDTO={task}
+                                            user={this.props.user}
+                                        />
+                                    </TableRowColumn>
+                                    <TableRowColumn style={styles.taskType}>
+                                        {task.taskType == TaskType.onetime ?
+                                            new Date(task.dueDate).dayMonth3()
+                                            : task.taskType}
+                                    </TableRowColumn>
+                                    <TableRowColumn style={{width: '45px', padding: '10px'}}>
+                                        {!this.isDateFromFuture() &&
+                                        <TaskCheckbox
+                                            no={this.props.no}
+                                            userId={this.props.user.id}
+                                            taskDTO={task}
+                                            showAuthorizeFuncIfNeeded={this.props.showAuthorizeFuncIfNeeded}
+                                            onTaskCheckedStateChangedFunc={this.onTaskCheckedStateChangedFunc}
+                                            authorized={this.props.userIsAuthorized}
+                                        />
+                                        }
+                                    </TableRowColumn>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            </Paper>
 
         );
     }
@@ -152,7 +146,7 @@ const mapStateToProps = () => {
     // real mapStateToProps function
     const mapStateToPropsInternal = (state: ReduxState, ownprops: Props): ReduxProps => {
 
-        var tasksLists=tasksForUserAndDay(state, ownprops.user.id);
+        var tasksLists = tasksForUserAndDay(state, ownprops.user.id);
         return {
             currentDate: state.currentSelection.day,
             tasksList: tasksLists,
@@ -161,7 +155,6 @@ const mapStateToProps = () => {
     }
     return mapStateToPropsInternal
 }
-
 
 
 const mapDispatchToProps = (dispatch): ReduxPropsFunc => {

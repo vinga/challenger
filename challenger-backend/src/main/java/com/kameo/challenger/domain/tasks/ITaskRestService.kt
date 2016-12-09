@@ -63,9 +63,15 @@ interface ITaskRestService {
             val taskType: TaskType = TaskType.daily,
             val taskStatus: TaskStatus = TaskStatus.waiting_for_acceptance,
             val done: Boolean = false,
+            val closeDate: Long? = null,
             val deleted: Boolean? = null,
             var taskApproval: TaskApprovalDTO? = null,
-            var taskApprovals: Array<TaskApprovalDTO>? = null) {
+            var taskApprovals: Array<TaskApprovalDTO>? = null,
+            var monthDays: String? = null,
+            var weekDays: String? = null
+     )
+
+    {
 
         companion object {
 
@@ -81,7 +87,13 @@ interface ITaskRestService {
                         taskStatus = odb.taskStatus,
                         userId = odb.user.id,
                         done = odb.done,
-                        createdByUserId = odb.createdByUser.id)
+                        closeDate =  odb.closeDate?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: null,
+                        createdByUserId = odb.createdByUser.id,
+                        monthDays = odb.monthDays,
+                        weekDays = odb.weekDays
+
+                        )
+
             }
             
             
@@ -100,6 +112,9 @@ interface ITaskRestService {
                 task.dueDate =  Instant.ofEpochMilli(this.dueDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
             if (this.id > 0)
                 task.id = this.id
+
+            task.monthDays = this.monthDays
+            task.weekDays = this.weekDays
             return task
         }
 

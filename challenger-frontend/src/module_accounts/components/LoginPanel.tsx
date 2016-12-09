@@ -53,10 +53,8 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
             <div id="main" className="container ">
 
 
-                <div className="section ">
 
-
-                    <Row horizontal="center" style={{height: '100px'}}>
+                    <Row horizontal="center" style={{height: '130px', paddingTop:'30px'}}>
                         {this.props.loginFailed &&
                         <Col col="8">
                             <p className="grey-text">
@@ -110,10 +108,6 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
 
                     </Row>
 
-
-
-
-                </div>
             </div>);
     }
 }

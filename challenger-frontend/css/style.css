@@ -149,7 +149,50 @@ html {
 .clickableChip:hover {
     box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.3);
 }
+/** tooltip **/
+.tooltip {
+    position: relative;
+    display: inline-block;
 
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 1s;
+    z-index:9999999999;
+    font-size: 13px;
+
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+    z-index:9999999999;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+/** tooltip -end*/
 
 /* Text inputs */
 input:not([type]),
@@ -168,9 +211,108 @@ textarea.materialize-textarea {
     margin: inherit;
 }
 
+@font-face {
+    font-family: "Roboto";
+    src: local(Roboto Thin), url("../fonts/roboto/Roboto-Thin.eot");
+    src: url("../fonts/roboto/Roboto-Thin.eot?#iefix") format("embedded-opentype"), url("../fonts/roboto/Roboto-Thin.woff2") format("woff2"), url("../fonts/roboto/Roboto-Thin.woff") format("woff"), url("../fonts/roboto/Roboto-Thin.ttf") format("truetype");
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: local(Roboto Light), url("../fonts/roboto/Roboto-Light.eot");
+    src: url("../fonts/roboto/Roboto-Light.eot?#iefix") format("embedded-opentype"), url("../fonts/roboto/Roboto-Light.woff2") format("woff2"), url("../fonts/roboto/Roboto-Light.woff") format("woff"), url("../fonts/roboto/Roboto-Light.ttf") format("truetype");
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: local(Roboto Regular), url("../fonts/roboto/Roboto-Regular.eot");
+    src: url("../fonts/roboto/Roboto-Regular.eot?#iefix") format("embedded-opentype"), url("../fonts/roboto/Roboto-Regular.woff2") format("woff2"), url("../fonts/roboto/Roboto-Regular.woff") format("woff"), url("../fonts/roboto/Roboto-Regular.ttf") format("truetype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: url("../fonts/roboto/Roboto-Medium.eot");
+    src: url("../fonts/roboto/Roboto-Medium.eot?#iefix") format("embedded-opentype"), url("../fonts/roboto/Roboto-Medium.woff2") format("woff2"), url("../fonts/roboto/Roboto-Medium.woff") format("woff"), url("../fonts/roboto/Roboto-Medium.ttf") format("truetype");
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: "Roboto";
+    src: url("../fonts/roboto/Roboto-Bold.eot");
+    src: url("../fonts/roboto/Roboto-Bold.eot?#iefix") format("embedded-opentype"), url("../fonts/roboto/Roboto-Bold.woff2") format("woff2"), url("../fonts/roboto/Roboto-Bold.woff") format("woff"), url("../fonts/roboto/Roboto-Bold.ttf") format("truetype");
+    font-weight: 700;
+}
+/** page footer */
+footer.page-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+
+}
+
+.footer-container {
+width: 70%;
+    margin: 0 auto;
+
+}
+
+footer.page-footer .footer-copyright {
+    overflow: hidden;
+    height: 50px;
+    line-height: 50px;
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(51, 51, 51, 0.15);
+}
+
+
+
+/** materialize colors */
+.red-text.text-darken-3 {
+    color: #C62828 !important;
+}
+.cyan.lighten-1 {
+    background-color: #26c6da !important;
+}
+.orange-text {
+    color: #ff9800 !important;
+}
+.cyan-text {
+    color: #00bcd4 !important;
+}
+.orange {
+    background-color: #ff9800 !important;
+}
+.orange-text.text-lighten-3 {
+    color: #ffcc80 !important;
+}
+
+nav {
+    color: #fff;
+}
+nav .fa::before {
+    color: #fff;
+}
+h2 {
+    font-size: 1.64rem;
+    line-height: 110%;
+    margin: 0.82rem 0 0.656rem 0;
+    font-weight: 400;
+}
+html {
+
+    font-family: "Roboto", sans-serif;
+    font-weight: normal;
+
+    font-size: 16px;
+
+}
 body {
     margin:0;
 }
+
+
 
 /**flexboxgrid overrides */
 .row {
@@ -178,5 +320,10 @@ body {
      margin-left: 0rem;
      margin-bottom: 0rem;
 
+}
+.col-xs, .col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {
+
+    padding-right: 0;  /* padding-right: 1rem; */
+    padding-left: 0; /* padding-left: 1rem; */
 }
 .container{width:inherit}

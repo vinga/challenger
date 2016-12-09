@@ -52,6 +52,9 @@ export class GlobalPopover extends React.Component<any,State> {
     componentDidMount = () => {
         window.addEventListener('mousedown', this.pageClick, false);
 
+        var $element = $(ReactDOM.findDOMNode(popover));
+
+
 
         $(document).mousemove(function (e) {
             //  if (!this.state.popoverVisible || !disableHiding)
@@ -98,6 +101,7 @@ export class GlobalPopover extends React.Component<any,State> {
     }
 
 
+
     pageClick = (e) => {
 
 
@@ -125,6 +129,12 @@ export class GlobalPopover extends React.Component<any,State> {
         disableHiding = true;
 
         $element.show();
+
+
+        // two lines below are in order of simple tooltip (class=tooltip, toooltiptext) not to be 'trimmed'
+        $element.parent().parent().parent().css( "overflow", "visible" );
+        $element.parent().parent().css( "overflow", "visible" );
+
         setTimeout(()=> {
             disableHiding = false;
         }, 100)
@@ -135,6 +145,7 @@ export class GlobalPopover extends React.Component<any,State> {
 
 
         return <Popover
+
             ref={c=>{globalPopoverReff.globalPopover=this;}}
             open={this.state.popoverVisible}
             anchorEl={this.state.anchorEl}

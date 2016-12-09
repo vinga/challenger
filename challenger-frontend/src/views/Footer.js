@@ -2,7 +2,7 @@ import * as React from "react";
 
 export const Footer = ()=> {
     return (<div>
-            <div className="container">
+            <div className="footer-container">
                 <div className="row" style={{display: "none"}}>
                     <div className="col l6 s12">
                         <h5 className="white-text">Company Bio</h5>
@@ -32,7 +32,7 @@ export const Footer = ()=> {
                 </div>
             </div>
             <div className="footer-copyright">
-                <div className="container">
+                <div className="footer-container">
                     <img src="img/shield.svg"
                          style={{height: '20px', fill: '#ffffff', marginRight: '10px'}}/>
                     Made by <a className="orange-text text-lighten-3" href="http://materializecss.com">Kameo & Iterion</a>

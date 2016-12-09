@@ -736,6 +736,14 @@ class LocalDatePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext
         pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
     }
+    infix fun beforeOrEqual(f: LocalDate): PathWrap<LocalDate, G> {
+        pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDate>, f) })
+        return this
+    }
+    infix fun afterOrEqual(f: LocalDate): PathWrap<LocalDate, G> {
+        pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDate>, f) })
+        return this
+    }
     infix fun greaterThanOrEqualTo(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
@@ -786,6 +794,14 @@ class StringPathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>
 
     override infix fun like(f: String): PathWrap<String, G> {
         pc.add({ pc.cb.like(root as (Expression<String>), f) })
+        return this
+    }
+
+    infix fun isNullOrContains(f: Any): PathWrap<String, G> {
+        newOr {
+            isNull()
+            like("%"+f.toString()+"%")
+        }
         return this
     }
 

@@ -7,7 +7,7 @@ import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.domain.tasks.db.*
 import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
-import com.kameo.challenger.domain.tasks.db.TaskType.onetime
+import com.kameo.challenger.domain.tasks.db.TaskType.*
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
@@ -36,6 +36,8 @@ open class TaskDAO {
         if (!cc.participants.any { it.user.id == taskODB.user.id })
             throw IllegalArgumentException()
 
+        normalizeWeekdays(taskODB)
+        normalizeMonthdays(taskODB)
 
         taskODB.createdByUser = UserODB(callerId)
         taskODB.taskStatus =
@@ -49,9 +51,34 @@ open class TaskDAO {
         return taskODB
     }
 
-    open fun getTasks(callerId: Long, challengeId: Long, dayMidnight: LocalDate): List<TaskODB> {
+    private fun normalizeWeekdays(taskODB: TaskODB) {
+        val minDayNoIWeek = 1
+        val maxDayNoIWeek = 7
+        taskODB.weekDays?.let {
+            if (isAllSelected(it, minDayNoIWeek, maxDayNoIWeek))
+                taskODB.weekDays = null
+        }
+    }
 
-//        anyDaoNew.test();
+    private fun normalizeMonthdays(taskODB: TaskODB) {
+        val minDayNoInMonth = 0
+        val maxDayNoInMonth = 30
+        taskODB.monthDays?.let {
+            if (isAllSelected(it, minDayNoInMonth, maxDayNoInMonth))
+                taskODB.monthDays = null
+        }
+    }
+
+    private fun isAllSelected(it: String, minDayNoIWeek: Int, maxDayNoIWeek: Int): Boolean {
+        var allSelected = it.split(",").mapNotNull {
+            if (it.length > 0)
+                it.toInt()
+            else null
+        }.containsAll(IntRange(minDayNoIWeek, maxDayNoIWeek).toList());
+        return allSelected
+    }
+
+    open fun getTasks(callerId: Long, challengeId: Long, dayMidnight: LocalDate): List<TaskODB> {
 
         val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class) {
             it get ChallengeParticipantODB::challenge eqId challengeId
@@ -60,6 +87,7 @@ open class TaskDAO {
         }
         updateSendDateOfChallengeContract(callerPermission0)
 
+
         val tasks = anyDaoNew.getAll(TaskODB::class) {
             it get TaskODB::challenge eqId challengeId
 
@@ -67,15 +95,41 @@ open class TaskDAO {
             it get TaskODB::createDate before dayMidnight.plusDays(1).atStartOfDay()
             it.newOr {
                 it.get(+TaskODB::closeDate).isNull()
-                it get +TaskODB::closeDate after dayMidnight
+                it get +TaskODB::closeDate afterOrEqual dayMidnight
             }
+
+            // limit visibility for custom dates
             it.newOr {
-                it get TaskODB::taskType notEq TaskType.onetime
-                it get (+TaskODB::dueDate) after dayMidnight.atStartOfDay()
+                it.newAnd {
+                    it get TaskODB::taskType eq TaskType.onetime
+                    // for onetimes only if 'not done' OR 'is done exactly at dayMidnight'
+                    it get (+TaskODB::dueDate) after dayMidnight.atStartOfDay()
+                    it.newOr {
+                        it.get(+TaskODB::closeDate).isNull()
+                        it get +TaskODB::closeDate eq dayMidnight
+                    }
+                }
+                it.newAnd {
+                    it get TaskODB::taskType eq TaskType.monthly
+                    it get +TaskODB::monthDays isNullOrContains ",${dayMidnight.dayOfMonth},"
+                }
+                it.newAnd {
+                    it get TaskODB::taskType eq TaskType.weekly
+                    it get +TaskODB::weekDays isNullOrContains ",${dayMidnight.dayOfWeek.value},"
+                }
+                it.newAnd {
+                    it get TaskODB::taskType eq TaskType.daily
+                    it get +TaskODB::monthDays isNullOrContains ",${dayMidnight.dayOfMonth},"
+                    it get +TaskODB::weekDays isNullOrContains ",${dayMidnight.dayOfWeek.value},"
+                }
+
+
             }
         }
+
+
         tasks.forEach {
-            println("" + it.dueDate + " " + dayMidnight + " " + dayMidnight.atStartOfDay())
+            println("visible task: " + it.dueDate + " " + dayMidnight + " " + dayMidnight.atStartOfDay() + ", close date: " + it.closeDate + ", day midnight:" + dayMidnight)
             if (it.dueDate != null) {
                 println("" + Timestamp.valueOf(it.dueDate) + " " + Timestamp.valueOf(dayMidnight.atStartOfDay()))
             }
@@ -87,7 +141,14 @@ open class TaskDAO {
                     .filter { it.id == tp.task.id }
                     .forEach { it.done = tp.done }
         }
-        return tasks
+
+
+        val startOfMonth = dayMidnight.minusDays(dayMidnight.atStartOfDay().dayOfMonth.toLong())
+        val startOfWeek = dayMidnight.minusDays(dayMidnight.atStartOfDay().dayOfWeek.value.toLong())
+        val tasksIdDoneInPeriod = getTaskProgressDoneInPeriod(tasks, startOfMonth, startOfWeek, dayMidnight)
+        return tasks.filter {
+            it.id !in tasksIdDoneInPeriod
+        }
     }
 
 
@@ -99,6 +160,37 @@ open class TaskDAO {
         anyDaoNew.remove(TaskProgressODB::class) { it get TaskProgressODB::task eqId taskId }
         anyDaoNew.remove(TaskApprovalODB::class) { it get TaskApprovalODB::task eqId taskId }
         return anyDaoNew.remove(task)
+    }
+
+    open fun getTaskProgressDoneInPeriod(tasks: List<TaskODB>, fromMonth: LocalDate, fromWeek: LocalDate, toDate: LocalDate): List<Long> {
+
+        val taskIds = tasks.filter {
+            !it.done && (it.taskType == monthly || it.taskType == weekly)
+        }.map { it.id }
+        return if (taskIds.isEmpty())
+            emptyList()
+        else
+            anyDaoNew.getAll(TaskProgressODB::class, {
+                it get TaskProgressODB::task get TaskODB::id isIn taskIds
+                it get TaskProgressODB::done eq true
+                it.newOr {
+                    it.newAnd {
+                        it get TaskProgressODB::task get TaskODB::taskType eq monthly
+                        it get TaskProgressODB::progressTime greaterThanOrEqualTo fromMonth
+                        it get TaskProgressODB::progressTime lessThan toDate
+                    }
+
+                    it.newAnd {
+                        it get TaskProgressODB::task get TaskODB::taskType eq weekly
+                        it get TaskProgressODB::progressTime greaterThanOrEqualTo fromWeek
+                        it get TaskProgressODB::progressTime lessThan toDate
+                    }
+                }
+                it.select(it.get(TaskProgressODB::task).get(TaskODB::id))
+                //TODO distincts
+
+            })
+
     }
 
     open fun getTaskProgress(tasks: List<TaskODB>, dayMidnight: LocalDate): List<TaskProgressODB> {
@@ -126,8 +218,10 @@ open class TaskDAO {
             it.get(TaskProgressODB::task) eqId taskId
             it.get(TaskProgressODB::progressTime) eq dayMidnight
         }
-        if(task.taskType == onetime) {
-            task.closeDate = dayMidnight
+        if (task.taskType == onetime) {
+            if (task.closeDate != null && done)
+                throw IllegalArgumentException("Onetime task is already marked as done")
+            task.closeDate = if (done) dayMidnight else null
             anyDaoNew.merge(task)
         }
 
@@ -213,20 +307,20 @@ open class TaskDAO {
         if (mergedTasks.isEmpty())
             return emptyList();
 
-        val challenge=mergedTasks.first().challenge;
-        var approvals= anyDaoNew.getAll(TaskApprovalODB::class) {
+        val challenge = mergedTasks.first().challenge;
+        var approvals = anyDaoNew.getAll(TaskApprovalODB::class) {
             it get TaskApprovalODB::task inIds mergedTasks.map { it.id }
             it get TaskApprovalODB::task get TaskODB::taskStatus notEq TaskStatus.accepted
             //it get TaskApprovalODB::taskStatus notEq TaskStatus.accepted
         }
 
-        val pendingApprovals= mutableListOf<TaskApprovalODB>();
+        val pendingApprovals = mutableListOf<TaskApprovalODB>();
         approvals.groupBy { it.task.id }.forEach {
-            val taskApprovals=it;
+            val taskApprovals = it;
 
             challenge.participants.forEach {
-                var participantid=it.user.id;
-                var approvalExists= taskApprovals.value.find {ta->ta.user.id==participantid } !=null;
+                var participantid = it.user.id;
+                var approvalExists = taskApprovals.value.find { ta -> ta.user.id == participantid } != null;
                 if (!approvalExists)
                     pendingApprovals.add(TaskApprovalODB(it.user, TaskODB(taskApprovals.key), TaskStatus.waiting_for_acceptance))
 
@@ -234,7 +328,7 @@ open class TaskDAO {
 
 
         }
-        return approvals+pendingApprovals;
+        return approvals + pendingApprovals;
     }
 
 }

@@ -51,6 +51,9 @@ data class TaskODB(@Id
     @Transient
     var done: Boolean = false
 
+    var monthDays: String? = null
+    var weekDays: String? = null
+
 
 
     enum class TaskDifficulty {

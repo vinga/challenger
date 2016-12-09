@@ -33,14 +33,16 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
 
 
     render() {
-        return <h5>
+        return <h2 style={{display: "flex",flexFlow: "row nowrap", justifyContent:"space-between"}}>
+
+            <div style={{display:"flex",flexFlow: "row nowrap"}}>
             <TaskTableUserIcon
                 userNo={this.props.no}
                 challengeStatus={this.props.challengeStatus}
             />
 
             <span style={{}}><span style={{lineHeight: '65px'}}>{this.props.user.label}</span>
-                {this.props.no != 0  && this.props.challengeStatus==ChallengeStatus.ACTIVE && (this.props.user.jwtToken != null ?
+                {this.props.no != 0 && this.props.challengeStatus == ChallengeStatus.ACTIVE && (this.props.user.jwtToken != null ?
 
                         <IconButton
                             onClick={() => {this.props.onSecondUserLogout(this.props.user.id)}}>
@@ -58,13 +60,12 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
                         </IconButton>
 
                 )}
-<div style={{display:"block", float:"right"}}>
-                {this.props.children}
-    </div>
 
-                </span>
 
-        </h5>;
+                </span></div>
+
+            {this.props.children}
+        </h2>;
     }
 }
 

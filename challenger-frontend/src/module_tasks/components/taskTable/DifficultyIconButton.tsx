@@ -4,7 +4,10 @@ import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "../../../views/Const
 import {TaskDTO} from "../../TaskDTO";
 import {globalPopoverReff} from "../../../views/common-components/GlobalPopover";
 import * as ReactDOM from "react-dom";
+import {Tooltip} from "../../../views/common-components/Tooltip";
 import ReactInstance = __React.ReactInstance;
+
+//import * as Tooltip from "@cypress/react-tooltip";
 
 
 interface Props {
@@ -16,6 +19,7 @@ interface Props {
 
 interface PropsFunc {
     onEditTask?: (task: TaskDTO)=>void;
+    onCloseTaskFunc?: (task: TaskDTO)=>void;
     onShowTaskEvents?: (task: TaskDTO, no: number)=>void;
 }
 
@@ -24,11 +28,19 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
     constructor(props) {
         super(props);
 
+
     }
+
 
     onEditTask = () => {
         if (this.props.onEditTask != null)
             this.props.onEditTask(this.props.task);
+
+    };
+
+    onCloseTask = () => {
+        if (this.props.onCloseTaskFunc != null)
+            this.props.onCloseTaskFunc(this.props.task);
 
     };
     onShowTaskEvents = () => {
@@ -36,11 +48,25 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
             this.props.onShowTaskEvents(this.props.task, this.props.no);
     }
 
-
+// <Tooltip title="Hello World"> </Tooltip>
     editPopup = () => {
+        var style = {lineHeight: '16px', margin: '5px', color: '#444', cursor: "pointer"};
         return <div>
-            <a onClick={()=>{this.onShowTaskEvents(); globalPopoverReff.globalPopover.closePopover(); }} style={{lineHeight:'16px', margin:'5px', color:'#444', cursor:"pointer"}} className="fa fa-comment"/>
-            <a onClick={()=>{this.onEditTask(); globalPopoverReff.globalPopover.closePopover(); }} style={{lineHeight:'16px', margin:'5px', color:'#444', cursor:"pointer"}} className="fa fa-info-circle"/>
+
+            <Tooltip tooltip="Filter events" delay="1s">
+                <a onClick={()=>{this.onShowTaskEvents(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className=" fa fa-comment"/>
+            </Tooltip>
+
+
+            <Tooltip tooltip="Show details" delay="1s">
+                <a onClick={()=>{this.onEditTask(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className="fa fa-info-circle"/>
+            </Tooltip>
+
+
+            {this.props.task.closeDate == null &&
+            <Tooltip tooltip="Close task" delay="1s">
+            <a onClick={()=>{this.onCloseTask(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className="fa fa-close"/>
+            </Tooltip>}
         </div>;
 
     }
@@ -53,7 +79,6 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
             globalPopoverReff.globalPopover.showPopover(content, ReactDOM.findDOMNode(this))
         }
     }
-
 
 
     render() {

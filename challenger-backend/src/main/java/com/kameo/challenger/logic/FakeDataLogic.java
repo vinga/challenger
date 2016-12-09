@@ -118,13 +118,15 @@ public class FakeDataLogic implements CommandLineRunner {
 
         TaskODB ac3 = new TaskODB();
         ac3.setUser(data.userJack);
+        ac3.setCreateDate(LocalDateTime.now().minusDays(10));
         ac3.setCreatedByUser(data.userKami);
         ac3.setChallenge(contract1);
-        ac3.setLabel("Ride a bike");
+        ac3.setLabel("Ride a bike on Sunday");
         ac3.setTaskStatus(TaskStatus.accepted);
         ac3.setDifficulty(1);
         ac3.setIcon("fa-bicycle");
         ac3.setTaskType(TaskType.weekly);
+        ac3.setWeekDays(",7,");
         em.persist(ac3);
         approveTaskForCreator(ac3);
 
@@ -149,6 +151,7 @@ public class FakeDataLogic implements CommandLineRunner {
 
 
         TaskODB ac5 = new TaskODB();
+        ac5.setCreateDate(LocalDateTime.now().minusDays(2));
         ac5.setUser(data.userKami);
         ac5.setCreatedByUser(data.userJack);
         ac5.setChallenge(contract1);

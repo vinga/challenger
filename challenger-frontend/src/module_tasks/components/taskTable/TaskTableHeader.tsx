@@ -1,9 +1,9 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../../redux/ReduxState";
 import FlatButton from "material-ui/FlatButton";
-import {TaskDTO, TaskStatus, TaskType, TaskUserDTO} from "../../TaskDTO";
+import {TaskUserDTO} from "../../TaskDTO";
 import colors from "../../../views/common-components/Colors";
-import {OPEN_EDIT_TASK, CREATE_AND_OPEN_EDIT_TASK} from "../../taskActionTypes";
+import {CREATE_AND_OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {TaskTableHeaderAccountPanel} from "../../../module_accounts/index";
 import {makeCalculateAllAndCheckedCount} from "../../taskSelectors";
 
@@ -31,11 +31,9 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
     }
 
 
-
-
     render() {
 
-        return (<div>
+        return (<div >
 
             <TaskTableHeaderAccountPanel
                 onOpenDialogForLoginSecondUser={this.props.onOpenDialogForLoginSecondUser}
@@ -46,17 +44,18 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
                 challengeStatus={this.props.user.challengeStatus}
             >{this.props.children}</TaskTableHeaderAccountPanel>
 
-            <div style={{clear: 'both'}}></div>
-            <span className="left" style={{margin: '3px'}}>Points: {this.props.checkedPoints}</span>
+            <div style={{display: "flex",flexFlow: "row nowrap", justifyContent:"space-between"}}>
+                <span className="left" style={{margin: '3px'}}>Points: {this.props.checkedPoints}</span>
 
-            <div className="right" style={{display: "inline-block"}}>
-                <FlatButton
-                    onClick={()=>this.props.onAddNewTaskFunc(this.props.user.id, this.props.user.id, this.props.challengeId)}
-                    label="Add task"
-                    labelPosition="before"
-                    primary={true}
-                    style={{color: colors.userColors[this.props.no]}}
-                />
+                <div className="right" style={{display: "inline-block"}}>
+                    <FlatButton
+                        onClick={()=>this.props.onAddNewTaskFunc(this.props.user.id, this.props.user.id, this.props.challengeId)}
+                        label="Add task"
+                        labelPosition="before"
+                        primary={true}
+                        style={{color: colors.userColors[this.props.no]}}
+                    />
+                </div>
             </div>
         </div>);
     }
@@ -65,14 +64,13 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
 }
 
 
-
 const mapStateToProps = () => {
     // component instance
-    var calculateAllAndCheckedCount=makeCalculateAllAndCheckedCount();
+    var calculateAllAndCheckedCount = makeCalculateAllAndCheckedCount();
 
 
-    return (state: ReduxState, ownProps: Props ): ReduxProps => {
-        var obj=calculateAllAndCheckedCount(state,ownProps.user.id);
+    return (state: ReduxState, ownProps: Props): ReduxProps => {
+        var obj = calculateAllAndCheckedCount(state, ownProps.user.id);
         return {
             allPoints: obj.allPoints,
             checkedPoints: obj.checkedPoints

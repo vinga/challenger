@@ -6,12 +6,15 @@ import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
 import DatePicker from "material-ui/DatePicker";
 import IconChooserButton from "./IconChooserButton.tsx";
-import {TouchTapEvent, IconButton} from "material-ui";
+import {TouchTapEvent, IconButton, Subheader} from "material-ui";
 import {TaskDTO, TaskType} from "../../TaskDTO";
 import {updateTask, deleteTask} from "../../taskActions";
 import {CLOSE_EDIT_TASK} from "../../taskActionTypes";
 import {DiffSimpleIcon, DiffMediumIcon, DiffHardIcon} from "../../../views/Constants";
 import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
+import {Row, Col} from "../../../views/common-components/Flexboxgrid";
+import {MonthdaysGroup} from "./MonthdaysGroup";
+import {WeekdaysGroup} from "./WeekdaysGroup";
 
 
 interface Props {
@@ -32,13 +35,9 @@ interface State {
     taskDeleteConfirmation: boolean
 }
 
-/**
- * A modal dialog can only be closed by selecting one of the actions.
- */
 class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
     constructor(props) {
         super(props);
-        //var task:TaskDTO = $.extend({}, this.props.task);
         this.state = {
             task: this.props.task,
             submitDisabled: false,
@@ -46,11 +45,11 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
         };
     }
 
+
     handleActionNameFieldChange = (event) => {
         this.state.task.label = event.target.value;
         this.setState(this.state);
     };
-
 
     handleSubmit = () => {
         this.props.onTaskSuccessfullyUpdatedFunc(this.state.task);
@@ -89,6 +88,15 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
     };
 
 
+    handleMonthDaysChanged = (days: string) => {
+        this.state.task.monthDays = days;
+        this.setState(this.state);
+    }
+    handleWeekDaysChanged = (days: string) => {
+        this.state.task.weekDays = days;
+        this.setState(this.state);
+    }
+
     render() {
         if (this.props.task == null)
             return <div/>;
@@ -112,29 +120,16 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
             />
         );
 
-        var datePicker = undefined;
-        if (this.state.task.taskType === TaskType.onetime) {
-            datePicker = <div style={{display: "block", float: "left"}}>
-                <DatePicker
-                    textFieldStyle={{width: '100px'}}
-                    hintText="Task due date"
-                    value={new Date(this.state.task.dueDate)}
-                    onChange={this.handleDueDateChange}
-                    floatingLabelText="Due date"
-                    container="inline"
-                /></div>;
-        }
-//width: "800px",
+
         return (
             <div>
                 <Dialog
                     actions={actions}
-
+                    contentStyle={{height: '600px'}}
                     modal={true}
                     open={true}
                     style={{height: "600px", overflow: "none", display: "block"}}
                 >
-
 
                     <div style={{display: "table", marginBottom: '0px',width:'100%'}}>
                         <div style={{display: "inline-block"}}>
@@ -150,7 +145,6 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                             defaultValue={this.state.task.label}
                             ref="actionName"
                             onChange={this.handleActionNameFieldChange}
-
                         />
                         {  this.props.task.id > 0 &&
                         <div style={{float: "right"}}>
@@ -163,60 +157,110 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         }
 
                     </div>
-                    <div style={{marginLeft: '10px',marginBottom: '20px',clear: "both"}}>Created by: {this.props.creatorUserLabel}</div>
+                    <div style={{marginLeft: '10px',marginBottom: '10px',clear: "both"}}>Created by: {this.props.creatorUserLabel}</div>
 
-                    <div style={{display: "block", float: "left", marginLeft: '20px', width: "200px"}}>
+                    <Row >
+                        <Col>
+                            <Subheader>Difficulty</Subheader>
+                            <RadioButtonGroup name="difficulty"
+                                              defaultSelected={"" + this.state.task.difficulty}>
 
-                        <RadioButtonGroup name="difficulty"
-                                          defaultSelected={"" + this.state.task.difficulty}>
+                                <RadioButton
+                                    value="0"
+                                    label="Easy"
+                                    checkedIcon={<DiffSimpleIcon/>}
+                                />
 
-                            <RadioButton
-                                value="0"
-                                label="Easy"
-                                checkedIcon={<DiffSimpleIcon/>}
+                                <RadioButton
+                                    value="1"
+                                    label="Medium"
+                                    checkedIcon={<DiffMediumIcon />}
+                                    style={{display: 'block', float: 'left'}}
+                                />
 
+                                <RadioButton
+                                    value="2"
+                                    label="Hard"
+                                    checkedIcon={<DiffHardIcon />}
+                                    style={{display: 'block', float: 'left'}}
+                                />
+                            </RadioButtonGroup>
+                        </Col>
+                        <Col>
+                            <Subheader>Frequency</Subheader>
+                            <RadioButtonGroup name="actiontype"
+                                              defaultSelected={this.state.task.taskType}
+                                              onChange={this.handleTaskTypeChange}>
+                                <RadioButton
+                                    value={TaskType.onetime}
+                                    label="Onetime"
+                                />
+                                <RadioButton
+                                    value={TaskType.daily}
+                                    label="Daily"
+                                />
+                                <RadioButton
+                                    value={TaskType.weekly}
+                                    label="Weekly"
+                                />
+                                <RadioButton
+                                    value={TaskType.monthly}
+                                    label="Monthly"
+                                />
+                            </RadioButtonGroup>
+
+                        </Col>
+                        {this.props.task.taskType == TaskType.onetime &&
+                        <Col>
+                            <Subheader>Visibility</Subheader>
+                            <DatePicker
+                                textFieldStyle={{width: '100px'}}
+                                hintText="Task start date"
+                                value={new Date(this.state.task.dueDate)}
+                                onChange={this.handleDueDateChange}
+                                floatingLabelText="Start date"
+                                container="inline"
                             />
 
-                            <RadioButton
-                                value="1"
-                                label="Medium"
-                                checkedIcon={<DiffMediumIcon />}
-                                style={{display: 'block', float: 'left'}}
+                            <DatePicker
+                                textFieldStyle={{width: '100px'}}
+                                hintText="Task due date"
+                                value={new Date(this.state.task.dueDate)}
+                                onChange={this.handleDueDateChange}
+                                floatingLabelText="Due date"
+                                container="inline"
                             />
+                        </Col>
+                        }
 
-                            <RadioButton
-                                value="2"
-                                label="Hard"
-                                checkedIcon={<DiffHardIcon />}
-                                style={{display: 'block', float: 'left'}}
+                        { this.props.task.taskType == TaskType.weekly &&
+                        <Col>
+                            <Subheader>Visibility</Subheader>
+                            <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged}/>
 
-                            />
-                        </RadioButtonGroup>
-                    </div>
-                    <div style={{display: "block", float: "left", width: "200px"}}>
-                        <RadioButtonGroup name="actiontype"
-                                          defaultSelected={this.state.task.taskType}
-                                          onChange={this.handleTaskTypeChange}>
-                            <RadioButton
-                                value={TaskType.onetime}
-                                label="Onetime"
-                            />
-                            <RadioButton
-                                value={TaskType.daily}
-                                label="Daily"
-                            />
-                            <RadioButton
-                                value={TaskType.weekly}
-                                label="Weekly"
-                            />
-                            <RadioButton
-                                value={TaskType.monthly}
-                                label="Monthly"
-                            />
-                        </RadioButtonGroup>
-                    </div>
+                        </Col> }
 
-                    {datePicker}
+                        { this.props.task.taskType == TaskType.monthly &&
+                        <Col>
+                            <Subheader>Visibility</Subheader>
+                            <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged}/>
+                        </Col> }
+
+                        { this.props.task.taskType == TaskType.daily &&
+                        <Col col="6">
+                            <Subheader>Visibility</Subheader>
+                            <Row>
+                                <Col col="4">
+                                    <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged}/>
+                                </Col>
+                                <Col col="8" style={{display:"flex", flexDirection: "row", flexWrap:"wrap"}}>
+                                    <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged}/>
+                                </Col>
+                            </Row>
+                        </Col> }
+                    </Row>
+
+
                     { this.state.taskDeleteConfirmation &&
                     <YesNoConfirmationDialog
                         closeYes={()=>{  this.props.onTaskDeleteFunc(this.state.task);  }}
@@ -230,10 +274,9 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
         );
     }
 
+
 }
 const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
-
-
     return {
         creatorUserLabel: state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels.filter(u=>u.id == state.tasksState.editedTask.createdByUserId).pop().label
     }

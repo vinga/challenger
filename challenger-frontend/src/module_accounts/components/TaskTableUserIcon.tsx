@@ -22,7 +22,7 @@ export default class TaskTableUserIcon extends React.Component<{userNo:number, c
         else if(this.props.challengeStatus == ChallengeStatus.REFUSED)
             userIconName = "fa-minus-square"
         var userIcon = (
-            <div className="left" style={{ overflow: 'hidden', display: 'inline-block'}}>
+            <div  style={{ overflow: 'hidden'}}>
 
                 <span className="fa-stack fa-lg" style={{marginRight: '10px'}}>
                             <i className={className}></i>

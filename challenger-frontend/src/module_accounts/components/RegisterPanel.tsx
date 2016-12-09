@@ -58,8 +58,8 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
 
                         <div className="row valign" style={{height: '100px'}}>
                             <div className="col s3 offset-s4">
-                                <h5>Registration finished.</h5>
-                                <h5>Please confirm your email address</h5>
+                                <h2>Registration finished.</h2>
+                                <h2>Please confirm your email address</h2>
                             </div>
                         </div>
                     </div>
@@ -75,7 +75,6 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
         //var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200) + "px";
         return (
             <div id="main" className="container ">
-                <div className="section ">
 
                     {this.props.registerFailed &&
                     <Row horizontal="center" style={{height: '120px', paddingTop:'50px'}}>
@@ -91,7 +90,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                     <Row horizontal="center" style={{height: '120px', paddingTop:'50px'}}>
                         <Col col="8-5-3">
                             <RowCol horizontal="start">
-                                <h5>Register</h5>
+                                <h2>Register</h2>
                             </RowCol>
                         </Col>
                     </Row>
@@ -156,7 +155,6 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                     </Row>
 
 
-                </div>
             </div>);
     }
 }

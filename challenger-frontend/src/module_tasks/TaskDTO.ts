@@ -5,6 +5,7 @@ export interface TaskDTO {
     challengeId: number,
     label: string,
     dueDate?: number,
+    closeDate?: number,
     taskType: string,
     icon: string,
     difficulty: number,
@@ -15,6 +16,9 @@ export interface TaskDTO {
     deleted?: boolean,
     taskApproval?: TaskApprovalDTO;
     taskApprovals?: TaskApprovalDTO[];
+    monthDays?: string,
+    weekDays?: string,
+
 }
 
 

@@ -5,10 +5,7 @@ import {loggedUserSelector, SecondUserAuthorizePopover} from "../module_accounts
 import {ChallengeParticipantDTO, EditChallengeDialog, selectedChallengeIdSelector, challengeParticipantsSelector} from "../module_challenges/index";
 import {EventGroupPanel} from "../module_events/index";
 import {TaskDTO, EditTaskDialog} from "../module_tasks/index";
-
-
-
-
+import {Col, Row} from "./common-components/Flexboxgrid";
 
 
 interface ReduxProps {
@@ -34,20 +31,19 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         var rows = [];
         if (this.props.challengeId != null) {
-            let n = 0;
-            var comps = this.props.challengeAccounts.map(u=>
-                <div className="col s12 m6">
+            var comps = this.props.challengeAccounts.map((u, iter)=>
+                <Col col="12-5">
                     <UserSlot user={u}
                               challengeId={this.props.challengeId}
-                              ordinal={n++}
+                              ordinal={iter}
                               showAuthorizeFuncIfNeeded={this.showAuthorizeFuncIfNeeded}
                     />
-                </div>
+                </Col>
             );
 
             // fit exactly two tables in one row
             for (var i = 0; i < comps.length; i += 2) {
-                rows.push(<div className="row" key={i}>{comps[i]}{i + 1 < comps.length && comps[i + 1]}</div>)
+                rows.push(<Row horizontal="center" key={i}>{comps[i]}{i + 1 < comps.length && comps[i + 1]}</Row>)
             }
         }
 
@@ -55,11 +51,9 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
 
+                Taski powinny znikac czasowo po zrobieniu
+                <div>{rows}</div>
 
-                <div className="section">
-                    <div>{rows}</div>
-
-                </div>
 
                 {
                     this.props.challengeId != null &&

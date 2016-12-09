@@ -1,9 +1,16 @@
 import {TaskDTOListForDay, createTaskDTOListKey, TaskDTO, TaskDTOState, TaskType, TaskStatus} from "./TaskDTO";
 import {
-    LOAD_TASKS_RESPONSE, MARK_TASK_DONE_OPTIMISTIC, MODIFY_TASK_OPTIMISTIC, DELETE_TASK_OPTIMISTIC, MODIFY_TASK_REQUEST, TASK_PROGRESS_REQUEST, OPEN_EDIT_TASK, CLOSE_EDIT_TASK,
+    LOAD_TASKS_RESPONSE,
+    MARK_TASK_DONE_OPTIMISTIC,
+    MODIFY_TASK_OPTIMISTIC,
+    DELETE_TASK_OPTIMISTIC,
+    MODIFY_TASK_REQUEST,
+    TASK_PROGRESS_REQUEST,
+    OPEN_EDIT_TASK,
+    CLOSE_EDIT_TASK,
     CREATE_AND_OPEN_EDIT_TASK
 } from "./taskActionTypes";
-import {isAction, Action} from "../redux/ReduxTask";
+import {isAction} from "../redux/ReduxTask";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
 
@@ -36,8 +43,7 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
             tasks: tasks(state.tasks, taskDTO),
             editedTask: taskDTO
         });
-    }
-    else if (isAction(action, OPEN_EDIT_TASK)) {
+    } else if (isAction(action, OPEN_EDIT_TASK)) {
         var taskCopy: TaskDTO = Object.assign({}, action as TaskDTO);
         return Object.assign({}, state, {
             tasks: tasks(state.tasks, action),
@@ -79,14 +85,19 @@ function tasks(state: Map<string,TaskDTOListForDay>, action) {
         newState[key] = Object.assign({}, action);
 
 
-
         return newState;
     } else if (isAction(action, MARK_TASK_DONE_OPTIMISTIC)) {
         var key: string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));
         var newState: Map<string,TaskDTOListForDay> = Object.assign({}, state);
         var task: TaskDTO = newState[key].taskList.find((t: TaskDTO)=>t.id == action.taskProgress.taskId);
+
         task.done = action.taskProgress.done;
-        markTaskDayInvalid(newState[key], action.taskProgress.taskId);
+
+        if (task.taskType != TaskType.daily) {
+            // we could also hide all tasks
+            markTaskListInvalidAll(newState);
+        } else
+            markTaskDayInvalid(newState[key], action.taskProgress.taskId);
         return newState;
     } else if (isAction(action, MODIFY_TASK_OPTIMISTIC)) {
 
@@ -109,8 +120,10 @@ function tasks(state: Map<string,TaskDTOListForDay>, action) {
         var newState: Map<string,TaskDTOListForDay> = Object.assign({}, state);
 
         $.map(newState, (taskListForDayDTO: TaskDTOListForDay)=> {
-            if (taskListForDayDTO.webState == WebState.FETCHING || taskListForDayDTO.webState == WebState.NEED_REFETCH)
+            if (taskListForDayDTO.webState == WebState.FETCHING /*|| taskListForDayDTO.webState == WebState.NEED_REFETCH */) {
+                console.log("DISPLAY REQUEST IN PROGRESS: FETCHING => FETCHING VISIBLE " + taskListForDayDTO.day);
                 taskListForDayDTO.webState = WebState.FETCHING_VISIBLE;
+            }
         });
         return newState;
     } else if (isAction(action, MODIFY_TASK_REQUEST)) {
@@ -124,11 +137,9 @@ function tasks(state: Map<string,TaskDTOListForDay>, action) {
         var key: string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));
 
         var newState: Map<string,TaskDTOListForDay> = Object.assign({}, state);
-        $.map(newState, (taskListForDayDTO: TaskDTOListForDay)=> {
-            var task: TaskDTO = newState[key].taskList.filter((t: TaskDTO)=>t.id == action.taskProgress.taskId).pop();
-            if (taskListForDayDTO.webState == WebState.NEED_REFETCH)
-                taskListForDayDTO.webState = WebState.FETCHING;
-        });
+        var taskList: TaskDTOListForDay = newState[key];
+        if (taskList.webState == WebState.NEED_REFETCH)
+            taskList.webState = WebState.FETCHING;
         return newState;
     }
     else return state;
@@ -143,5 +154,10 @@ function markTaskDayInvalid(taskListForDayDTO: TaskDTOListForDay, taskId: number
 function markTaskListInvalid(state: Map<string,TaskDTOListForDay>, taskId: number) {
     $.map(state, (taskListForDayDTO: TaskDTOListForDay)=> {
         markTaskDayInvalid(taskListForDayDTO, taskId);
+    })
+}
+function markTaskListInvalidAll(state: Map<string,TaskDTOListForDay>) {
+    $.map(state, (taskListForDayDTO: TaskDTOListForDay)=> {
+        taskListForDayDTO.webState = WebState.NEED_REFETCH;
     })
 }

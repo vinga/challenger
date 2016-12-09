@@ -35,6 +35,7 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
                 }]
             },
             options: {
+                maintainAspectRatio: false,
                 elements: { point: { radius: 0 } },
                 legend: {
                     display: false
@@ -68,7 +69,7 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
     render() {
 
 
-        return <div>
+        return <div style={{width:"100%",display:"block", float:"right", overflow:"hidden"}} >
             <canvas id={this.getChartIdString()} height="70px" ></canvas>
         </div>;
 
