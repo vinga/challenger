@@ -99,9 +99,9 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun markEventAsRead(callerId: Long, challengeId: Long, eventId: Long, readDate: Date) {
         anyDaoNew.update(EventReadODB::class) {
             it.set(EventReadODB::read, readDate)
-            it.get(EventReadODB::event) eqId eventId
-            it get (EventReadODB::user) eqId callerId
-            it get (EventReadODB::challenge) eqId challengeId
+            it get EventReadODB::event eqId eventId
+            it get EventReadODB::user eqId callerId
+            it get EventReadODB::challenge eqId challengeId
             it.get(EventReadODB::read).isNull()
         }
     }
@@ -174,6 +174,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 val notReadSize = it.size
                 if (it.size < desiredMaxEvents) {
                     it + anyDaoNew.getAll(EventReadODB::class) {
+                        val it=this;
                         it get EventReadODB::user eqId callerId
                         it get EventReadODB::challenge eqId challengeId
                         it get +EventReadODB::id lt firstNotRead.id

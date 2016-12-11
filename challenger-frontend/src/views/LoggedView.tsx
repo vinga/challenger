@@ -51,7 +51,6 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
 
-                Taski powinny znikac czasowo po zrobieniu
                 <div>{rows}</div>
 
 

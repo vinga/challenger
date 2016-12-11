@@ -33,7 +33,7 @@ open class ReportDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val permissionDAO
             it get TaskProgressODB::task get TaskODB::taskStatus eq TaskStatus.accepted
             it get TaskProgressODB::done eq true
             if (!countFromStart)
-                it.get(+TaskProgressODB::progressTime) ge dayFromMidnight
+                it get +TaskProgressODB::progressTime ge dayFromMidnight
             it
         }
 

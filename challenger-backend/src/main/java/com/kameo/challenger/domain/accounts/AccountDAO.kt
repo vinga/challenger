@@ -87,14 +87,14 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
 
         if (challengeParticipant == null) {
 
-            val existingUser = anyDaoNew.getFirst(UserODB::class, {
-                it.get(UserODB::login) eq login
-            })
+            val existingUser = anyDaoNew.getFirst(UserODB::class) {
+                it get UserODB::login eq login
+            }
             if (existingUser != null)
                 return InternalRegisterResponseDTO("Login $login is already registered.")
-            val existingEmail = anyDaoNew.getFirst(UserODB::class, {
-                it.get(UserODB::email) eq email
-            })
+            val existingEmail = anyDaoNew.getFirst(UserODB::class) {
+                it get UserODB::email eq email
+            }
             if (existingEmail != null)
                 return InternalRegisterResponseDTO("Email $email is already registered.")
 
@@ -119,7 +119,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
 
     open fun getUsersForLabels(labels: List<String>): List<UserODB> {
         return anyDaoNew.getAll(UserODB::class) {
-            it.newOr {
+            it newOr {
                 it.get(UserODB::email) isIn  labels
                 it.get(UserODB::login) isIn  labels
             }
@@ -127,10 +127,10 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     }
 
     open fun sendResetMyPasswordLink(email: String) {
-        val u = anyDaoNew.getFirst(UserODB::class, {
+        val u = anyDaoNew.getFirst(UserODB::class) {
             it get UserODB::email eq email
             it get UserODB::userStatus eq UserStatus.ACTIVE
-        })
+        }
         if (u != null)
             confirmationLinkLogic.createAndSendPasswordResetLink(u)
     }
@@ -140,13 +140,13 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     }
 
     open fun getUserIdByLogin(login: String) :Long {
-        return anyDaoNew.getOne(UserODB::class, {
+        return anyDaoNew.getOne(UserODB::class) {
             it get UserODB::login eq login
-        }).id
+        }.id
     }
 
     open fun  checkIfLoginExists(login: String): Boolean {
-        return anyDaoNew.exists(UserODB::class){
+        return anyDaoNew.exists(UserODB::class) {
             it get UserODB::login eq login
         }
     }

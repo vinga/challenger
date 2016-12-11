@@ -37,7 +37,7 @@ constructor(
         protected set
     var defaultSelection: ISugarQuerySelect<Any>? = null
         protected set
-
+    private var groupByList: MutableList<IExpression<*, *>>? = null;
 
     fun addOrder(o: Order) {
         orders.add(o)
@@ -45,6 +45,62 @@ constructor(
 
     fun add(function: () -> Predicate?) {
         currentArray.add(function)
+    }
+
+    private fun calculateOr(list: MutableList<() -> Predicate?>): Predicate? {
+        val predicates = toPredicates(list)
+        return if (predicates.isNotEmpty())
+            if (predicates.size == 1)
+                predicates[0]
+            else
+                cb.or(*predicates.toTypedArray())
+        else
+            null
+    }
+
+    private fun calculateAnd(list: MutableList<() -> Predicate?>): Predicate? {
+        val predicates = toPredicates(list)
+        return if (predicates.isNotEmpty())
+            if (predicates.size == 1)
+                predicates[0]
+            else
+                cb.and(*predicates.toTypedArray())
+        else
+            null
+    }
+
+    private fun toPredicates(list: MutableList<() -> Predicate?>): MutableList<Predicate> {
+        val predicates = list
+                .asSequence()
+                .mapNotNull { it.invoke() }
+                .toMutableList()
+        return predicates
+    }
+
+    fun mergeLevelUpAsOr() {
+        val temp = currentArray
+        unstackArray();
+        val temp2 = currentArray;
+
+        var newCurr = mutableListOf<() -> Predicate?>()
+        newCurr.add({ calculateAnd(temp2) })
+        newCurr.add({ calculateAnd(temp) })
+
+        val newCurrentArray = mutableListOf({ calculateOr(newCurr) })
+        currentArray = newCurrentArray
+    }
+
+    fun mergeLevelUpAsAnd() {
+        val temp = currentArray
+        unstackArray();
+
+        var newCurr = mutableListOf<() -> Predicate?>()
+        newCurr.addAll(currentArray)
+        newCurr.addAll(temp)
+
+
+        val newCurrentArray = mutableListOf({ calculateAnd(newCurr) })
+        currentArray = newCurrentArray
     }
 
     fun stackNewArray(newArr: MutableList<() -> Predicate?>) {
@@ -69,6 +125,13 @@ constructor(
         }
     }
 
+    fun groupBy(exprs: Array<out IExpression<*, *>>) {
+        groupByList = exprs.toMutableList()
+    }
+
+    protected fun getGroupBy(): List<IExpression<*, *>> = groupByList ?: emptyList()
+
+
 }
 
 open class ExpressionWrap<E, G> constructor(
@@ -78,9 +141,15 @@ open class ExpressionWrap<E, G> constructor(
         ISelectExpressionProvider <E>,
         ISugarQuerySelect<G>, //by pathSelect,
         IExpression<E, G> {
-
+    open val it: ExpressionWrap<E, G> by lazy {
+        this
+    }
     override fun getSelection(): Selection<*> {
         return pc.defaultSelection!!.getSelection()
+    }
+
+    override fun isDistinct(): Boolean {
+        return pc.defaultSelection!!.isDistinct()
     }
 
     override fun isSingle(): Boolean {
@@ -108,6 +177,15 @@ open class ExpressionWrap<E, G> constructor(
         return value
     }
 
+    fun groupBy(vararg exprs: IExpression<*, *>): ExpressionWrap<E, G> {
+        pc.groupBy(exprs);
+        return this
+    }
+
+    infix fun groupBy(expr: IExpression<*, *>): ExpressionWrap<E, G> {
+        pc.groupBy(arrayOf(expr) as Array<out IExpression<Any, Any>>)
+        return this
+    }
 
 }
 
@@ -146,9 +224,11 @@ class StringExpressionWrap<G> constructor(
 
 class JoinWrap<E, G> constructor(val pw: PathContext<G>,
                                  override val root: Join<Any, E>)
-: PathWrap<E, G>(pw, root) {
+    : PathWrap<E, G>(pw, root) {
 
-
+    override val it: JoinWrap<E, G> by lazy {
+        this
+    }
     @Suppress("UNCHECKED_CAST")
     fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F, G> {
         val join = root.join<E, F>(sa.name) as Join<Any, F>
@@ -165,11 +245,10 @@ class JoinWrap<E, G> constructor(val pw: PathContext<G>,
 }
 
 
-
 class QueryPathContext<G>(clz: Class<*>,
                           em: EntityManager,
                           override val criteria: CriteriaQuery<G> = em.criteriaBuilder.createQuery(clz) as CriteriaQuery<G>)
-: PathContext<G>(em, criteria) {
+    : PathContext<G>(em, criteria) {
 
     var selector: ISugarQuerySelect<*>? = null // set after execution
 
@@ -184,7 +263,13 @@ class QueryPathContext<G>(clz: Class<*>,
     fun <RESULT, E> invokeQuery(query: (RootWrap<E, E>) -> ISugarQuerySelect<RESULT>): TypedQuery<RESULT> {
         selector = query.invoke(rootWrap as RootWrap<E, E>)
         val sell = selector!!.getSelection()
-        criteria.select(sell as Selection<out G>)
+        val ss = criteria.select(sell as Selection<out G>).distinct(selector!!.isDistinct())
+
+        val groupBy = getGroupBy();
+        if (groupBy.isNotEmpty()) {
+            criteria.groupBy(groupBy.map { it.getExpression() })
+        }
+
         return calculateWhere(em) as TypedQuery<RESULT>
     }
 
@@ -233,7 +318,7 @@ class QueryPathContext<G>(clz: Class<*>,
 class UpdatePathContext<G>(clz: Class<*>,
                            em: EntityManager,
                            override val criteria: CriteriaUpdate<G> = em.criteriaBuilder.createCriteriaUpdate(clz) as CriteriaUpdate<G>)
-: PathContext<G>(em, criteria) {
+    : PathContext<G>(em, criteria) {
 
     init {
         root = criteria.from(clz as Class<G>) as Root<Any>
@@ -255,7 +340,7 @@ class UpdatePathContext<G>(clz: Class<*>,
 class DeletePathContext<G>(clz: Class<*>,
                            em: EntityManager,
                            override val criteria: CriteriaDelete<G> = em.criteriaBuilder.createCriteriaDelete(clz) as CriteriaDelete<G>)
-: PathContext<G>(em, criteria) {
+    : PathContext<G>(em, criteria) {
 
     init {
         root = (criteria as CriteriaDelete<Any>).from(clz as Class<Any>)
@@ -279,7 +364,9 @@ open class RootWrap<E, G> constructor(
         val pw: com.kameo.challenger.utils.odb.newapi.PathContext<G>,
         root: Root<E>) : PathWrap<E, G>(pw, root) {
 
-
+    override val it: RootWrap<E, G> by lazy {
+        this
+    }
     @Suppress("UNCHECKED_CAST")
     fun <F> join(sa: KMutableProperty1<E, F>): JoinWrap<F, G> {
         val join = (root as From<Any, E>).join<E, F>(sa.name) as Join<Any, F>
@@ -330,6 +417,17 @@ open class PathWrap<E, G> constructor(
         open val root: Path<E>
 ) :
         ExpressionWrap <E, G>(pc, root) {
+    override val it: PathWrap<E, G> by lazy {
+        this
+    }
+
+    infix fun groupBy(expr: KMutableProperty1<E, *>) {
+        return pc.groupBy(arrayOf(ExpressionWrap<E, G>(pc, root.get(expr.name))));
+    }
+
+    fun groupBy(vararg exprs: KMutableProperty1<E, *>) {
+        return pc.groupBy(exprs.map { ExpressionWrap<E, G>(pc, root.get(it.name)) }.toTypedArray());
+    }
 
     override fun getDirectSelection(): ISugarQuerySelect<E> {
         return SelectWrap(root)
@@ -354,14 +452,17 @@ open class PathWrap<E, G> constructor(
         return pw.getDirectSelection()
     }
 
+    infix fun <F> selectDistinct(pw: ExpressionWrap<F, G>): ISugarQuerySelect<F> {
+        return SelectWrap<F>(pw.getDirectSelection().getSelection() as Selection<F>, true)
+    }
 
-    fun <F, G> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>): PathPairSelect<F, G> {
-        return PathPairSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), pc.cb)
+    fun <F, G> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>, distinct: Boolean = false): PathPairSelect<F, G> {
+        return PathPairSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), distinct, pc.cb)
     }
 
 
-    fun <F, G, H> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>, pw3: ISelectExpressionProvider<H>): PathTripleSelect<F, G, H> {
-        return PathTripleSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), pw3.getDirectSelection(), pc.cb)
+    fun <F, G, H> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>, pw3: ISelectExpressionProvider<H>, distinct: Boolean = false): PathTripleSelect<F, G, H> {
+        return PathTripleSelect(pw1.getDirectSelection(), pw2.getDirectSelection(), pw3.getDirectSelection(), distinct, pc.cb)
     }
 
     infix fun eqId(id: Long): PathWrap<E, G> {
@@ -374,7 +475,11 @@ open class PathWrap<E, G> constructor(
         pc.add({ pc.cb.isNull(root) })
         return this
     }
-
+    @JvmName("isNullInfix")
+    infix fun isNull(p: ()->Unit ): PathWrap<E, G> {
+        pc.add({ pc.cb.isNull(root) })
+        return this
+    }
 
     infix fun inIds(ids: Collection<Long>): PathWrap<E, G> {
         pc.add({ root.get<Path<Long>>(AnyDAO.id_column).`in`(ids) })
@@ -419,8 +524,12 @@ open class PathWrap<E, G> constructor(
         return pw
     }
 
+    infix fun ors(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> =
+        newOr(orClause);
+    infix fun ands(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> =
+            newAnd(orClause);
 
-    fun newOr(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
+    infix fun newOr(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         val list = mutableListOf<() -> Predicate?>()
         val pw = ClousureWrap(pc, root)
         pc.add({ calculateOr(list) })
@@ -430,7 +539,26 @@ open class PathWrap<E, G> constructor(
         return this
     }
 
-    fun newAnd(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
+
+    infix fun or(orClause: PathWrap<E, G>.() -> Unit): PathWrap<E, G> {
+        val list = mutableListOf<() -> Predicate?>()
+        val pw = ClousureWrap(pc, root)
+        pc.stackNewArray(list)
+        orClause.invoke(pw)
+        pc.mergeLevelUpAsOr()
+        return this
+    }
+
+    infix fun and(orClause: PathWrap<E, G>.() -> Unit): PathWrap<E, G> {
+        val list = mutableListOf<() -> Predicate?>()
+        val pw = ClousureWrap(pc, root)
+        pc.stackNewArray(list)
+        orClause.invoke(pw)
+        pc.mergeLevelUpAsAnd()
+        return this
+    }
+
+    infix fun newAnd(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         val list = mutableListOf<() -> Predicate?>()
         val pw = ClousureWrap(pc, root)
         pc.add({ calculateAnd(list) })
@@ -640,16 +768,13 @@ open class PathWrap<E, G> constructor(
     }
 
 
-    fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F, G> {
-        return PathWrap<F, G>(pc, root.get(sa))
-    }
+    infix fun <F> get(sa: SingularAttribute<E, F>): PathWrap<F, G> = PathWrap<F, G>(pc, root.get(sa))
 
-    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F, G> {
-        return PathWrap(pc, root.get(sa.name))
-    }
+    infix fun <F> get(sa: KMutableProperty1<E, F>): PathWrap<F, G> = PathWrap(pc, root.get(sa.name))
+
 
     fun <F> get(sa: KMutableProperty1<E, List<F>>): UseGetListOnJoinInstead {
-        sa.name
+
         //val join = (root as Join<Any, E>).join<E, F>(sa.name) as Join<Any, F>
         return UseGetListOnJoinInstead()
     }
@@ -669,20 +794,24 @@ open class PathWrap<E, G> constructor(
     infix fun get(sa: KMutableProperty1<E, LocalDateTime>): LocalDateTimePathWrap<G> {
         return LocalDateTimePathWrap(pc, root.get(sa.name))
     }
+
     @JvmName("getAsLocalDate")
     infix fun get(sa: KMutableProperty1<E, LocalDate>): LocalDatePathWrap<G> {
         return LocalDatePathWrap(pc, root.get(sa.name))
     }
 
+    //operator infix fun minus(sa: KMutableProperty1<E, LocalDate>): LocalDatePathWrap<G> = get(sa)
 
 
 }
+
 class LocalDateTimePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>,
-                                               root: Path<LocalDateTime>) : PathWrap<LocalDateTime, G>(pc, root) {
+                               root: Path<LocalDateTime>) : PathWrap<LocalDateTime, G>(pc, root) {
     infix fun before(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.lessThan(root as Expression<LocalDateTime>, f) })
         return this
     }
+
     infix fun beforeOrEqual(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDateTime>, f) })
         return this
@@ -692,29 +821,35 @@ class LocalDateTimePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathCon
         pc.add({ cb.greaterThan(root as Expression<LocalDateTime>, f) })
         return this
     }
+
     infix fun afterOrEqual(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDateTime>, f) })
         return this
     }
+
     infix fun lessThan(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.lessThan(root as Expression<LocalDateTime>, f) })
         return this
     }
+
     infix fun greaterThan(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.greaterThan(root as Expression<LocalDateTime>, f) })
         return this
     }
+
     infix fun lessThanOrEqualTo(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDateTime>, f) })
         return this
     }
+
     infix fun greaterThanOrEqualTo(f: LocalDateTime): PathWrap<LocalDateTime, G> {
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDateTime>, f) })
         return this
     }
 }
+
 class LocalDatePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>,
-                               root: Path<LocalDate>) : PathWrap<LocalDate, G>(pc, root) {
+                           root: Path<LocalDate>) : PathWrap<LocalDate, G>(pc, root) {
     infix fun before(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.lessThan(root as Expression<LocalDate>, f) })
         return this
@@ -724,36 +859,45 @@ class LocalDatePathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext
         pc.add({ cb.greaterThan(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun lessThan(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.lessThan(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun greaterThan(f: LocalDate): PathWrap<LocalDate, G> {
+
         pc.add({ cb.greaterThan(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun lessThanOrEqualTo(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun beforeOrEqual(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.lessThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun afterOrEqual(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun greaterThanOrEqualTo(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
     }
+
     infix fun ge(f: LocalDate): PathWrap<LocalDate, G> {
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<LocalDate>, f) })
         return this
     }
 
 }
+
 class ComparablePathWrap<E : Comparable<E>, G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>,
                                                root: Path<E>) : PathWrap<E, G>(pc, root) {
     infix fun before(f: E): PathWrap<E, G> {
@@ -770,14 +914,17 @@ class ComparablePathWrap<E : Comparable<E>, G>(pc: com.kameo.challenger.utils.od
         pc.add({ cb.greaterThanOrEqualTo(root as Expression<E>, f) })
         return this
     }
+
     infix fun gt(f: E): PathWrap<E, G> {
         pc.add({ cb.greaterThan(root as Expression<E>, f) })
         return this
     }
+
     infix fun lt(f: E): PathWrap<E, G> {
         pc.add({ cb.lessThan(root as Expression<E>, f) })
         return this
     }
+
     infix fun le(f: E): PathWrap<E, G> {
         pc.add({ cb.lessThanOrEqualTo(root as Expression<E>, f) })
         return this
@@ -800,7 +947,7 @@ class StringPathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>
     infix fun isNullOrContains(f: Any): PathWrap<String, G> {
         newOr {
             isNull()
-            like("%"+f.toString()+"%")
+            like("%" + f.toString() + "%")
         }
         return this
     }
@@ -813,7 +960,6 @@ class StringPathWrap<G>(pc: com.kameo.challenger.utils.odb.newapi.PathContext<G>
 
 
 }
-
 
 operator fun <T, R> KProperty1<T, R?>.unaryPlus(): KMutableProperty1<T, R> {
     val foo = this
@@ -860,19 +1006,24 @@ operator fun <T, R> KProperty1<T, R?>.unaryPlus(): KMutableProperty1<T, R> {
 
 }
 
-interface ISugarQuerySelect<E>  {
+interface ISugarQuerySelect<E> {
     fun getSelection(): Selection<*>
     fun isSingle(): Boolean
+    fun isDistinct(): Boolean
 }
-class SelectWrap<E> constructor (  val select: Selection<E>): ISugarQuerySelect<E> {
+
+class SelectWrap<E> constructor(val select: Selection<E>, val distinct: Boolean = false) : ISugarQuerySelect<E> {
     override fun getSelection(): Selection<E> {
         return select
     }
 
     override fun isSingle(): Boolean {
-        return true
+        return distinct
     }
 
+    override fun isDistinct(): Boolean {
+        return false
+    }
 }
 
 interface ISelectExpressionProvider<E> {

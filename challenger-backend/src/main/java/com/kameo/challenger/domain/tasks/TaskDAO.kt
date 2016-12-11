@@ -69,14 +69,13 @@ open class TaskDAO {
         }
     }
 
-    private fun isAllSelected(it: String, minDayNoIWeek: Int, maxDayNoIWeek: Int): Boolean {
-        var allSelected = it.split(",").mapNotNull {
-            if (it.length > 0)
-                it.toInt()
-            else null
-        }.containsAll(IntRange(minDayNoIWeek, maxDayNoIWeek).toList());
-        return allSelected
-    }
+    private fun isAllSelected(it: String, min: Int, max: Int): Boolean
+            = it
+            .split(",")
+            .filter { it.length > 0 }
+            .map(String::toInt)
+            .containsAll((min .. max).toList())
+
 
     open fun getTasks(callerId: Long, challengeId: Long, dayMidnight: LocalDate): List<TaskODB> {
 
@@ -91,39 +90,36 @@ open class TaskDAO {
         val tasks = anyDaoNew.getAll(TaskODB::class) {
             it get TaskODB::challenge eqId challengeId
 
-
             it get TaskODB::createDate before dayMidnight.plusDays(1).atStartOfDay()
-            it.newOr {
-                it.get(+TaskODB::closeDate).isNull()
+            ors {
+                it get TaskODB::closeDate isNull {}
                 it get +TaskODB::closeDate afterOrEqual dayMidnight
             }
 
             // limit visibility for custom dates
-            it.newOr {
-                it.newAnd {
+            and {
+                or {
                     it get TaskODB::taskType eq TaskType.onetime
                     // for onetimes only if 'not done' OR 'is done exactly at dayMidnight'
-                    it get (+TaskODB::dueDate) after dayMidnight.atStartOfDay()
-                    it.newOr {
-                        it.get(+TaskODB::closeDate).isNull()
-                        it get +TaskODB::closeDate eq dayMidnight
+                    it get +TaskODB::dueDate after dayMidnight.atStartOfDay()
+                    ors {
+                        it get TaskODB::closeDate isNull {}
+                        it get TaskODB::closeDate eq dayMidnight
                     }
                 }
-                it.newAnd {
+                or {
                     it get TaskODB::taskType eq TaskType.monthly
                     it get +TaskODB::monthDays isNullOrContains ",${dayMidnight.dayOfMonth},"
                 }
-                it.newAnd {
+                or {
                     it get TaskODB::taskType eq TaskType.weekly
                     it get +TaskODB::weekDays isNullOrContains ",${dayMidnight.dayOfWeek.value},"
                 }
-                it.newAnd {
+                or {
                     it get TaskODB::taskType eq TaskType.daily
                     it get +TaskODB::monthDays isNullOrContains ",${dayMidnight.dayOfMonth},"
                     it get +TaskODB::weekDays isNullOrContains ",${dayMidnight.dayOfWeek.value},"
                 }
-
-
             }
         }
 
@@ -136,16 +132,10 @@ open class TaskDAO {
         }
 
         getTaskProgress(tasks, dayMidnight).forEach {
-            tp ->
-            tasks
-                    .filter { it.id == tp.task.id }
-                    .forEach { it.done = tp.done }
+            it.task.done = it.done
         }
 
-
-        val startOfMonth = dayMidnight.minusDays(dayMidnight.atStartOfDay().dayOfMonth.toLong())
-        val startOfWeek = dayMidnight.minusDays(dayMidnight.atStartOfDay().dayOfWeek.value.toLong())
-        val tasksIdDoneInPeriod = getTaskProgressDoneInPeriod(tasks, startOfMonth, startOfWeek, dayMidnight)
+        val tasksIdDoneInPeriod = getTaskProgressDoneInPeriod(tasks, dayMidnight)
         return tasks.filter {
             it.id !in tasksIdDoneInPeriod
         }
@@ -162,47 +152,44 @@ open class TaskDAO {
         return anyDaoNew.remove(task)
     }
 
-    open fun getTaskProgressDoneInPeriod(tasks: List<TaskODB>, fromMonth: LocalDate, fromWeek: LocalDate, toDate: LocalDate): List<Long> {
-
+    open fun getTaskProgressDoneInPeriod(tasks: List<TaskODB>, toDate: LocalDate): List<Long> {
+        val startOfMonth = toDate.minusDays(toDate.atStartOfDay().dayOfMonth.toLong())
+        val startOfWeek = toDate.minusDays(toDate.atStartOfDay().dayOfWeek.value.toLong())
         val taskIds = tasks.filter {
             !it.done && (it.taskType == monthly || it.taskType == weekly)
         }.map { it.id }
+
         return if (taskIds.isEmpty())
             emptyList()
         else
-            anyDaoNew.getAll(TaskProgressODB::class, {
+            anyDaoNew.getAll(TaskProgressODB::class) {
                 it get TaskProgressODB::task get TaskODB::id isIn taskIds
                 it get TaskProgressODB::done eq true
-                it.newOr {
-                    it.newAnd {
+                and {
+                    or {
                         it get TaskProgressODB::task get TaskODB::taskType eq monthly
-                        it get TaskProgressODB::progressTime greaterThanOrEqualTo fromMonth
+                        it get TaskProgressODB::progressTime greaterThanOrEqualTo startOfMonth
                         it get TaskProgressODB::progressTime lessThan toDate
                     }
-
-                    it.newAnd {
+                    or {
                         it get TaskProgressODB::task get TaskODB::taskType eq weekly
-                        it get TaskProgressODB::progressTime greaterThanOrEqualTo fromWeek
+                        it get TaskProgressODB::progressTime greaterThanOrEqualTo startOfWeek
                         it get TaskProgressODB::progressTime lessThan toDate
                     }
                 }
-                it.select(it.get(TaskProgressODB::task).get(TaskODB::id))
-                //TODO distincts
-
-            })
-
+                it selectDistinct it.get(TaskProgressODB::task).get(TaskODB::id)
+            }
     }
 
     open fun getTaskProgress(tasks: List<TaskODB>, dayMidnight: LocalDate): List<TaskProgressODB> {
-
         val taskIds = tasks.map { it.id }
         return if (taskIds.isEmpty())
             emptyList()
         else
-            anyDaoNew.getAll(TaskProgressODB::class, {
-                it.get(TaskProgressODB::task).get(TaskODB::id) isIn taskIds
+            anyDaoNew.getAll(TaskProgressODB::class) {
+                it get TaskProgressODB::task get TaskODB::id isIn taskIds
                 it get TaskProgressODB::progressTime eq dayMidnight
-            })
+            }
 
     }
 
@@ -215,8 +202,8 @@ open class TaskDAO {
             throw IllegalArgumentException()
 
         val taskProgress = anyDaoNew.getFirst(TaskProgressODB::class) {
-            it.get(TaskProgressODB::task) eqId taskId
-            it.get(TaskProgressODB::progressTime) eq dayMidnight
+            it get TaskProgressODB::task eqId taskId
+            it get TaskProgressODB::progressTime eq dayMidnight
         }
         if (task.taskType == onetime) {
             if (task.closeDate != null && done)
@@ -307,26 +294,17 @@ open class TaskDAO {
         if (mergedTasks.isEmpty())
             return emptyList();
 
-        val challenge = mergedTasks.first().challenge;
-        var approvals = anyDaoNew.getAll(TaskApprovalODB::class) {
+        val participants = mergedTasks.first().challenge.participants;
+        val approvals = anyDaoNew.getAll(TaskApprovalODB::class) {
             it get TaskApprovalODB::task inIds mergedTasks.map { it.id }
             it get TaskApprovalODB::task get TaskODB::taskStatus notEq TaskStatus.accepted
-            //it get TaskApprovalODB::taskStatus notEq TaskStatus.accepted
         }
 
-        val pendingApprovals = mutableListOf<TaskApprovalODB>();
-        approvals.groupBy { it.task.id }.forEach {
-            val taskApprovals = it;
-
-            challenge.participants.forEach {
-                var participantid = it.user.id;
-                var approvalExists = taskApprovals.value.find { ta -> ta.user.id == participantid } != null;
-                if (!approvalExists)
-                    pendingApprovals.add(TaskApprovalODB(it.user, TaskODB(taskApprovals.key), TaskStatus.waiting_for_acceptance))
-
+        val pendingApprovals = approvals.groupBy({ it.task.id }, {it.user.id}).flatMap {
+            val (taskId, approvedUserIds) = it;
+            participants.filter { it.user.id !in approvedUserIds }.map {
+                TaskApprovalODB(it.user, TaskODB(taskId), TaskStatus.waiting_for_acceptance)
             }
-
-
         }
         return approvals + pendingApprovals;
     }

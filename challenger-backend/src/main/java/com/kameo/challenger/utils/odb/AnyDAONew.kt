@@ -16,7 +16,9 @@ import kotlin.reflect.KClass
 @Suppress("UNUSED_PARAMETER") // parameter resltClass is unused but needed for type safety
 class AnyDAONew(@Inject val em: EntityManager) {
 
-    class PathPairSelect<E, F>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val cb: CriteriaBuilder) : ISugarQuerySelect<Pair<E, F>> {
+    class PathPairSelect<E, F>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val distinct: Boolean, val cb: CriteriaBuilder) : ISugarQuerySelect<Pair<E, F>> {
+        override fun isDistinct(): Boolean = distinct;
+
         override fun getSelection(): Selection<Tuple> {
             return cb.tuple(first.getSelection(), second.getSelection())
         }
@@ -24,7 +26,9 @@ class AnyDAONew(@Inject val em: EntityManager) {
         override fun isSingle(): Boolean = false
     }
 
-    class PathTripleSelect<E, F, G>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val third: ISugarQuerySelect<G>, val cb: CriteriaBuilder) : ISugarQuerySelect<Triple<E, F, G>> {
+    class PathTripleSelect<E, F, G>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val third: ISugarQuerySelect<G>, val distinct: Boolean, val cb: CriteriaBuilder) : ISugarQuerySelect<Triple<E, F, G>> {
+        override fun isDistinct(): Boolean = distinct;
+
         override fun getSelection(): Selection<Tuple> {
             return cb.tuple(first.getSelection(), second.getSelection(), third.getSelection())
         }
@@ -211,16 +215,20 @@ class AnyDAONew(@Inject val em: EntityManager) {
         return exists(clz.java, query)
     }
 
-
-    inline fun <E : Any, reified RESULT : Any> getOne(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT {
+    inline fun <E : Any, reified RESULT : Any> getOne2(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT {
+        return getOne(clz.java, RESULT::class.java, query)
+    }
+    inline fun <E : Any, reified RESULT : Any> getOne(clz: KClass<E>, noinline query: RootWrap<E, E>.() -> (ISugarQuerySelect<RESULT>)): RESULT {
         return getOne(clz.java, RESULT::class.java, query)
     }
 
-    inline fun <E : Any, reified RESULT : Any> getFirst(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT? {
+    inline fun <E : Any, reified RESULT : Any> getFirst(clz: KClass<E>, noinline query: RootWrap<E, E>.() -> (ISugarQuerySelect<RESULT>)): RESULT? {
         return getFirst(clz.java, RESULT::class.java, query)
     }
-
-    inline fun <E : Any, reified RESULT : Any> getAll(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
+    inline fun <E : Any, reified RESULT : Any> getFirst2(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): RESULT? {
+        return getFirst(clz.java, RESULT::class.java, query)
+    }
+    inline fun <E : Any, reified RESULT : Any> getAll2(clz: KClass<E>, noinline query: (RootWrap<E, E>) -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
         return getAll(clz.java, RESULT::class.java, query)
     }
 
@@ -236,7 +244,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
             select(+TaskODB::label)
         }
     }*/
-    inline fun <E : Any, reified RESULT : Any> getAll2(clz: KClass<E>, noinline query: RootWrap<E, E>.() -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
+    inline fun <E : Any, reified RESULT : Any> getAll(clz: KClass<E>, noinline query: RootWrap<E, E>.() -> (ISugarQuerySelect<RESULT>)): List<RESULT> {
         return getAll(clz.java, RESULT::class.java, query)
     }
 

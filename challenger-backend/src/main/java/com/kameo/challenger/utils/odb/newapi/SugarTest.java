@@ -16,6 +16,7 @@ class SugarTest {
 
 
 
+
         ad.getAll(TaskODB.class, UserODB.class, it -> {
                     it.inIds(10,12,13)
                       .eqId(10)

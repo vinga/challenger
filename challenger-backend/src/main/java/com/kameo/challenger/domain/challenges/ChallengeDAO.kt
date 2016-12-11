@@ -22,8 +22,6 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
     open fun createNewChallenge(userId: Long, cb: ChallengeODB): ChallengeODB {
 
 
-
-
         val challengeCreator = anyDaoNew.reload(cb.participants.find { it.user.id == userId }!!.user)
         if (cb.participants.size == 1)
             throw IllegalArgumentException()
@@ -40,7 +38,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
 
 
         val cpToSendEmails = cb.participants
-                .filter {it.user.isNew()}
+                .filter { it.user.isNew() }
                 .map {
                     it.user = accountDao.getOrCreateUserForEmail(it.user.email)
                     it
@@ -57,7 +55,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
                 accountDao.createAndSendChallengeConfirmationLink(cb, cp)
             }
         }
-       return cb
+        return cb
 
     }
 
@@ -76,18 +74,19 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
 
             it get ChallengeParticipantODB::user eqId callerId
             it.get(ChallengeParticipantODB::challenge)
-                    .newOr()
-                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                    .eq(ChallengeODB::challengeStatus, ChallengeStatus.ACTIVE)
-                    .newAnd({
-                        it.eq(ChallengeODB::challengeStatus, ChallengeStatus.REFUSED)
-                                .get(ChallengeODB::createdBy).eqId(callerId)
-                    })
-                    .finish()
+                    .and {
+                        or { it get ChallengeODB::challengeStatus eq ChallengeStatus.WAITING_FOR_ACCEPTANCE }
+                        or { it get ChallengeODB::challengeStatus eq ChallengeStatus.ACTIVE }
+                        or {
+                            it get ChallengeODB::challengeStatus eq ChallengeStatus.REFUSED
+                            it get ChallengeODB::createdBy eqId callerId
+                        }
+                    }
+
         })
 
         res.visibleChallenges = challengeParticipantsForThisUser.map { it.challenge }
-        res.visibleChallenges.map { EntityHelper.initializeCollection(it.participants) }
+        res.visibleChallenges.forEach { EntityHelper.initializeCollection(it.participants) }
 
 
 
