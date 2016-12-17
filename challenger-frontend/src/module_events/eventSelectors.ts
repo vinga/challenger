@@ -1,8 +1,9 @@
 import {Selector, createSelector} from "reselect";
 import {ReduxState} from "../redux/ReduxState";
 import {EventGroupDTO, DateDiscrimUI, DisplayedEventUI} from "./EventDTO";
-import {TaskDTO, TaskDTOListForDay} from "../module_tasks/TaskDTO";
+
 import {selectedChallengeParticipantsSelector, ChallengeParticipantDTO} from "../module_challenges/index";
+import {TaskDTO,allTasksSelector} from "../module_tasks/index";
 
 const displaySeletectedEventGroupSelector: Selector<ReduxState,EventGroupDTO> = (state: ReduxState): EventGroupDTO =>
     state.eventsState.eventGroups.find(eg=>eg.challengeId == state.challenges.selectedChallengeId)
@@ -11,32 +12,16 @@ const displayTaskSelector: Selector<ReduxState,TaskDTO> = (state: ReduxState): T
 
 
 
-//TDOO Maybe should be in another module
-const taskDtoStateSelector: Selector<ReduxState, Map<string,TaskDTOListForDay>> = (state, map): Map<string,TaskDTOListForDay> => state.tasksState.tasks;
 
-//TODO now it contains duplicates
-//TDOO Maybe should be in another module
-const allChallengeTasksSelector: Selector<ReduxState,Array<TaskDTO>> = createSelector(
-    taskDtoStateSelector,
-    (taskDtoState: Map<string,TaskDTOListForDay>) => {
-        var arr: Array<TaskDTO> = [];
-        for (var key in taskDtoState) {
-            if (taskDtoState.hasOwnProperty(key)) {
-                taskDtoState[key].taskList.forEach(ta => arr.push(ta))
-            }
-        }
-        return arr;
-    }
-)
 
 export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDiscrimUI>> = createSelector(
 
     selectedChallengeParticipantsSelector,
     displaySeletectedEventGroupSelector,
-    allChallengeTasksSelector,
+    allTasksSelector,
     displayTaskSelector,
 
-    (challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupDTO, challengeTasks: Array<TaskDTO>, filteredTask?: TaskDTO) => {
+    (challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupDTO, allTasks: Array<TaskDTO>, filteredTask?: TaskDTO) => {
 
         if (eventGroups != null) {
             var events: Array<DisplayedEventUI> = eventGroups.posts.filter(p=> filteredTask == null || p.taskId == filteredTask.id)
@@ -49,7 +34,6 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
                     else return a.id - b.id;
 
                 }).map(p=> {
-
 
 
                     return {
@@ -66,9 +50,9 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
                         isNew: p.readDate == null,
                         sentDate: new Date(p.sentDate),
                         readDate: p.readDate != null ? new Date(p.readDate) : null,
-                        task: p.taskId!=null? challengeTasks.find(task=>p.taskId==task.id): null
+                        task: p.taskId!=null? allTasks[p.taskId]: null
                     }
-                })
+                }).filter(p=>p!=null)
 
             const arr: Array<DisplayedEventUI | DateDiscrimUI> = [];
             var lastDateDiscrim = null;

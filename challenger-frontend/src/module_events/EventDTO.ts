@@ -7,7 +7,8 @@ export const EventType = {
     REJECT_TASK:"REJECT_TASK",
     CHECKED_TASK:"CHECKED_TASK",
     UNCHECKED_TASK:"UNCHECKED_TASK",
-    DELETE_TASK: "DELETE_TASK"
+    DELETE_TASK: "DELETE_TASK",
+    CLOSE_TASK: "CLOSE_TASK"
 };
 
 
@@ -41,7 +42,7 @@ export interface EventState {
 
 
 export interface DisplayedEventUI {
-    kind: string
+    kind: string,
     id: number,
     authorId: number,
     authorOrdinal: number,

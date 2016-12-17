@@ -32,16 +32,22 @@ interface PropsFunc {
 interface State {
     task: TaskDTO,
     submitDisabled: boolean,
-    taskDeleteConfirmation: boolean
+    taskDeleteConfirmation: boolean,
+    visibilityType: string
 }
 
 class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
     constructor(props) {
         super(props);
+        var vType = "day"
+        if(props.task.monthDays == null)
+        vType = "weekday"
+
         this.state = {
             task: this.props.task,
             submitDisabled: false,
-            taskDeleteConfirmation: false
+            taskDeleteConfirmation: false,
+            visibilityType: vType
         };
     }
 
@@ -52,6 +58,14 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
     };
 
     handleSubmit = () => {
+        if(this.state.task.taskType == TaskType.daily) {
+          if(this.state.visibilityType == "weekday")
+              this.state.task.monthDays = null;
+          else
+              this.state.task.weekDays = null;
+        }
+
+
         this.props.onTaskSuccessfullyUpdatedFunc(this.state.task);
         this.props.onCloseFunc();
     };
@@ -96,8 +110,16 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
         this.state.task.weekDays = days;
         this.setState(this.state);
     }
+    handleDailyTaskVisibilityChange = (event) => {
+        this.state.visibilityType = event.target.value;;
+
+        this.setState(this.state);
+    }
+
 
     render() {
+
+
         if (this.props.task == null)
             return <div/>;
 
@@ -211,7 +233,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
 
                         </Col>
                         {this.props.task.taskType == TaskType.onetime &&
-                        <Col>
+                        <Col col="6">
                             <Subheader>Visibility</Subheader>
                             <DatePicker
                                 textFieldStyle={{width: '100px'}}
@@ -234,28 +256,52 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         }
 
                         { this.props.task.taskType == TaskType.weekly &&
-                        <Col>
+                        <Col col="6">
                             <Subheader>Visibility</Subheader>
                             <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged}/>
 
                         </Col> }
 
                         { this.props.task.taskType == TaskType.monthly &&
-                        <Col>
+                        <Col col="6">
                             <Subheader>Visibility</Subheader>
                             <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged}/>
                         </Col> }
 
                         { this.props.task.taskType == TaskType.daily &&
                         <Col col="6">
+
+
                             <Subheader>Visibility</Subheader>
+
+                            <RadioButtonGroup
+                                name="visibility"
+                                onChange={this.handleDailyTaskVisibilityChange}
+                                style={{marginBottom: '20px'}}
+                                defaultSelected={this.state.visibilityType}>
+
+                                <RadioButton
+                                    label="Week day"
+                                    value="weekday"
+                                />
+                                <RadioButton
+                                    label="Day in the month"
+                                    value="day"
+                                />
+                                </RadioButtonGroup>
                             <Row>
+
+                                {this.state.visibilityType == "weekday" &&
                                 <Col col="4">
                                     <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged}/>
                                 </Col>
+                                }
+
+                                {this.state.visibilityType == "day" &&
                                 <Col col="8" style={{display:"flex", flexDirection: "row", flexWrap:"wrap"}}>
                                     <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged}/>
                                 </Col>
+                                }
                             </Row>
                         </Col> }
                     </Row>

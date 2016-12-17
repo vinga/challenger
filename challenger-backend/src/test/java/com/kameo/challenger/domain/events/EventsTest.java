@@ -50,7 +50,7 @@ public class EventsTest implements En {
             TaskODB t=testHelper.resolveTask(task);
             EventODB p=new EventODB();
             p.setAuthor(u);
-            p.setTask(t);
+
             p.setChallenge(t.getChallenge());
             p.setCreateDate(new Date());
             p.setContent(words);
@@ -81,7 +81,7 @@ public class EventsTest implements En {
             for (int i=0; i<times; i++) {
                 EventODB p = new EventODB();
                 p.setAuthor(u);
-                p.setTask(t);
+
                 p.setChallenge(t.getChallenge());
                 p.setCreateDate(new Date());
                 p.setContent(words);

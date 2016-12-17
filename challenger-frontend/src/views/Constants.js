@@ -98,6 +98,11 @@ Date.prototype.yyyy_mm_dd = function() {
     var dd = this.getDate();
     return [this.getFullYear(),  (mm<10)? "0"+mm: mm, (dd<10)? "0"+dd: dd].join('-');
 };
+Date.prototype.yyyyxmmxdd = function() {
+    var mm = this.getMonth() + 1;
+    var dd = this.getDate();
+    return [this.getFullYear(),  (mm<10)? "0"+mm: mm, (dd<10)? "0"+dd: dd].join('x');
+};
 Date.prototype.mm_dd = function() {
     var mm = this.getMonth() + 1;
     var dd = this.getDate();
@@ -110,6 +115,8 @@ Date.prototype.dayMonth3 = function () {
     var month = objDate.toLocaleString(locale, { month: "short" });
     return this.getDate() + " " + month;
 }
+
+
 export class Grid extends Component {}
 export class Row extends Component {}
 export class Col extends Component {}

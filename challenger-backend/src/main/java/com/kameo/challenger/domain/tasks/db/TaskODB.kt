@@ -14,7 +14,7 @@ data class TaskODB(@Id
                    override var id: Long = 0) : IIdentity {
 
 
-
+// var num: Int=10
 
     @Enumerated
     lateinit var taskType: TaskType

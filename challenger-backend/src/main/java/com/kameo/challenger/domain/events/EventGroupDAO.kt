@@ -45,8 +45,8 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 user.getLoginOrEmail() + " rejected " + task.label + " because of " + (eventInfo as TaskRejectedEventInfo).rejectionReason
             EventType.UNCHECKED_TASK,
             EventType.CHECKED_TASK -> {
-                val effectiveDay = (eventInfo!! as TaskCheckUncheckEventInfo).taskCheckUncheckDate
-                val checkDay = (eventInfo!! as TaskCheckUncheckEventInfo).checkDate
+                val effectiveDay = (eventInfo as TaskCheckUncheckEventInfo).taskCheckUncheckDate
+                val checkDay = eventInfo.checkDate
                 e.forDay=effectiveDay
                 val daystring = if (!effectiveDay.isEqual(checkDay))
                     " for " + DateTimeFormatter.ofPattern("dd MMM").withLocale(Locale.ENGLISH).format(effectiveDay)
@@ -58,10 +58,11 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             }
 
             EventType.DELETE_TASK -> user.getLoginOrEmail() + " deleted " + task.label
+            EventType.CLOSE_TASK -> user.getLoginOrEmail() + " closed " + task.label
         }
         e.challenge = task.challenge
         e.author = user
-        e.taskId = task?.id
+        e.taskId = task.id
 
         anyDaoNew.em.persist(e)
 
@@ -174,12 +175,12 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 val notReadSize = it.size
                 if (it.size < desiredMaxEvents) {
                     it + anyDaoNew.getAll(EventReadODB::class) {
-                        val it=this;
-                        it get EventReadODB::user eqId callerId
-                        it get EventReadODB::challenge eqId challengeId
-                        it get +EventReadODB::id lt firstNotRead.id
-                        it limit desiredMaxEvents - notReadSize
-                        it.select(it, it get EventReadODB::event)
+                        val er=this;
+                        er get EventReadODB::user eqId callerId
+                        er get EventReadODB::challenge eqId challengeId
+                        er get +EventReadODB::id lt firstNotRead.id
+                        er limit desiredMaxEvents - notReadSize
+                        er.select(er, er get EventReadODB::event)
                     }
                 } else
                     it

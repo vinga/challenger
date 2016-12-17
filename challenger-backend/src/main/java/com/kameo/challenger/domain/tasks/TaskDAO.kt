@@ -68,13 +68,24 @@ open class TaskDAO {
                 taskODB.monthDays = null
         }
     }
+    open fun getTasksById(callerId: Long, challengeId: Long, ids: List<Long>): List<TaskODB> {
+        val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class) {
+            it get ChallengeParticipantODB::challenge eqId challengeId
+            it get ChallengeParticipantODB::user eqId callerId
+            it get ChallengeParticipantODB::challengeStatus eq ChallengeStatus.ACTIVE
+        }
+        return anyDaoNew.getAll(TaskODB::class) {
+            it get TaskODB::challenge eqId challengeId
+            it inIds ids
+        }
+    }
 
     private fun isAllSelected(it: String, min: Int, max: Int): Boolean
             = it
             .split(",")
             .filter { it.length > 0 }
             .map(String::toInt)
-            .containsAll((min .. max).toList())
+            .containsAll((min..max).toList())
 
 
     open fun getTasks(callerId: Long, challengeId: Long, dayMidnight: LocalDate): List<TaskODB> {
@@ -86,9 +97,41 @@ open class TaskDAO {
         }
         updateSendDateOfChallengeContract(callerPermission0)
 
+        if (false) {
+            val tasksTests = anyDaoNew.getAll(TaskODB::class) {
+                it get TaskODB::challenge eqId challengeId
+
+                val tit=it
+               // val subq = it.subquery(UserODB::class);
+               // val sit = subq.from(UserODB::class);
+                it.get(TaskODB::label).isInSubquery(UserODB::class) {
+                    it.get(+UserODB::login) like "kami"
+                    it.select(+UserODB::login)
+                }
+
+                it.get(TaskODB::label) isIn it.subqueryFrom(UserODB::class) {
+                    it.get(+UserODB::login) like "kami"
+                    it.select(+UserODB::login)
+                }
+               it.get(TaskODB::label) exists it.subqueryFrom(UserODB::class) {
+                    it.get(+UserODB::login) like "kami"
+                    it.get(+UserODB::id) eq tit.get(TaskODB::id)
+                }
+
+              /*  it.get(TaskODB::createdByUser) isIn it.subqueryFrom(UserODB::class) {
+                    it.get(+UserODB::login) like "kami"
+                }*/
+                        /*   it.get(TaskODB:label) like it.subqueryFrom(UserODB.class) {
+                    it.get(UserODB::email) like 'kami'
+                    it.select(UserODB::email)
+                } */
+                it
+            }
+        }
 
         val tasks = anyDaoNew.getAll(TaskODB::class) {
             it get TaskODB::challenge eqId challengeId
+            //it get TaskODB::num min{} ge 10
 
             it get TaskODB::createDate before dayMidnight.plusDays(1).atStartOfDay()
             ors {
@@ -201,10 +244,7 @@ open class TaskDAO {
         if (task.challenge.id != challengeId)
             throw IllegalArgumentException()
 
-        val taskProgress = anyDaoNew.getFirst(TaskProgressODB::class) {
-            it get TaskProgressODB::task eqId taskId
-            it get TaskProgressODB::progressTime eq dayMidnight
-        }
+
         if (task.taskType == onetime) {
             if (task.closeDate != null && done)
                 throw IllegalArgumentException("Onetime task is already marked as done")
@@ -212,14 +252,17 @@ open class TaskDAO {
             anyDaoNew.merge(task)
         }
 
+        val taskProgress = anyDaoNew.getFirst(TaskProgressODB::class) {
+            it get TaskProgressODB::task eqId taskId
+            it get TaskProgressODB::progressTime eq dayMidnight
+        }
+
         return if (taskProgress != null) {
             taskProgress.done = done
-
             anyDaoNew.update(TaskProgressODB::class) {
                 it.set(TaskProgressODB::done, done)
                         .eqId(taskProgress.id)
             }
-
             taskProgress
         } else {
             val tp = TaskProgressODB(task, dayMidnight, done)
@@ -257,19 +300,17 @@ open class TaskDAO {
         if (!userIdsAreChallengeParticipants)
             throw IllegalArgumentException()
 
-        challenge.participants.map { it.user }.forEach { u ->
-            if (userIds.contains(u.id)) {
-                var ta = existingApprovals.find { ta -> ta.user.id == u.id }
-                if (ta != null) {
-                    ta.rejectionReason = rejectionReason
-                    ta.taskStatus = taskStatus
-                    anyDaoNew.merge(ta)
-                } else {
-                    ta = TaskApprovalODB(user = u, task = task, taskStatus = taskStatus)
-                    ta.rejectionReason = rejectionReason
-                    anyDaoNew.em.persist(ta)
-                    existingApprovals.add(ta)
-                }
+        challenge.participants.map { it.user }.filter { it.id in userIds }.forEach { u ->
+            var ta = existingApprovals.find { it.user.id == u.id }
+            if (ta != null) {
+                ta.rejectionReason = rejectionReason
+                ta.taskStatus = taskStatus
+                anyDaoNew.merge(ta)
+            } else {
+                ta = TaskApprovalODB(user = u, task = task, taskStatus = taskStatus)
+                ta.rejectionReason = rejectionReason
+                anyDaoNew.persist(ta)
+                existingApprovals.add(ta)
             }
         }
         if (taskStatus == TaskStatus.rejected) {
@@ -300,13 +341,20 @@ open class TaskDAO {
             it get TaskApprovalODB::task get TaskODB::taskStatus notEq TaskStatus.accepted
         }
 
-        val pendingApprovals = approvals.groupBy({ it.task.id }, {it.user.id}).flatMap {
+        val pendingApprovals = approvals.groupBy({ it.task.id }, { it.user.id }).flatMap {
             val (taskId, approvedUserIds) = it;
             participants.filter { it.user.id !in approvedUserIds }.map {
                 TaskApprovalODB(it.user, TaskODB(taskId), TaskStatus.waiting_for_acceptance)
             }
         }
         return approvals + pendingApprovals;
+    }
+
+    open fun closeTask(callerId: Long, taskId: Long):TaskODB {
+        val t=anyDaoNew.find(TaskODB::class, taskId);
+        t.closeDate=LocalDate.now()
+        anyDaoNew.merge(t)
+        return t
     }
 
 }

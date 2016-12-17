@@ -62,7 +62,7 @@ export class MonthdaysGroup extends React.Component<Props, State> {
     }
 
     render() {
-        return <RowCol colStyle={{display:"flex", flexDirection: "row", flexWrap:"wrap"}}>
+        return <RowCol colStyle={{display:"flex", flexDirection: "row", flexWrap:"wrap", maxWidth:"200px"}}>
             {
                 this.state.monthdays.map(
                     (checked, index) => <div key={index} style={{ width:"25px", fontSize: '10px', textAlign:"center"}}>

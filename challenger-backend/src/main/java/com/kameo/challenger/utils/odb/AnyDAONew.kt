@@ -4,6 +4,12 @@ import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.odb.api.IIdentity
 import com.kameo.challenger.utils.odb.newapi.*
+import com.kameo.challenger.utils.odb.newapi.pc.DeletePathContext
+import com.kameo.challenger.utils.odb.newapi.pc.QueryPathContext
+import com.kameo.challenger.utils.odb.newapi.pc.UpdatePathContext
+import com.kameo.challenger.utils.odb.newapi.wraps.ExpressionWrap
+import com.kameo.challenger.utils.odb.newapi.wraps.RootWrap
+import com.kameo.challenger.utils.odb.newapi.wraps.RootWrapUpdate
 import javax.inject.Inject
 import javax.persistence.EntityManager
 import javax.persistence.Tuple
@@ -71,7 +77,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val one2 = getFirst(TaskODB::class) {
             it eqId 10
         }
-        println("Get max user id: " + one)
+        println("Get max user id: " + one+" "+one2)
 
         val two = getOne(TaskODB::class) {
             it limit 1
@@ -194,7 +200,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
     fun <E : Any> exists(clz: Class<E>, query: (RootWrap<E, E>) -> ISugarQuerySelect<*>): Boolean {
         val queryExists: (RootWrap<E, E>) -> ISugarQuerySelect<Long> = {
             val invoke: ISugarQuerySelect<*> = query.invoke(it)
-            it.select(ExpressionWrap(it.pc,em.criteriaBuilder.count(invoke.getSelection() as Expression<*>)))
+            it.select(ExpressionWrap(it.pc, em.criteriaBuilder.count(invoke.getSelection() as Expression<*>)))
         }
         return getOne(clz, Long::class.java, queryExists) > 0
     }

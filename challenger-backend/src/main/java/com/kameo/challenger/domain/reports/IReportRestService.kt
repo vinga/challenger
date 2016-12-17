@@ -14,7 +14,7 @@ interface IReportRestService {
         val reportType: ReportType,
         val userId: Long,
         val labels: List<String>,
-        val values: List<out Number>)
+        val values: List<Number>)
 
 
     enum class ReportType {

@@ -29,6 +29,7 @@ export default class TaskCheckbox extends React.Component<Props, void> {
 
         return <Checkbox
             key="statusCb"
+            disabled={this.props.taskDTO.closeDate!=null}
             checked={this.props.taskDTO.done === true}
             onCheck={onCheck(this.props.taskDTO.id)}
             iconStyle={{fill: this.props.authorized ? colors.userColors[this.props.no] : "lightgrey"}}

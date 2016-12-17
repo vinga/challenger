@@ -5,6 +5,7 @@ import {TaskDTO} from "../../TaskDTO";
 import {globalPopoverReff} from "../../../views/common-components/GlobalPopover";
 import * as ReactDOM from "react-dom";
 import {Tooltip} from "../../../views/common-components/Tooltip";
+import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
 import ReactInstance = __React.ReactInstance;
 
 //import * as Tooltip from "@cypress/react-tooltip";
@@ -14,21 +15,22 @@ interface Props {
     no: number,
     task: TaskDTO
     showTooltip: boolean
-
+    onCloseTask?: (task: TaskDTO)=>void;
 }
 
 interface PropsFunc {
     onEditTask?: (task: TaskDTO)=>void;
-    onCloseTaskFunc?: (task: TaskDTO)=>void;
+
     onShowTaskEvents?: (task: TaskDTO, no: number)=>void;
 }
+interface State {
+    showCloseTask?: TaskDTO
+}
 
-
-export default class DifficultyIconButton extends React.Component<Props & PropsFunc,void> {
+export default class DifficultyIconButton extends React.Component<Props & PropsFunc,State> {
     constructor(props) {
         super(props);
-
-
+        this.state = {showCloseTask: null}
     }
 
 
@@ -39,8 +41,9 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
     };
 
     onCloseTask = () => {
-        if (this.props.onCloseTaskFunc != null)
-            this.props.onCloseTaskFunc(this.props.task);
+        this.setState({showCloseTask: this.props.task})
+       // if (this.props.onCloseTask != null)
+        //    this.props.onCloseTask(this.props.task);
 
     };
     onShowTaskEvents = () => {
@@ -48,7 +51,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
             this.props.onShowTaskEvents(this.props.task, this.props.no);
     }
 
-// <Tooltip title="Hello World"> </Tooltip>
+
     editPopup = () => {
         var style = {lineHeight: '16px', margin: '5px', color: '#444', cursor: "pointer"};
         return <div>
@@ -65,8 +68,15 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
 
             {this.props.task.closeDate == null &&
             <Tooltip tooltip="Close task" delay="1s">
-            <a onClick={()=>{this.onCloseTask(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className="fa fa-close"/>
-            </Tooltip>}
+                <a onClick={()=>{this.onCloseTask(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className="fa fa-close"/>
+            </Tooltip>
+
+
+
+            }
+
+
+
         </div>;
 
     }
@@ -115,7 +125,10 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
                 {background}{icon}
 
             </div>
-
+            {this.state.showCloseTask != null &&
+            <YesNoConfirmationDialog closeYes={ ()=> this.props.onCloseTask(this.props.task)} closeDialog={()=>this.setState({showCloseTask: null})}>
+                Do you want to close task <b>{this.state.showCloseTask.label}</b>? It won't be available in the future.
+            </YesNoConfirmationDialog> }
 
         </IconButton>//;
 

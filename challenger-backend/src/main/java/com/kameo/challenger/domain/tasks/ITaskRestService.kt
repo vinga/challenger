@@ -14,21 +14,30 @@ import java.time.ZoneOffset
 interface ITaskRestService {
 
     @Data
-    data class TaskProgressDTO(val taskId: Long = 0, val progressTime: Long = 0, val done: Boolean = false) {
+    data class TaskProgressDTO(val taskId: Long = 0, val progressTime: Long = 0, val done: Boolean = false, val task: TaskDTO? = null) {
 
         companion object {
-            fun fromOdb(odb: TaskProgressODB): TaskProgressDTO {
+            fun fromOdb(odb: TaskProgressODB, withTask: Boolean = false): TaskProgressDTO {
 
 
                 val tp = TaskProgressDTO(taskId = odb.task.id,
                         progressTime = odb.progressTime.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
-                        done = odb.done)
+                        done = odb.done,
+                        task=if (withTask) TaskDTO.fromOdb(odb.task) else null)
+                return tp
+            }
+            fun fromTaskOdb(task: TaskDTO, done: Boolean, localDate: LocalDate, withTask: Boolean = false): TaskProgressDTO {
+
+
+                val tp = TaskProgressDTO(taskId = task.id,
+                        progressTime  = localDate.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
+                        done = done,
+                        task=if (withTask)task else null)
                 return tp
             }
 
-
         }
-        fun getLocalDate(): LocalDate {
+        fun toLocalDate(): LocalDate {
             return Instant.ofEpochMilli(progressTime).atZone(ZoneId.systemDefault()).toLocalDate()
         }
     }
@@ -82,12 +91,12 @@ interface ITaskRestService {
                         icon = odb.icon,
                         difficulty = odb.difficulty,
                         challengeId = odb.challenge.id,
-                        dueDate = odb.dueDate?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: null,
+                        dueDate = odb.dueDate?.toInstant(ZoneOffset.UTC)?.toEpochMilli(),
                         taskType = odb.taskType,
                         taskStatus = odb.taskStatus,
                         userId = odb.user.id,
                         done = odb.done,
-                        closeDate =  odb.closeDate?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: null,
+                        closeDate =  odb.closeDate?.atStartOfDay()?.toInstant(ZoneOffset.UTC)?.toEpochMilli(),
                         createdByUserId = odb.createdByUser.id,
                         monthDays = odb.monthDays,
                         weekDays = odb.weekDays

@@ -9,6 +9,7 @@ interface Props {
 interface State {
     weekdays: boolean[]
 }
+const ALL_DAYS_IN_WEEK = 7;
 export class WeekdaysGroup extends React.Component<Props, State> {
     constructor(props) {
         super(props);
@@ -35,7 +36,22 @@ export class WeekdaysGroup extends React.Component<Props, State> {
     }
 
     handleOnCheckWeekday = (index: number, isInputChecked: boolean) => {
-        this.state.weekdays[index] = isInputChecked;
+        // all are checked, uncheking first one
+        if (isInputChecked == false && this.state.weekdays.filter(e=>e == true).length == ALL_DAYS_IN_WEEK) {
+            for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
+                this.state.weekdays[i] = false;
+            }
+            this.state.weekdays[index] = true;
+        }
+        // only one checked, uncheking it
+        else if (isInputChecked == false && this.state.weekdays.filter(e=>e == true).length==1 && this.state.weekdays[index]==true) {
+            for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
+                this.state.weekdays[i] = true;
+            }
+        }
+        else
+            this.state.weekdays[index] = isInputChecked;
+
         this.setState(this.state);
 
         var days = this.state.weekdays.map((t, index) => {

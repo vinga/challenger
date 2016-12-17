@@ -1,7 +1,7 @@
 {
   "name": "challenger",
   "version": "1.0.0",
-  "description": "Challenger dev hot code reloading",
+  "description": "Challenger",
   "scripts": {
     "start": "node server.js",
     "lint": "eslint src",
@@ -12,15 +12,7 @@
     "url": "https://github.com/vinga/challenger-to-be-fixed.git"
   },
   "keywords": [
-    "react",
-    "reactjs",
-    "boilerplate",
-    "hot",
-    "reload",
-    "hmr",
-    "live",
-    "edit",
-    "webpack"
+    "challenger"
   ],
   "license": "MIT",
   "author": "Kamila Myczkowska <kamila.myczkowska@gmail.com> (https://github.com/vinga/)",
@@ -47,6 +39,9 @@
   },
   "dependencies": {
     "@cypress/react-tooltip": "^0.1.1",
+    "dot-prop-immutable": "^1.1.2",
+    "immutability-helper": "^2.0.0",
+    "immutable-path": "git+https://git@github.com/baptistemanson/immutable-path.git",
     "jbox": "^0.4.5",
     "jwt-decode": "^2.1.0",
     "material-ui": "^0.15.4",

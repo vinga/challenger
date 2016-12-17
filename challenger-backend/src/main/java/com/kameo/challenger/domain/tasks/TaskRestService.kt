@@ -41,8 +41,30 @@ class TaskRestService : ITaskRestService {
 
 
     @GET
-    @Path("challenges/{challengeId}/tasks/")
-    fun getTasks(@PathParam("challengeId") contractId: Long, @QueryParam("day") /*"date_yy-MM-dd"*/ dateString: String): List<TaskDTO> {
+    @Path("challenges/{challengeId}/taskProgresses")
+    fun getTasks(@PathParam("challengeId") contractId: Long, @QueryParam("day") /*"date_yy-MM-dd"*/ dateString: String, @QueryParam("loadTasks") loadTasks: Boolean?): List<TaskProgressDTO> {
+
+
+        val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yy-MM-dd"))
+
+        return getTasksForDay(contractId,dateString).map { TaskProgressDTO.fromTaskOdb(it, it.done, date,loadTasks?: false) }
+    }
+
+    @GET
+    @Path("challenges/{challengeId}/tasks")
+    fun getTasks(@PathParam("challengeId") contractId: Long, @QueryParam("ids") taskIds: String): List<TaskDTO> {
+        val callerId = session.userId
+
+
+        var taskIdsAsLong: List<Long> = taskIds.split(",").map{it.toLong()};
+        return taskDao.getTasksById(callerId,contractId,taskIdsAsLong).map { TaskDTO.fromOdb(it) }
+    }
+
+
+    //deprecated
+    @GET
+    @Path("challenges/{challengeId}/tasksForDay/")
+    fun getTasksForDay(@PathParam("challengeId") contractId: Long, @QueryParam("day") /*"date_yy-MM-dd"*/ dateString: String): List<TaskDTO> {
         val callerId = session.userId
         // val date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate()
         val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yy-MM-dd"))
@@ -136,17 +158,27 @@ class TaskRestService : ITaskRestService {
         if (taskId != tp.taskId)
             throw IllegalArgumentException()
         val callerId = session.userId
-        val tpOdb = taskDao.markTaskDone(callerId, challengeId, tp.taskId, tp.getLocalDate(), tp.done)
+        val tpOdb = taskDao.markTaskDone(callerId, challengeId, tp.taskId, tp.toLocalDate(), tp.done)
         val eventType = if (tp.done) CHECKED_TASK else UNCHECKED_TASK
 
         eventGroupDao.createTaskEventAfterServerAction(
                 user_ = challengerLogic.getUserById(callerId),
                 task = tpOdb.task,
                 eventType = eventType,
-                eventInfo = TaskCheckUncheckEventInfo(tp.getLocalDate()))
+                eventInfo = TaskCheckUncheckEventInfo(tp.toLocalDate()))
 
         return TaskProgressDTO.fromOdb(tpOdb)
     }
 
 
+    @PUT
+    @Path("/challenges/{challengeId}/tasks/{taskId}/close")
+    fun closeTask(@PathParam("challengeId") challengeId: Long, @PathParam("taskId") taskId: Long) {
+        val callerId = session.userId
+        val taskODB = taskDao.closeTask(callerId, taskId);
+        eventGroupDao.createTaskEventAfterServerAction(
+                user_ = challengerLogic.getUserById(callerId),
+                task = taskODB,
+                eventType = CLOSE_TASK)
+    }
 }

@@ -50,6 +50,7 @@ open class EventPushDAO {
                         challengeSubscribersSynch.users.add(subscriber)
                     })
                 }
+                Unit
             })
 
         } else {

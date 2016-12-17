@@ -5,12 +5,13 @@ import Paper from "material-ui/Paper";
 import DifficultyIconButton from "./DifficultyIconButton.tsx";
 import TaskCheckbox from "./ChallengeTableCheckbox.tsx";
 import {TaskDTO, TaskProgressDTO, TaskUserDTO, TaskType} from "../../TaskDTO";
-import {markTaskDoneOrUndone} from "../../taskActions";
+import {markTaskDoneOrUndone, onCloseTask} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {ResizeAware} from "../../../views/Constants";
 import {TaskLabel} from "../TaskLabel";
 import {SHOW_TASK_EVENTS} from "../../../module_events/eventActionTypes";
 import {makeGetTasksForUserAndDay, makeBusyTasksSelectorForUserAndDay} from "../../taskSelectors";
+import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
 
 const styles = {
     icon: {
@@ -47,10 +48,18 @@ interface ReduxPropsFunc {
     onTaskCheckedStateChangedFunc: (caller: TaskUserDTO, challengeId: number, taskProgress: TaskProgressDTO)=>void;
     onEditTask: (task: TaskDTO)=>void;
     onShowTaskEvents: (task: TaskDTO, no: number) => void;
-
+    onCloseTask: (task: TaskDTO)=>void;
 }
 
+
 class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsFunc, void> {
+
+    constructor(props) {
+        super(props);
+
+
+    }
+
 
 
     handleResize = (e) => {
@@ -101,6 +110,7 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                             onEditTask={this.props.onEditTask}
                                             onShowTaskEvents={this.props.onShowTaskEvents}
                                             showTooltip={true}
+                                            onCloseTask={this.props.onCloseTask}
                                         />
                                     </TableRowColumn>
                                     <TableRowColumn style={styles.label}>
@@ -131,6 +141,8 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                             )}
                         </TableBody>
                     </Table>
+
+
                 </div>
             </Paper>
 
@@ -167,6 +179,9 @@ const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
         },
         onShowTaskEvents: (task: TaskDTO, no: number) => {
             dispatch(SHOW_TASK_EVENTS.new({task, no}))
+        },
+        onCloseTask: (task: TaskDTO) => {
+            dispatch(onCloseTask(task));
         }
 
     }

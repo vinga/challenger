@@ -4,9 +4,10 @@ import * as webCall from "./eventWebCalls";
 import {EventDTO, EventType, EventGroupDTO} from "./EventDTO";
 import {WEB_STATUS_NOTHING_RETURNED_YET} from "../logic/domain/Common";
 import {authPromiseErr} from "../module_accounts/accountActions";
-import {fetchTasks} from "../module_tasks/taskActions";
+import {fetchTasks, fetchTasksWhenNeededAfterDelay} from "../module_tasks/taskActions";
 import {downloadProgressiveReports} from "../module_reports/reportActions";
 import _ = require("lodash");
+import {MARK_ALL_CHALLENGE_TASKS_AS_INVALID} from "../module_tasks/taskActionTypes";
 
 
 export function sendEvent(authorId: number, content: string) {
@@ -74,11 +75,18 @@ export function loadEventsAsyncAllTheTime() {
                             || e.eventType == EventType.ACCEPT_TASK
                             || e.eventType == EventType.CREATE_TASK
                             || e.eventType == EventType.UPDATE_TASK
-                            || e.eventType == EventType.DELETE_TASK) {
+                            || e.eventType == EventType.DELETE_TASK
+                            || e.eventType == EventType.CLOSE_TASK
+                        ) {
 
-
+// a co z innymi dniami....? moze mark as invalid
+                            dispatch(MARK_ALL_CHALLENGE_TASKS_AS_INVALID.new({challengeId: e.challengeId}));
                             dispatch(fetchTasks(e.challengeId, new Date(e.forDay)));
                             dispatch(downloadProgressiveReports(e.challengeId));
+
+                            dispatch(fetchTasksWhenNeededAfterDelay(challengeId, new Date(e.forDay).addDays(1), 50));
+                            dispatch(fetchTasksWhenNeededAfterDelay(challengeId, new Date(-e.forDay).addDays(1), 500));
+
 
 
                         }
@@ -103,6 +111,7 @@ export function loadEventsAsyncAllTheTime() {
                         // this means no message arrived so far, but it is not an error, we need to retry call
                         dispatch(loadEventsAsyncAllTheTime());
                     } else {
+                        console.log("PERHAPS WE WANT TO LOGOUT HERE");
                         setTimeout(()=> {
                             dispatch(loadEventsAsyncAllTheTime());
                             // other problem, wait 10 seconds and retry

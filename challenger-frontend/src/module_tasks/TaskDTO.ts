@@ -19,38 +19,67 @@ export interface TaskDTO {
     monthDays?: string,
     weekDays?: string,
 
+
 }
 
 
 export interface TaskDTOListForDay {
+
     day: Date;
     taskList: Array<TaskDTO>,
     lastUpdated: Date;
     challengeId: number;
     webState: WebState;
-    invalidTasksIds: Array<number>
-
+    invalidTasksIds: Array<number>,
 
 
 }
 export interface TaskDTOState {
     editedTask?: TaskDTO;
-    tasks: Map<string,TaskDTOListForDay>;
+
+    //OLD WAY
+    tasksForDays: TaskForDays;
+
+
+    taskProgressesForDays?: TaskProgressesForDays
+    allTasks: TaskDTOList;
+
 }
 
+export interface TaskDTOList {
+    [id: number]:TaskDTO
+}
+export interface TaskForDays {
+    [index: string]:TaskDTOListForDay
+}
+export interface TaskProgressesForDays {
+    [index: string]:TaskProgressDTOListForDay
 
+}
+export interface TaskProgressDTOListForDay {
+    day: Date;
+    challengeId: number;
+    webState: WebState;
+    taskProgresses: TaskProgressDTO[]
+}
+
+export interface TaskProgressForDay {
+
+    taskId: number,
+    done: boolean
+}
 
 
 export function createTaskDTOListKey(challengeId: number, day: Date):string {
-   return  "" + challengeId + "-" + day.yyyy_mm_dd();
+   return  "t" + challengeId + "t" + day.yyyyxmmxdd();
 }
-
 
 export const TaskStatus = {
     waiting_for_acceptance: "waiting_for_acceptance",
     accepted: "accepted",
     rejected: "rejected"
 };
+
 
 export const TaskType = {
     onetime: "onetime",
@@ -71,7 +100,8 @@ export interface TaskApprovalDTO {
 export interface TaskProgressDTO {
     taskId: number;
     done: boolean;
-    progressTime: number
+    progressTime: number,
+    task?: TaskDTO
 };
 
 export interface TaskUserDTO {

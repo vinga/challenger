@@ -9,5 +9,6 @@ enum class EventType {
     REJECT_TASK,
     CHECKED_TASK,
     UNCHECKED_TASK,
-    DELETE_TASK
+    DELETE_TASK,
+    CLOSE_TASK
 }

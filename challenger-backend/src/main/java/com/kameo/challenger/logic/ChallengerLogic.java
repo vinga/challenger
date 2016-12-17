@@ -17,6 +17,7 @@ import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.jinq.jpa.JPQL;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
@@ -144,4 +145,6 @@ public class ChallengerLogic {
             return Lists.newArrayList();
         return anyDao.streamAll(TaskApprovalODB.class).where(ta -> rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected).collect(Collectors.toList());
     }
+
+
 }

@@ -53,7 +53,7 @@ public class ReportsTest implements En {
             final UserODB u = testHelper.resolveUserByLogin(login);
             final ChallengeODB ch = testHelper.resolveChallenge(challengeName);
             LocalDate fromDate=LocalDate.now().minusDays(daysAgo-1);
-            progressiveReport = reportDAO.getProgressiveReport(u.getId(), ch.getId(), fromDate);
+            progressiveReport = reportDAO.getProgressiveReport(u.getId(), ch.getId(), fromDate, true, true);
         });
 
         Then("^\"([^\"]*)\" see that \"([^\"]*)\" has total points in progressive report$", (String login1, String login2,  DataTable points) -> {

@@ -114,7 +114,6 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
     renderPost = (ev: DisplayedEventUI | DateDiscrimUI) => {
         if (ev.kind == 'DateDiscrimUI') {//ev instanceof DateDiscrim) {
-
             var ddisc = ev as DateDiscrimUI;
             return <div style={{fontSize:"10px", marginTop:'10px', borderRight:
              '10px solid transparent',marginRight:'20px',borderBottom: "1px solid #ddd", width:"100%"}}>{ddisc.title}</div>;

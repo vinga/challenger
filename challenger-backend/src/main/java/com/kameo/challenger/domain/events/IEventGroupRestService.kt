@@ -36,7 +36,7 @@ interface IEventGroupRestService {
         companion object {
             fun fromODB(pair : Pair<EventReadODB, EventODB>): EventDTO {
                 val co = fromODB(pair.second)
-                co.readDate=pair.first.read?.time ?: null
+                co.readDate=pair.first.read?.time
                 co.eventReadId=pair.first.id
                 return co
             }
