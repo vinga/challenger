@@ -21,7 +21,7 @@ interface Props {
 interface PropsFunc {
     onEditTask?: (task: TaskDTO)=>void;
 
-    onShowTaskEvents?: (task: TaskDTO, no: number)=>void;
+    onShowTaskEvents?: (task: TaskDTO, no: number, toggle: boolean)=>void;
 }
 interface State {
     showCloseTask?: TaskDTO
@@ -48,7 +48,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
     };
     onShowTaskEvents = () => {
         if (this.props.onShowTaskEvents != null)
-            this.props.onShowTaskEvents(this.props.task, this.props.no);
+            this.props.onShowTaskEvents(this.props.task, this.props.no, true);
     }
 
 
@@ -56,9 +56,9 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
         var style = {lineHeight: '16px', margin: '5px', color: '#444', cursor: "pointer"};
         return <div>
 
-            <Tooltip tooltip="Filter events" delay="1s">
+          {/*  <Tooltip tooltip="Filter events" delay="1s">
                 <a onClick={()=>{this.onShowTaskEvents(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className=" fa fa-comment"/>
-            </Tooltip>
+            </Tooltip>*/}
 
 
             <Tooltip tooltip="Show details" delay="1s">
@@ -115,7 +115,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
 
         >
             <div className=""
-                 onClick={this.onEditTask} onMouseOver={ this.onMouseEnter}
+                 onClick={this.onShowTaskEvents} onMouseOver={ this.onMouseEnter}
 
 
                  style={{display:"block", height: '50px'}}

@@ -47,7 +47,7 @@ interface ReduxProps {
 interface ReduxPropsFunc {
     onTaskCheckedStateChangedFunc: (caller: TaskUserDTO, challengeId: number, taskProgress: TaskProgressDTO)=>void;
     onEditTask: (task: TaskDTO)=>void;
-    onShowTaskEvents: (task: TaskDTO, no: number) => void;
+    onShowTaskEvents: (task: TaskDTO, no: number, toggle: boolean) => void;
     onCloseTask: (task: TaskDTO)=>void;
 }
 
@@ -177,8 +177,8 @@ const mapDispatchToProps = (dispatch): ReduxPropsFunc => {
         onEditTask: (task: TaskDTO) => {
             dispatch(OPEN_EDIT_TASK.new(task))
         },
-        onShowTaskEvents: (task: TaskDTO, no: number) => {
-            dispatch(SHOW_TASK_EVENTS.new({task, no}))
+        onShowTaskEvents: (task: TaskDTO, no: number, toggle: boolean) => {
+            dispatch(SHOW_TASK_EVENTS.new({task, no, toggle}))
         },
         onCloseTask: (task: TaskDTO) => {
             dispatch(onCloseTask(task));

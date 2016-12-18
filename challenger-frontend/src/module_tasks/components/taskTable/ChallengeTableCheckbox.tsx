@@ -1,6 +1,6 @@
 import * as React from "react";
 import Checkbox from "material-ui/Checkbox";
-import {TaskDTO} from "../../TaskDTO";
+import {TaskDTO, TaskStatus} from "../../TaskDTO";
 import colors from "../../../views/common-components/Colors";
 
 
@@ -29,7 +29,7 @@ export default class TaskCheckbox extends React.Component<Props, void> {
 
         return <Checkbox
             key="statusCb"
-            disabled={this.props.taskDTO.closeDate!=null}
+            disabled={this.props.taskDTO.closeDate!=null || this.props.taskDTO.taskStatus==TaskStatus.rejected}
             checked={this.props.taskDTO.done === true}
             onCheck={onCheck(this.props.taskDTO.id)}
             iconStyle={{fill: this.props.authorized ? colors.userColors[this.props.no] : "lightgrey"}}

@@ -73,4 +73,3 @@ export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<String>
 );
 
 
-

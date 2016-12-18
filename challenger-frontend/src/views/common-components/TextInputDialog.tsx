@@ -7,6 +7,7 @@ interface Props {
     floatingLabelText: string,
     closeYes: (str: string)=>void;
     closeDialog: ()=>void;
+    inputRequired?: boolean
 }
 
 export default class TextInputDialog extends React.Component<Props, void> {
@@ -15,8 +16,11 @@ export default class TextInputDialog extends React.Component<Props, void> {
         super(props);
     }
 
-    handleYes = (str) => {
-        this.props.closeYes(this.textField.state.fieldValue);
+    handleYes = () => {
+        if (!this.textField.checkIsValid())
+            return;
+        var str=this.textField.state.fieldValue;
+        this.props.closeYes(str);
         this.props.closeDialog();
     };
     handleClose= () => {
@@ -41,7 +45,14 @@ export default class TextInputDialog extends React.Component<Props, void> {
                        contentStyle={{width:600}}
         actions={actions}
         >
-           <TextFieldExt    autoFocus={true} style={{width:"100%"}} ref={c=>this.textField=c} floatingLabelText={this.props.floatingLabelText} />
+           <TextFieldExt    autoFocus={true}
+                            style={{width:"100%"}}
+                            ref={c=>this.textField=c}
+                            onEnterKeyDown={this.handleYes}
+                            floatingLabelText={this.props.floatingLabelText}
+                            useRequiredValidator={this.props.inputRequired==null || this.props.inputRequired==true}
+                            validateOnChange={true}
+           />
         </Dialog>;
     }
 

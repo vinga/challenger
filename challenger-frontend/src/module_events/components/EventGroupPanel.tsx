@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch, ownProps: Props): PropsFunc => {
             dispatch(EXPAND_EVENTS_WINDOW.new({expanded: true}))
         },
         onTaskCloseFunc: () => {
-            dispatch(SHOW_TASK_EVENTS.new({task: null, no: null}))
+            dispatch(SHOW_TASK_EVENTS.new({task: null, no: null, toggle: false}))
         }
     }
 };
@@ -166,6 +166,19 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                         </div>
 
                     </Chip>
+
+                    <Chip className="clickableChip" style={{backgroundColor: "#eeeeee", flexBasis: 'min-content', minWidth: '40px'}}>
+                        <div style={{display:"block"}}>
+                            Actions
+
+                            <span style={{float: "right", marginLeft: "10px"}}>
+                                 <FontIcon className="fa fa-eye" style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onTaskCloseFunc}/>
+                            </span>
+
+                        </div>
+                    </Chip>
+
+
                 </div>
                 <div style={{position:"absolute",right:"10px",top:"10px", fontSize:'10px', height:'26px'}}>
                     {this.props.expandedEventWindow

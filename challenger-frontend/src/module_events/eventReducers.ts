@@ -42,6 +42,16 @@ export function eventsState(state: EventState = getInitialState(), action): Even
         return copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == action.challengeId)});
 
     } else if (isAction(action, SHOW_TASK_EVENTS)) {
+
+        if (action.toggle) {
+            if (state.selectedTask!=null && action.task!=null && state.selectedTask.id==action.task.id) {
+                //just clear
+                return copy(state).and({
+                    selectedTask: null,
+                    selectedNo: null
+                })
+            }
+        }
         return copy(state).and({
             selectedTask: action.task,
             selectedNo: action.no,

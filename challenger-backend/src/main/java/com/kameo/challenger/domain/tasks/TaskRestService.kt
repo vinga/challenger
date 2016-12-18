@@ -54,10 +54,18 @@ class TaskRestService : ITaskRestService {
     @Path("challenges/{challengeId}/tasks")
     fun getTasks(@PathParam("challengeId") contractId: Long, @QueryParam("ids") taskIds: String): List<TaskDTO> {
         val callerId = session.userId
+        val taskIdsAsLong = taskIds.split(",").map{it.toLong()};
+        val tasks =  taskDao.getTasksById(callerId,contractId,taskIdsAsLong);
 
+        var taskApprovalsOtherThanAccepted=taskDao.getTasksApprovalsOtherThanAccepted(tasks)
+                .map {TaskApprovalDTO.fromODBtoDTO(it) }.groupBy { it.taskId }.mapValues { it.value.toTypedArray()  }
 
-        var taskIdsAsLong: List<Long> = taskIds.split(",").map{it.toLong()};
-        return taskDao.getTasksById(callerId,contractId,taskIdsAsLong).map { TaskDTO.fromOdb(it) }
+        return tasks.map {
+            TaskDTO.fromOdb(it).apply {
+                taskApprovals=taskApprovalsOtherThanAccepted[it.id]
+            }
+        }
+
     }
 
 

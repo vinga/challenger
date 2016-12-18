@@ -13,6 +13,7 @@ interface Props {
     errorText?: string
     validateOnFocusOut?: boolean,
     validateOnChange?: boolean,
+    validateOnEnterKeyDown?: boolean,
     validator?: (str: string)=>string,
     useRequiredValidator?: boolean
     minLengthNumber?: number,
@@ -52,8 +53,11 @@ export default class TextFieldExt extends React.Component<Props,State> {
 
     handleKeyDown = (event) => {
         if (event.key === 'Enter') {
-            if (this.props.onEnterKeyDown != null)
-                this.props.onEnterKeyDown();
+            if (this.props.validateOnEnterKeyDown==null || this.props.validateOnEnterKeyDown==true)
+                if (this.checkIsValid()) {
+                    if (this.props.onEnterKeyDown != null)
+                        this.props.onEnterKeyDown();
+                }
         }
     }
 

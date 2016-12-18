@@ -13,8 +13,8 @@ export interface TaskDTO {
     done: boolean,
     userId:number;
     createdByUserId:number,
-    deleted?: boolean,
-    taskApproval?: TaskApprovalDTO;
+    //deleted?: boolean,
+    //taskApproval?: TaskApprovalDTO;
     taskApprovals?: TaskApprovalDTO[];
     monthDays?: string,
     weekDays?: string,

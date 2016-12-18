@@ -9,9 +9,6 @@ import {WebState} from "../logic/domain/Common";
 const userDynamicSelector = (state:ReduxState, userId: number):number => {
     return userId
 }
-/*const taskDynamicSelector = (state:ReduxState, tasks: TaskDTO[]):TaskDTO[] => {
-    return tasks
-}*/
 
 export const allTasksSelector: Selector<ReduxState, TaskDTOList> = (state, map): TaskDTOList => state.tasksState.allTasks;
 
@@ -49,21 +46,11 @@ return calculateTasksForUserAndDayHelper(taskProgressForDay, tasks, userId);
 export const makeBusyTasksSelectorForUserAndDay = () => {
     return createSelector(
         currentTaskProgressSelector,
-       /* taskDTOListKeySelector,
-        taskDynamicSelector ,*/
         (tp: TaskProgressDTOListForDay /*taskDtoForDay: TaskDTOListForDay, tasksLists: TaskDTO[]*/): boolean => {
             if (tp==null)
                 return false;
             var busy = tp.webState == WebState.FETCHING_VISIBLE;
             return busy;
-
-        /*    if (taskDtoForDay==null)
-                return false;
-            var busy = taskDtoForDay.webState == WebState.FETCHING_VISIBLE;
-            if (busy) {
-                busy = tasksLists.filter((t: TaskDTO)=>taskDtoForDay.invalidTasksIds.contains(t.id)).length > 0;
-            }
-            return busy;*/
         }
     );
 }

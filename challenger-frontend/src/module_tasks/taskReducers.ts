@@ -8,7 +8,7 @@ import {
     TaskForDays,
     TaskProgressDTOListForDay,
     TaskDTOList,
-    TaskProgressDTO
+    TaskProgressDTO, TaskProgressesForDays
 } from "./TaskDTO";
 import {
     LOAD_TASKS_RESPONSE_OLDWAY,
@@ -21,9 +21,9 @@ import {
     CLOSE_EDIT_TASK,
     CREATE_AND_OPEN_EDIT_TASK,
     CLOSE_TASK_OPTIMISTIC,
-    MARK_ALL_CHALLENGE_TASKS_AS_INVALID,
+    MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID,
     LOAD_TASK_PROGRESSES_RESPONSE,
-    LOAD_TASKS_RESPONSE_NEWWAY
+    LOAD_TASKS_RESPONSE_NEWWAY, DELETE_TASKS_REMOTE, MARK_TASK_DONE_UNDONE_REMOTE
 } from "./taskActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
@@ -46,6 +46,7 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
     if (isAction(action, 'LOGOUT')) {
         return getInitialState();
     }
+
     if (isAction(action, CREATE_AND_OPEN_EDIT_TASK)) {
         var today = new Date();
         var taskDTO = {
@@ -80,13 +81,9 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
         return path.map(state, `tasksForDays.${key}`, ()=> action);
 
     } else if (isAction(action, LOAD_TASKS_RESPONSE_NEWWAY)) {
-        var copy: TaskDTOList = Object.assign({}, state.allTasks, _.keyBy(action.tasks, 'id'));
 
-        console.log("COPY");
-        console.log(copy);
-
-        // var bewState= path.map(state, `allTasks`, ()=> { copy });
-        return Object.assign({}, state, {allTasks: copy})
+        var allTasks:any = Object.assign({}, state.allTasks, _.keyBy(action.tasks, 'id'));
+        return Object.assign({}, state, {allTasks})
 
     } else if (isAction(action, LOAD_TASK_PROGRESSES_RESPONSE)) {
         var tl: TaskProgressDTOListForDay = action.payload
@@ -106,18 +103,61 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
     } else if (isAction(action, MARK_TASK_DONE_OPTIMISTIC)) {
 
         var key: string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));
-        return path.map(state, `taskProgressesForDays.${key}`, (tl: TaskProgressDTO)=> {
-            tl.done = action.taskProgress.done;
-            return tl
+        return path.map(state, `taskProgressesForDays.${key}.taskProgresses[taskId=${action.taskProgress.taskId}]`, (tl: TaskProgressDTO)=> {
+            return Object.assign({},tl,{done: action.taskProgress.done});
+        });
+
+    } else if (isAction(action, MARK_TASK_DONE_UNDONE_REMOTE)) {
+        var key: string = createTaskDTOListKey(action.challengeId, new Date(action.forDay));
+        return path.map(state, `taskProgressesForDays.${key}.taskProgresses[taskId=${action.taskId}]`, (tl: TaskProgressDTO)=> {
+            if (tl!=null)
+                return Object.assign({},tl,{done: action.done});
+            return null
         });
 
     } else if (isAction(action, DELETE_TASK_OPTIMISTIC)) {
 
-        var copy: TaskDTOList = _.omit(state.allTasks, [action.id])
-        var newState = Object.assign({}, state, {allTasks: copy})
-        newState.editedTask = undefined;
-        return newState;
+        return Object.assign({}, state,
+            {allTasks: _.omit(state.allTasks, [action.id])},
+            {editedTask: undefined});
 
+
+    } else if (isAction(action, CLOSE_TASK_OPTIMISTIC)) {
+
+        return path.map(state, `allTasks.${action.task.id}`,t => {
+            return Object.assign({}, t, {closeDate: new Date().getTime()});
+        });
+
+    }
+    else if (isAction(action, DELETE_TASKS_REMOTE)) {
+
+        var allTasks:any = _.omit(state.allTasks, action.taskIdsToDelete)
+        return Object.assign({}, state, {allTasks}, {editedTask: undefined})
+
+
+    } else  if (isAction(action, MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID)) {
+        console.log("MARK ALL AS INVALID");
+
+
+        var taskProgressesForDays: TaskProgressesForDays = Object.assign({});
+        $.map(state.taskProgressesForDays, (tpo: TaskProgressDTOListForDay, key: string)=> {
+            if (tpo.challengeId == action.challengeId) {
+                taskProgressesForDays[key] = Object.assign({}, tpo, {webState: WebState.NEED_REFETCH});
+            } else taskProgressesForDays[key] = tpo;
+        })
+
+
+        return Object.assign({}, state, {taskProgressesForDays});
+
+    } else if (isAction(action, TASK_PROGRESS_REQUEST)) {
+        var key: string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));
+        var res= path.map(state, `taskProgressesForDays.${key}`, (tl: TaskProgressDTOListForDay)=> {
+            if (tl.webState==WebState.NEED_REFETCH)
+                tl.webState = WebState.FETCHING;
+            return tl
+        });
+console.log(res);
+        return res;
     } else {
 
 
@@ -134,20 +174,7 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
 
 
 function tasks(state: TaskForDays, action) {
-    if (isAction(action, MARK_ALL_CHALLENGE_TASKS_AS_INVALID)) {
-        console.log("MARK ALL AS INVALID");
-
-
-        var newState: TaskForDays = Object.assign({});
-        $.map(state, (taskListForDayDTO: TaskDTOListForDay, key: string)=> {
-            if (taskListForDayDTO.challengeId == action.challengeId) {
-                newState[key] = Object.assign({}, taskListForDayDTO, {webState: WebState.NEED_REFETCH});
-            } else newState[key] = taskListForDayDTO;
-
-        })
-        return newState;
-
-    } else if (isAction(action, LOAD_TASKS_RESPONSE_OLDWAY)) {
+    if (isAction(action, LOAD_TASKS_RESPONSE_OLDWAY)) {
         var key: string = createTaskDTOListKey(action.challengeId, action.day);
         var newState: TaskForDays = Object.assign({}, state, {[key]: action});
 
@@ -186,14 +213,6 @@ function tasks(state: TaskForDays, action) {
             if (taskListForDayDTO.webState == WebState.NEED_REFETCH)
                 taskListForDayDTO.webState = WebState.FETCHING;
         });
-        return newState;
-    } else if (isAction(action, TASK_PROGRESS_REQUEST)) {
-        var key: string = createTaskDTOListKey(action.challengeId, new Date(action.taskProgress.progressTime));
-
-        var newState: TaskForDays = Object.assign({}, state);
-        var taskList: TaskDTOListForDay = newState[key];
-        if (taskList.webState == WebState.NEED_REFETCH)
-            taskList.webState = WebState.FETCHING;
         return newState;
     }
     else return state;
