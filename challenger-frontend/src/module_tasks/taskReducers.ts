@@ -56,6 +56,7 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
             label: "Example task 1",
             taskType: TaskType.onetime,
             taskStatus: TaskStatus.waiting_for_acceptance,
+            startDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() ).getTime(),
             dueDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7).getTime(),
             userId: action.forUserId,
             challengeId: action.challengeId,

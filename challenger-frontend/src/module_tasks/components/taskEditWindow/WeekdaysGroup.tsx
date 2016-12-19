@@ -5,6 +5,7 @@ import {RowCol} from "../../../views/common-components/Flexboxgrid";
 interface Props {
     days: string
     onDaysChanged: (monthdays: string)=>void;
+    disabled?: boolean
 }
 interface State {
     weekdays: boolean[]
@@ -75,6 +76,7 @@ export class WeekdaysGroup extends React.Component<Props, State> {
                         label={this.mapNumberToWeekDay(index)}
                         checked={checked}
                         onCheck={(event: any, isInputChecked: boolean) => this.handleOnCheckWeekday(index, isInputChecked)}
+                        disabled={this.props.disabled}
                     />
             )
         }</div>

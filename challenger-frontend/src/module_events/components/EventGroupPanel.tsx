@@ -4,7 +4,7 @@ import TextFieldExt from "../../views/common-components/TextFieldExt";
 import {FlatButton, FontIcon} from "material-ui";
 import {copy, ReduxState} from "../../redux/ReduxState";
 import {eventsSelector} from "../eventSelectors";
-import {EXPAND_EVENTS_WINDOW, SHOW_TASK_EVENTS} from "../eventActionTypes";
+import {EXPAND_EVENTS_WINDOW, SHOW_TASK_EVENTS, TOGGLE_EVENT_ACTIONS_VISIBILITY} from "../eventActionTypes";
 import {connect} from "react-redux";
 import {sendEvent} from "../eventActions";
 import {EventType, DateDiscrimUI, DisplayedEventUI} from "../EventDTO";
@@ -22,7 +22,8 @@ interface ReduxProps {
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
     task?: TaskDTO,
-    no?: number
+    no?: number,
+    eventActionsVisible: boolean
 
 }
 interface PropsFunc {
@@ -30,6 +31,7 @@ interface PropsFunc {
     onExpandFunc: () => void
     onCompressFunc: () => void
     onTaskCloseFunc: () => void
+    onToggleActionsVisibilityFunc: () =>void
 }
 
 
@@ -39,7 +41,8 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
         eventWindowVisible: state.eventsState.eventWindowVisible,
         expandedEventWindow: state.eventsState.expandedEventWindow,
         task: state.eventsState.selectedTask,
-        no: state.eventsState.selectedNo
+        no: state.eventsState.selectedNo,
+        eventActionsVisible: state.eventsState.eventActionsVisible
     }
 };
 
@@ -57,6 +60,9 @@ const mapDispatchToProps = (dispatch, ownProps: Props): PropsFunc => {
         },
         onTaskCloseFunc: () => {
             dispatch(SHOW_TASK_EVENTS.new({task: null, no: null, toggle: false}))
+        },
+        onToggleActionsVisibilityFunc: () => {
+            dispatch(TOGGLE_EVENT_ACTIONS_VISIBILITY.new({}))
         }
     }
 };
@@ -152,8 +158,8 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
         return <Paper style={st}>
             <div style={{display: "block", clear: "both"}}>
-                <div style={{position:"absolute",left:"4px",top:"4px", verticalAlign:"center", display:"block"}}>
-                    <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
+                <div style={{position:"absolute",left:"4px",top:"4px", verticalAlign:"center", display:"flex"}}>
+                    {this.props.task != null && <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
                         <div style={{display:"block"}}>
                             {this.renderTaskName()}
 
@@ -165,14 +171,14 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
                         </div>
 
-                    </Chip>
+                    </Chip> }
 
                     <Chip className="clickableChip" style={{backgroundColor: "#eeeeee", flexBasis: 'min-content', minWidth: '40px'}}>
                         <div style={{display:"block"}}>
                             Actions
 
                             <span style={{float: "right", marginLeft: "10px"}}>
-                                 <FontIcon className="fa fa-eye" style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onTaskCloseFunc}/>
+                                 <FontIcon className={this.props.eventActionsVisible?"fa fa-eye":"fa fa-eye-slash"} style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onToggleActionsVisibilityFunc}/>
                             </span>
 
                         </div>

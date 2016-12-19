@@ -5,6 +5,7 @@ export interface TaskDTO {
     challengeId: number,
     label: string,
     dueDate?: number,
+    startDate?: number,
     closeDate?: number,
     taskType: string,
     icon: string,

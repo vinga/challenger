@@ -35,9 +35,14 @@ open class TaskDAO {
             throw IllegalArgumentException()
         if (!cc.participants.any { it.user.id == taskODB.user.id })
             throw IllegalArgumentException()
+        if (taskODB.startDate?.isAfter(taskODB.dueDate) ?: false) {
+            throw IllegalArgumentException("Start date cannot be bigger than due date")
+        }
 
         normalizeWeekdays(taskODB)
         normalizeMonthdays(taskODB)
+
+
 
         taskODB.createdByUser = UserODB(callerId)
         taskODB.taskStatus =
@@ -143,8 +148,12 @@ open class TaskDAO {
             and {
                 or {
                     it get TaskODB::taskType eq TaskType.onetime
+
+                    it get +TaskODB::startDate before dayMidnight.plusDays(1).atStartOfDay()
+
+
                     // for onetimes only if 'not done' OR 'is done exactly at dayMidnight'
-                    it get +TaskODB::dueDate after dayMidnight.atStartOfDay()
+                    it get +TaskODB::dueDate after dayMidnight.minusDays(1).atStartOfDay()
                     ors {
                         it get TaskODB::closeDate isNull {}
                         it get TaskODB::closeDate eq dayMidnight
@@ -187,8 +196,8 @@ open class TaskDAO {
 
     open fun deleteTask(callerId: Long, taskId: Long): TaskODB {
         val task = anyDaoNew.find(TaskODB::class, taskId)
-        if (task.createdByUser.id != callerId && task.user.id != callerId)
-            throw IllegalArgumentException()
+        if (task.user.id != callerId)
+            throw IllegalArgumentException("Only user that has assigned task to him can delete it")
 
         anyDaoNew.remove(TaskProgressODB::class) { it get TaskProgressODB::task eqId taskId }
         anyDaoNew.remove(TaskApprovalODB::class) { it get TaskApprovalODB::task eqId taskId }

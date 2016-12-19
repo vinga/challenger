@@ -45,7 +45,10 @@ export function deleteTask(task: TaskDTO) {
         //task.deleted = true;
         dispatch(DELETE_TASK_OPTIMISTIC.new(task));
         dispatch(MODIFY_TASK_REQUEST.new(task));
-        webCall.deleteTask(task).then(()=> {
+
+        // user can delete only tasks assigned to him
+        var jwtTokenOfTaskUser=challengeParticipantsSelector(getState()).find(chp=>chp.id==task.userId).jwtToken;
+        webCall.deleteTask(task, jwtTokenOfTaskUser).then(()=> {
 
         }).catch((reason)=>authPromiseErr(reason, dispatch));
         dispatch(displayInProgressWebRequestsIfAny());

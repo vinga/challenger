@@ -175,7 +175,19 @@ class BaseWebCall {
             throw Object.assign({}, reason, {jwtToken: this.webToken})
         });
     }
-
+    deleteMultiAuthorized(path: string, jwtTokens: Array<String>): Promise<any> {
+        return Promise.resolve($.ajax({
+            url: baseApiUrl + path,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            type: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + jwtTokens.join(" ")
+            }
+        })).catch((reason: XMLHttpRequest) => {
+            throw Object.assign({}, reason, {jwtToken: jwtTokens})
+        });
+    }
 
 }
 

@@ -43,7 +43,10 @@ data class TaskODB(@Id
     var icon: String? = null
 
 
+    // from when task will be visible
+    var startDate: LocalDateTime? = null
     var dueDate: LocalDateTime? = null
+
 
 
     var closeDate: LocalDate? = null

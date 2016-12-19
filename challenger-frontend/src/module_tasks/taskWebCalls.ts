@@ -22,8 +22,8 @@ export function createTask(task: TaskDTO): Promise<TaskDTO> {
     return baseWebCall.post(`/challenges/${task.challengeId}/tasks/`, task);
 }
 
-export function deleteTask(task: TaskDTO): Promise<void> {
-    return baseWebCall.delete(`/challenges/${task.challengeId}/tasks/${task.id}`);
+export function deleteTask(task: TaskDTO, jwtToken: string): Promise<void> {
+    return baseWebCall.deleteMultiAuthorized(`/challenges/${task.challengeId}/tasks/${task.id}`,[].concat(jwtToken));
 }
 export function updateTaskStatus(challengeId: number, taskStatus: TaskApprovalDTO, jwtTokens: Array<String>): Promise<TaskDTO> {
     return baseWebCall.postMultiAuthorized(`/challenges/${challengeId}/tasks/${taskStatus.taskId}/taskStatus`, taskStatus, jwtTokens);

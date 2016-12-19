@@ -51,10 +51,8 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
 Domyślny filtr na cheked/unchecked bo zasmiecają okienko?.  Jak call trwa za dlugo pokazac kreciolek.<br/>
-Walidacja i ustawianie start date przy utworzeniu taska<br/>
                 Kto mzoe usunac taska? Tylko jego wlasciciel chyba? - w tej chwili kazdy moze, tak nie powinno byc<br/>
-                Pole edycji taska nie powinno byc edytowalne<br/>
-
+Potwierdzanie maili i odswiezanie info o niepotwierdzonych challengach.<br/>
                 Konfirmacja challenga<br/>
                 <div>{rows}</div>
 

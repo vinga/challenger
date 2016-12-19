@@ -67,6 +67,7 @@ interface ITaskRestService {
             val difficulty: Int = 0, //0-2
             val challengeId: Long = 0,
             val dueDate: Long? = null,
+            val startDate: Long? = null,
             val userId: Long = 0,
             val createdByUserId: Long = 0,
             val taskType: TaskType = TaskType.daily,
@@ -92,6 +93,7 @@ interface ITaskRestService {
                         difficulty = odb.difficulty,
                         challengeId = odb.challenge.id,
                         dueDate = odb.dueDate?.toInstant(ZoneOffset.UTC)?.toEpochMilli(),
+                        startDate = odb.startDate?.toInstant(ZoneOffset.UTC)?.toEpochMilli(),
                         taskType = odb.taskType,
                         taskStatus = odb.taskStatus,
                         userId = odb.user.id,
@@ -119,6 +121,10 @@ interface ITaskRestService {
             task.difficulty = this.difficulty
             if (this.dueDate != null)
                 task.dueDate =  Instant.ofEpochMilli(this.dueDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+            if (this.startDate!=null)
+                task.startDate=  Instant.ofEpochMilli(this.startDate).atZone(ZoneId.systemDefault()).toLocalDateTime()
+
             if (this.id > 0)
                 task.id = this.id
 

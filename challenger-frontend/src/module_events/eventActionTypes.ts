@@ -10,4 +10,5 @@ export const ADD_NEW_EVENT_OPTIMISTIC: ActionType<EventDTO> = new ActionType<any
 export const MARK_EVENT_AS_READ_OPTIMISTIC: ActionType<{challengeId: number, eventId: number, readDate: number}> = new ActionType<any>('MARK_EVENT_AS_READ_OPTIMISTIC');
 export const EXPAND_EVENTS_WINDOW: ActionType<{expanded: boolean}> = new ActionType<any>('EXPAND_EVENTS_WINDOW');
 export const SHOW_TASK_EVENTS: ActionType<{task?: TaskDTO, no?: number, toggle: boolean}> = new ActionType<any>('SHOW_TASK_EVENTS');
+export const TOGGLE_EVENT_ACTIONS_VISIBILITY: ActionType<{}> = new ActionType<any>('TOGGLE_EVENT_ACTIONS_VISIBILITY');
 

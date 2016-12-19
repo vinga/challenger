@@ -1,4 +1,7 @@
-import {EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC, SHOW_TASK_EVENTS, WEB_ASYNC_EVENT_RESPONSE, MARK_EVENT_AS_READ_OPTIMISTIC} from "./eventActionTypes";
+import {
+    EXPAND_EVENTS_WINDOW, WEB_EVENTS_RESPONSE, ADD_NEW_EVENT_OPTIMISTIC, SHOW_TASK_EVENTS, WEB_ASYNC_EVENT_RESPONSE, MARK_EVENT_AS_READ_OPTIMISTIC,
+    TOGGLE_EVENT_ACTIONS_VISIBILITY
+} from "./eventActionTypes";
 import {copy, copyAndReplace} from "../redux/ReduxState";
 import {isAction} from "../redux/ReduxTask";
 import {EventState, EventDTO, EventGroupDTO} from "./EventDTO";
@@ -10,7 +13,8 @@ const getInitialState = (): EventState => {
         expandedEventWindow: false,
         eventGroups: new Array<EventGroupDTO>(),
         selectedTask: null,
-        selectedNo: null
+        selectedNo: null,
+        eventActionsVisible: false
     }
 }
 
@@ -97,6 +101,8 @@ export function eventsState(state: EventState = getInitialState(), action): Even
             )
         });
         return copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == action.challengeId)});
+    } else if (isAction(action, TOGGLE_EVENT_ACTIONS_VISIBILITY)) {
+       return Object.assign({}, state, {eventActionsVisible: !state.eventActionsVisible});
     }
     return state;
 }

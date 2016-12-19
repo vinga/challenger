@@ -151,7 +151,7 @@ public class FakeDataLogic implements CommandLineRunner {
 
 
         TaskODB ac5 = new TaskODB();
-        ac5.setCreateDate(LocalDateTime.now().minusDays(2));
+        ac5.setCreateDate(LocalDateTime.now().minusDays(3));
         ac5.setUser(data.userKami);
         ac5.setCreatedByUser(data.userJack);
         ac5.setChallenge(contract1);
@@ -160,6 +160,7 @@ public class FakeDataLogic implements CommandLineRunner {
         ac5.setDifficulty(2);
         ac5.setIcon("fa-shopping-basket");
         ac5.setTaskType(TaskType.onetime);
+        ac5.setStartDate(LocalDateTime.now().minusDays(2));
         ac5.setDueDate(LocalDateTime.now().plusDays(10));
         em.persist(ac5);
         approveTaskForCreator(ac5);

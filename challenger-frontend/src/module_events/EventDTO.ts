@@ -37,7 +37,8 @@ export interface EventState {
     expandedEventWindow: boolean,
     eventGroups: Array<EventGroupDTO>,
     selectedTask: TaskDTO,
-    selectedNo: number
+    selectedNo: number,
+    eventActionsVisible: boolean
 }
 
 

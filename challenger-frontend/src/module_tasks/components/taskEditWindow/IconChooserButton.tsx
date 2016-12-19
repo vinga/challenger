@@ -5,13 +5,14 @@ import IconChooserGrid from "./IconChooserGrid.tsx";
 
 
 interface Props {
-    icon:string,
-    onClick:(icon:string)=>void;
+    icon: string,
+    onClick: (icon: string)=>void;
+    disabled?: boolean
 }
 interface State {
-    icon:string,
-    open:boolean,
-    anchorEl?:any;
+    icon: string,
+    open: boolean,
+    anchorEl?: any;
 }
 export default class IconChooserButton extends React.Component<Props, State> {
     constructor(props) {
@@ -22,14 +23,16 @@ export default class IconChooserButton extends React.Component<Props, State> {
         }
     }
 
-    showPopover = (event:React.MouseEvent) => {
+    showPopover = (event: React.MouseEvent) => {
         // This prevents ghost click.
         event.preventDefault();
-        this.setState({
-            icon: this.state.icon,
-            open: true,
-            anchorEl: event.currentTarget,
-        });
+        if (this.props.disabled != true) {
+            this.setState({
+                icon: this.state.icon,
+                open: true,
+                anchorEl: event.currentTarget,
+            });
+        }
     };
 
     handleRequestClose = () => {

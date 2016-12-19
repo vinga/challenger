@@ -15,13 +15,16 @@ import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoCon
 import {Row, Col} from "../../../views/common-components/Flexboxgrid";
 import {MonthdaysGroup} from "./MonthdaysGroup";
 import {WeekdaysGroup} from "./WeekdaysGroup";
+import {challengeParticipantsSelector} from "../../../module_challenges/challengeSelectors";
 
 
 interface Props {
     task: TaskDTO,
 }
 interface ReduxProps {
+    isTaskUserLogged: boolean,
     creatorUserLabel: string
+
 }
 
 interface PropsFunc {
@@ -40,8 +43,8 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
     constructor(props) {
         super(props);
         var vType = "day"
-        if(props.task.monthDays == null)
-        vType = "weekday"
+        if (props.task.monthDays == null)
+            vType = "weekday"
 
         this.state = {
             task: this.props.task,
@@ -51,6 +54,9 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
         };
     }
 
+    isDisabled = () => {
+        return this.props.task.id > 0;
+    }
 
     handleActionNameFieldChange = (event) => {
         this.state.task.label = event.target.value;
@@ -58,11 +64,11 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
     };
 
     handleSubmit = () => {
-        if(this.state.task.taskType == TaskType.daily) {
-          if(this.state.visibilityType == "weekday")
-              this.state.task.monthDays = null;
-          else
-              this.state.task.weekDays = null;
+        if (this.state.task.taskType == TaskType.daily) {
+            if (this.state.visibilityType == "weekday")
+                this.state.task.monthDays = null;
+            else
+                this.state.task.weekDays = null;
         }
 
 
@@ -70,8 +76,19 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
         this.props.onCloseFunc();
     };
 
+    handleStartDateChange = (event, date) => {
+        this.state.task.startDate = date.getTime();
+        if (new Date(this.state.task.startDate).getTime()>new Date(this.state.task.dueDate).getTime()) {
+            this.state.task.dueDate=date.getTime();
+        }
+        this.setState(this.state);
+    };
+
     handleDueDateChange = (event, date) => {
-        this.state.task.dueDate = date;
+        this.state.task.dueDate = date.getTime();
+        if (new Date(this.state.task.startDate).getTime()>new Date(this.state.task.dueDate).getTime()) {
+            this.state.task.startDate=date.getTime();
+        }
         this.setState(this.state);
     };
 
@@ -111,10 +128,13 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
         this.setState(this.state);
     }
     handleDailyTaskVisibilityChange = (event) => {
-        this.state.visibilityType = event.target.value;;
-
+        this.state.visibilityType = event.target.value;
         this.setState(this.state);
     }
+    shouldDisableDate = (date: Date): boolean => {
+        return new Date(date.toDateString()) < new Date(new Date().toDateString());
+    }
+
 
 
     render() {
@@ -156,19 +176,21 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                     <div style={{display: "table", marginBottom: '0px',width:'100%'}}>
                         <div style={{display: "inline-block"}}>
                             <IconChooserButton
+                                disabled={this.isDisabled()}
                                 icon={this.state.task.icon}
                                 onClick={this.handleIconChange}/>
                         </div>
                         <div style={{display: "inline-block", marginLeft: '10px'}}>
                         </div>
                         <TextField
+                            disabled={this.isDisabled()}
                             floatingLabelText="Name"
                             hintText="Name"
                             defaultValue={this.state.task.label}
                             ref="actionName"
                             onChange={this.handleActionNameFieldChange}
                         />
-                        {  this.props.task.id > 0 &&
+                        {  this.props.task.id > 0 && this.props.isTaskUserLogged &&
                         <div style={{float: "right"}}>
                             <IconButton style={{width: 60, height: 60}}
                                         onClick={this.handleTaskDelete}>
@@ -191,12 +213,14 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                                     value="0"
                                     label="Easy"
                                     checkedIcon={<DiffSimpleIcon/>}
+                                    disabled={this.isDisabled()}
                                 />
 
                                 <RadioButton
                                     value="1"
                                     label="Medium"
                                     checkedIcon={<DiffMediumIcon />}
+                                    disabled={this.isDisabled()}
                                     style={{display: 'block', float: 'left'}}
                                 />
 
@@ -204,6 +228,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                                     value="2"
                                     label="Hard"
                                     checkedIcon={<DiffHardIcon />}
+                                    disabled={this.isDisabled()}
                                     style={{display: 'block', float: 'left'}}
                                 />
                             </RadioButtonGroup>
@@ -216,18 +241,22 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                                 <RadioButton
                                     value={TaskType.onetime}
                                     label="Onetime"
+                                    disabled={this.isDisabled()}
                                 />
                                 <RadioButton
                                     value={TaskType.daily}
                                     label="Daily"
+                                    disabled={this.isDisabled()}
                                 />
                                 <RadioButton
                                     value={TaskType.weekly}
                                     label="Weekly"
+                                    disabled={this.isDisabled()}
                                 />
                                 <RadioButton
                                     value={TaskType.monthly}
                                     label="Monthly"
+                                    disabled={this.isDisabled()}
                                 />
                             </RadioButtonGroup>
 
@@ -238,10 +267,12 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                             <DatePicker
                                 textFieldStyle={{width: '100px'}}
                                 hintText="Task start date"
-                                value={new Date(this.state.task.dueDate)}
-                                onChange={this.handleDueDateChange}
+                                value={new Date(this.state.task.startDate)}
+                                onChange={this.handleStartDateChange}
                                 floatingLabelText="Start date"
                                 container="inline"
+                                disabled={this.isDisabled()}
+                                shouldDisableDate={this.shouldDisableDate}
                             />
 
                             <DatePicker
@@ -251,6 +282,8 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                                 onChange={this.handleDueDateChange}
                                 floatingLabelText="Due date"
                                 container="inline"
+                                disabled={this.isDisabled()}
+                                shouldDisableDate={this.shouldDisableDate}
                             />
                         </Col>
                         }
@@ -258,14 +291,14 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         { this.props.task.taskType == TaskType.weekly &&
                         <Col col="6">
                             <Subheader>Visibility</Subheader>
-                            <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged}/>
+                            <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged} disabled={this.isDisabled()}/>
 
                         </Col> }
 
                         { this.props.task.taskType == TaskType.monthly &&
                         <Col col="6">
                             <Subheader>Visibility</Subheader>
-                            <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged}/>
+                            <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged} disabled={this.isDisabled()}/>
                         </Col> }
 
                         { this.props.task.taskType == TaskType.daily &&
@@ -283,23 +316,25 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                                 <RadioButton
                                     label="Week day"
                                     value="weekday"
+                                    disabled={this.isDisabled()}
                                 />
                                 <RadioButton
                                     label="Day in the month"
                                     value="day"
+                                    disabled={this.isDisabled()}
                                 />
-                                </RadioButtonGroup>
+                            </RadioButtonGroup>
                             <Row>
 
                                 {this.state.visibilityType == "weekday" &&
                                 <Col col="4">
-                                    <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged}/>
+                                    <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged} disabled={this.isDisabled()}/>
                                 </Col>
                                 }
 
                                 {this.state.visibilityType == "day" &&
                                 <Col col="8" style={{display:"flex", flexDirection: "row", flexWrap:"wrap"}}>
-                                    <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged}/>
+                                    <MonthdaysGroup days={this.state.task.monthDays} onDaysChanged={this.handleMonthDaysChanged} disabled={this.isDisabled()}/>
                                 </Col>
                                 }
                             </Row>
@@ -324,6 +359,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
 }
 const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
     return {
+        isTaskUserLogged: challengeParticipantsSelector(state).some(chp=>chp.id==ownProps.task.userId && chp.jwtToken!=null),
         creatorUserLabel: state.challenges.visibleChallenges.filter(ch=>ch.id == state.challenges.selectedChallengeId).pop().userLabels.filter(u=>u.id == state.tasksState.editedTask.createdByUserId).pop().label
     }
 };

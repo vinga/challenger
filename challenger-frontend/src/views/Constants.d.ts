@@ -23,7 +23,8 @@ declare global {
         yyyy_mm_dd(): string;
         yyyyxmmxdd(): string;
         mm_dd(): string;
-        dayMonth3(): string
+        dayMonth3(): string;
+
     }
 
 
