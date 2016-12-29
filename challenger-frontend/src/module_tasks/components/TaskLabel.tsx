@@ -1,7 +1,7 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import Chip from "material-ui/Chip";
-import colors, {getColorSuperlightenForUser} from "../../views/common-components/Colors.ts";
+import {getColorSuperlightenForUser, getColorLightenForUser} from "../../views/common-components/Colors.ts";
 import {TaskStatus, TaskDTO, TaskApprovalDTO, TaskUserDTO} from "../TaskDTO";
 import TextInputDialog from "../../views/common-components/TextInputDialog";
 import {updateTaskStatus, deleteTask} from "../taskActions";
@@ -104,7 +104,7 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
                 <div className="taskLabel">{this.props.taskDTO.label}</div>
                 <Chip style={chipWaiting} className="clickableChip">
                     <div style={{lineHeight:'12px',fontSize: '12px',
-                    color:colors.userColorsLighten[this.props.no]}}>
+                    color:getColorLightenForUser(this.props.no)}}>
                         Waiting for {this.props.waitingForAcceptanceLabels} &apos;s<br/> acceptance <i className="fa fa-hourglass-o"></i>
                     </div>
                 </Chip>
@@ -164,7 +164,7 @@ const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
 
             var usersWaitingForAcceptance = task.taskApprovals.filter(ta=>ta.taskStatus == TaskStatus.waiting_for_acceptance)
                 .map(ta=> challengeParticipantsSelector(state, ta.userId).find(cp=>cp.id == ta.userId)).filter(a=>a != null);
-            waitingForAcceptanceLabels = usersWaitingForAcceptance.map(a=>a.label).join();
+            waitingForAcceptanceLabels = usersWaitingForAcceptance.map(a=>a.label).sort().join(", ");
 
 
             // calculate ordinal of first user that can accept

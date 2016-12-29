@@ -17,7 +17,7 @@ import {WebState} from "../logic/domain/Common";
 import * as webCall from "./taskWebCalls";
 import {authPromiseErr} from "../module_accounts/accountActions";
 import {jwtTokensOfChallengeParticipants} from "../module_challenges/index";
-import {selectedChallengeParticipantsSelector, challengeParticipantsSelector} from "../module_challenges/challengeSelectors";
+import {selectedChallengeParticipantsSelector, challengeParticipantsSelector, jwtTokenOfUserWithId} from "../module_challenges/challengeSelectors";
 import _ = require("lodash");
 
 
@@ -26,7 +26,10 @@ export function updateTask(task: TaskDTO) {
         dispatch(MODIFY_TASK_OPTIMISTIC.new(task));
         dispatch(MODIFY_TASK_REQUEST.new(task));
         if (task.id <= 0) {
-            webCall.createTask(task)
+            var state = getState();
+            var jwtTokensOfLoggedChallengeUsers = jwtTokensOfChallengeParticipants(state);
+
+            webCall.createTask(task, jwtTokensOfLoggedChallengeUsers)
                 .then((task: TaskDTO)=> {
 
                 }).catch((reason)=>authPromiseErr(reason, dispatch));
@@ -187,9 +190,8 @@ export function onCloseTask(task: TaskDTO) {
 
     return function (dispatch, getState: ()=>ReduxState) {
         var state = getState();
-        var jwtTokensOfApprovingUsers = jwtTokensOfChallengeParticipants(state);
         dispatch(CLOSE_TASK_OPTIMISTIC.new({task}));
-        webCall.closeTask(task.challengeId, task, jwtTokensOfApprovingUsers)
+        webCall.closeTask(task.challengeId, task, jwtTokenOfUserWithId(state, task.userId))
             .catch((reason)=>authPromiseErr(reason, dispatch))
         dispatch(displayInProgressWebRequestsIfAny());
     }

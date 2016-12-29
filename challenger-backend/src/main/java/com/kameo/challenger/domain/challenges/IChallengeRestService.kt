@@ -8,13 +8,15 @@ import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import lombok.Data
 import java.time.LocalDateTime
+import javax.ws.rs.POST
+import javax.ws.rs.Path
 import javax.ws.rs.PathParam
 
 
 interface IChallengeRestService {
-
     fun getVisibleChallenges(): IChallengeRestService.VisibleChallengesDTO
     fun createChallenge(challengeDTO: ChallengeDTO): ChallengeDTO
+    fun acceptChallenge(challengeId: Long, accepted: Boolean)
 
     @Data
     class UserLabelDTO(val id: Long=0,
@@ -24,7 +26,7 @@ interface IChallengeRestService {
     )
 
     @Data
-    data class VisibleChallengesDTO(val selectedChallengeId: Long) {
+    data class VisibleChallengesDTO(val selectedChallengeId: Long?) {
         val visibleChallenges: MutableList<ChallengeDTO> = Lists.newArrayList<ChallengeDTO>()
 
         @Data class ChallengeDTO(val id: Long=0,

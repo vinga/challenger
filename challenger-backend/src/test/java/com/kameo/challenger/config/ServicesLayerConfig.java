@@ -3,7 +3,7 @@ package com.kameo.challenger.config;
 import com.kameo.challenger.domain.challenges.IChallengeRestService;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.util.TestHelper.TransactionProxy;
-import com.kameo.challenger.utils.MailService;
+import com.kameo.challenger.utils.mail.MailService;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +35,7 @@ public class ServicesLayerConfig {
     MailService mailService() {
       return new MailService() {
           @Override
-          public void sendHtml(Message m) {
+          public void send(Message m) {
               testHelper().getSentMessagesList().add(m);
           }
       };

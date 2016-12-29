@@ -7,15 +7,20 @@ import {loadEventsAsyncAllTheTime} from "../module_events/eventActions";
 import {authPromiseErr} from "../module_accounts/accountActions";
 import {ChallengeDTO, ChallengeStatus} from "./ChallengeDTO";
 import {downloadProgressiveReports} from "../module_reports/index";
+import {selectedChallengeSelector, selectedChallengeParticipantsSelector, challengeStatusSelector} from "./challengeSelectors";
 
 
 export function changeChallengeAction(challengeId: number) {
     return function (dispatch, getState) {
+
+
         dispatch(CHANGE_CHALLENGE.new({challengeId}));
-        dispatch(fetchTasksWhenNeeded(challengeId, getState().currentSelection.day));
-        dispatch(fetchInitialEvents(challengeId));
-        dispatch(loadEventsAsyncAllTheTime());
-        dispatch(downloadProgressiveReports(challengeId));
+        if (  challengeStatusSelector(getState()) == ChallengeStatus.ACTIVE) {
+            dispatch(fetchTasksWhenNeeded(challengeId, getState().currentSelection.day));
+            dispatch(fetchInitialEvents(challengeId));
+            dispatch(loadEventsAsyncAllTheTime());
+            dispatch(downloadProgressiveReports(challengeId));
+        }
     };
 }
 
@@ -26,7 +31,7 @@ export function fetchWebChallenges() {
             visibleChallengesDTO=> {
                 var initialLoad = (getState().challenges.selectedChallengeId != visibleChallengesDTO.selectedChallengeId);
                 dispatch(WEB_CHALLENGES_RESPONSE.new(visibleChallengesDTO));
-                if (initialLoad)
+                if (initialLoad && visibleChallengesDTO.selectedChallengeId!=null)
                     dispatch(changeChallengeAction(visibleChallengesDTO.selectedChallengeId))
             }
         ).catch((reason)=>authPromiseErr(reason, dispatch));

@@ -3,6 +3,7 @@ import {ReduxState, copy} from "../redux/ReduxState";
 import {ChallengeDTO, ChallengeParticipantDTO} from "./ChallengeDTO";
 import {AccountDTO, getAccountsSelector} from "../module_accounts/index";
 import {TaskDTO} from "../module_tasks/TaskDTO";
+import {loggedUserSelector} from "../module_accounts/accountSelectors";
 
 
 export const selectedChallengeIdSelector: Selector<ReduxState,number> = (state: ReduxState): number => state.challenges.selectedChallengeId
@@ -13,6 +14,20 @@ export const selectedChallengeSelector: Selector<ReduxState,ChallengeDTO> = crea
     getChallenges, selectedChallengeIdSelector,
     (challenges: Array<ChallengeDTO>, selectedChallengeId: number) =>
         challenges.find(ch=>ch.id == selectedChallengeId)
+);
+
+
+
+
+export const challengeStatusSelector: Selector<ReduxState,string> = createSelector(
+    selectedChallengeSelector,
+    loggedUserSelector,
+    (challenge: ChallengeDTO, mainLoggedUser: AccountDTO): string => {
+        if (challenge==null)
+            return null;
+        var up=challenge.userLabels.find(ul=> ul.id == mainLoggedUser.id);
+        return up.challengeStatus;
+    }
 );
 
 export const selectedChallengeParticipantsSelector: Selector<ReduxState,Array<ChallengeParticipantDTO>> = createSelector(
@@ -71,5 +86,9 @@ export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<String>
         return jwtTokensOfApprovingUsers;
     }
 );
+
+export const jwtTokenOfUserWithId = (state: ReduxState, userId: number): string => {
+    return challengeParticipantsSelector(state).find(a=>a.id==userId).jwtToken
+}
 
 

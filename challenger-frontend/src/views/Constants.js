@@ -1,5 +1,4 @@
 import * as React from "react";
-import {blue500, red500, greenA200} from "material-ui/styles/colors";
 import SvgIcon from "material-ui/SvgIcon";
 import { Component } from "react";
 

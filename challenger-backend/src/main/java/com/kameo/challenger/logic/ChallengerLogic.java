@@ -113,30 +113,7 @@ public class ChallengerLogic {
 
 
 
-    public ChallengeODB updateChallengeState(long callerId, long challengeId, ChallengeStatus status) {
-        if (status != ChallengeStatus.ACTIVE && status != ChallengeStatus.REFUSED)
-            throw new IllegalArgumentException();
-        ChallengeParticipantODB cpb = anyDao.streamAll(ChallengeParticipantODB.class)
-                                            .where(cp -> cp.getUser().getId() == callerId &&
-                                                    cp.getChallenge().getId() == challengeId &&
-                                                    cp.getChallengeStatus() == ChallengeStatus.WAITING_FOR_ACCEPTANCE)
-                                            .findOne().get();
-        cpb.setChallengeStatus(status);
-        anyDao.getEm().merge(cpb);
-        ChallengeODB challenge = cpb.getChallenge();
-        long active = challenge.getParticipants().stream()
-                               .filter(cp -> cp.getChallengeStatus() == ChallengeStatus.ACTIVE).count();
-        long refused = challenge.getParticipants().stream()
-                                .filter(cp -> cp.getChallengeStatus() == ChallengeStatus.REFUSED).count();
-        if (active == challenge.getParticipants().size()) {
-            challenge.setChallengeStatus(ChallengeStatus.ACTIVE);
-            anyDao.getEm().merge(challenge);
-        } else if (active + refused == challenge.getParticipants().size() && active > 1) {
-            challenge.setChallengeStatus(ChallengeStatus.ACTIVE);
-            anyDao.getEm().merge(challenge);
-        }
-        return challenge;
-    }
+
 
 
     public List<TaskApprovalODB> getTasksApprovalForRejectedTasks(List<TaskODB> tasks) {

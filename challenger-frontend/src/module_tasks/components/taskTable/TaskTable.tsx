@@ -11,7 +11,7 @@ import {ResizeAware} from "../../../views/Constants";
 import {TaskLabel} from "../TaskLabel";
 import {SHOW_TASK_EVENTS} from "../../../module_events/eventActionTypes";
 import {makeGetTasksForUserAndDay, makeBusyTasksSelectorForUserAndDay} from "../../taskSelectors";
-import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
+import {jwtTokenOfUserWithId} from "../../../module_challenges/challengeSelectors";
 
 const styles = {
     icon: {
@@ -41,6 +41,7 @@ interface ReduxProps {
     currentDate: Date,
     tasksList: Array<TaskDTO>,
     busy: boolean,
+    userIsLogged: boolean
 }
 
 
@@ -107,6 +108,7 @@ class TaskTableInternal extends React.Component<Props & ReduxProps & ReduxPropsF
                                         <DifficultyIconButton
                                             no={this.props.no}
                                             task={task}
+                                            userIsLogged={this.props.userIsLogged}
                                             onEditTask={this.props.onEditTask}
                                             onShowTaskEvents={this.props.onShowTaskEvents}
                                             showTooltip={true}
@@ -159,7 +161,9 @@ const mapStateToProps = () => {
     const mapStateToPropsInternal = (state: ReduxState, ownprops: Props): ReduxProps => {
 
         var tasksLists = tasksForUserAndDay(state, ownprops.user.id);
+        var userIsLogged=jwtTokenOfUserWithId(state,ownprops.user.id)!=null;
         return {
+            userIsLogged: userIsLogged,
             currentDate: state.currentSelection.day,
             tasksList: tasksLists,
             busy: busyTasksSelectorForUserAndDay(state, tasksLists)

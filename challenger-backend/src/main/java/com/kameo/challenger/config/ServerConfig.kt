@@ -1,5 +1,6 @@
 package com.kameo.challenger.config
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
@@ -8,12 +9,21 @@ import org.springframework.stereotype.Component
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 open class ServerConfig {
-    private val confirmEmailInvitationPattern = "http://blablah/uapi/confirm/{hash}"
+
+    @Value("\${serverUrl}")
+    lateinit var serverUrl: String;
+
+
     var isCrossDomain = true
     val maxEventsSize:Int=100
 
+
     fun getConfirmEmailInvitationPattern(uid: String): String {
-        return confirmEmailInvitationPattern.replace("{hash}", uid)
+        return "$serverUrl#confirmation={hash}".replace("{hash}", uid)
+    }
+
+    fun getLoginLink(): String {
+        return serverUrl
     }
 
     companion object {

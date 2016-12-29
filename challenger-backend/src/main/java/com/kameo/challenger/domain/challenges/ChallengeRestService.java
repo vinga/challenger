@@ -5,6 +5,7 @@ import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.challenges.IChallengeRestService.VisibleChallengesDTO.ChallengeDTO;
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +23,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
-
 @Component
 @Path(ServerConfig.restPath)
 @Produces(MediaType.APPLICATION_JSON)
@@ -40,7 +39,6 @@ public class ChallengeRestService implements IChallengeRestService {
         this.accountDAO = accountDAO;
     }
 
-
     @NotNull
     @GET
     @Path("challenges")
@@ -48,11 +46,8 @@ public class ChallengeRestService implements IChallengeRestService {
         long callerId = session.getUserId();
         ChallengeDAO.ChallengeInfoDTO cinfo = challengeDao
                 .getVisibleChallenges(callerId);
-
         VisibleChallengesDTO res =
                 new VisibleChallengesDTO(cinfo.getDefaultChallengeId());
-
-
         res.getVisibleChallenges().addAll(cinfo.getVisibleChallenges().stream()
                                                .map(VisibleChallengesDTO.ChallengeDTO.Companion::fromODB)
                                                .map(c -> {
@@ -66,25 +61,28 @@ public class ChallengeRestService implements IChallengeRestService {
                                                    }
                                                })
                                                .collect(Collectors.toList()));
-
         return res;
     }
-
 
     @NotNull
     @Override
     @POST
     @Path("challenges")
     public ChallengeDTO createChallenge(@NotNull ChallengeDTO challengeDTO) {
-        if (challengeDTO.getUserLabels().length==0)
+        if (challengeDTO.getUserLabels().length == 0)
             throw new IllegalArgumentException("No user labels provided");
         final List<UserODB> users = accountDAO
                 .getUsersForLabels(Lists.newArrayList(challengeDTO.getUserLabels()).stream().map(u -> u.getLabel()).collect(Collectors.toList()));
-
-        val challengeOdb=ChallengeDTO.toODB(challengeDTO, users);
-
-        val cb=challengeDao.createNewChallenge(session.getUserId(), challengeOdb);
-
+        val challengeOdb = ChallengeDTO.toODB(challengeDTO, users);
+        val cb = challengeDao.createNewChallenge(session.getUserId(), challengeOdb);
         return ChallengeDTO.fromODB(cb);
+    }
+
+    @Override
+    @POST
+    @Path("challenges/{challengeId}/acceptance")
+    public void acceptChallenge(@PathParam("challengeId") long challengeId, boolean accepted) {
+        long callerId = session.getUserId();
+        challengeDao.updateChallengeState(callerId, challengeId, (accepted) ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED);
     }
 }

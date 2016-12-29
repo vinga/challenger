@@ -11,7 +11,22 @@ fun <T> MutableList<T>.synchCopyThenClear() :List<T> {
     }
 }
 
-
+inline fun <reified T : Any> Any.getThroughReflection(propertyName: String): T? {
+    val getterName = "get" + propertyName.capitalize()
+    return try {
+        javaClass.getMethod(getterName).invoke(this) as? T
+    } catch (e: NoSuchMethodException) {
+        throw IllegalArgumentException(e)
+    }
+}
+inline fun <reified T : Any> Any.setThroughReflection(propertyName: String, t: T?) {
+    val setterName = "set" + propertyName.capitalize()
+    try {
+        javaClass.getMethod(setterName).invoke(this, t)
+    } catch (e: NoSuchMethodException) {
+       throw IllegalArgumentException(e)
+    }
+}
 
 operator fun ClosedRange<LocalDate>.iterator() : Iterator<LocalDate>{
     return object: Iterator<LocalDate> {

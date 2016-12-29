@@ -7,6 +7,7 @@ import LoggedView from "./views/LoggedView.tsx";
 import store from "./redux/store.ts";
 import {LOGOUT, LoginPanel, RegisterPanel, loggedUserSelector} from "./module_accounts/index";
 import {GlobalPopover} from "./views/common-components/GlobalPopover";
+import {ConfirmationPanel} from "./module_accounts/components/ConfirmationPanel";
 
 
 //2.0.3
@@ -15,6 +16,8 @@ import {GlobalPopover} from "./views/common-components/GlobalPopover";
 interface Props {
     logged: boolean,
     registering: boolean,
+    confirmationLink: boolean,
+
 
 }
 interface PropsFunc {
@@ -23,6 +26,8 @@ interface PropsFunc {
 
 
 const App = (props: Props & PropsFunc)=> {
+
+
     return <MuiThemeProvider>
         <div>
             <Header logged={props.logged} onLogout={props.onLogout}/> {
@@ -30,23 +35,38 @@ const App = (props: Props & PropsFunc)=> {
                 <RegisterPanel/>:
                 (props.logged ?
                     <LoggedView/>  :
-                    <LoginPanel/> ) }
+                    (props.confirmationLink ? <ConfirmationPanel/>
+                        :
+                        <LoginPanel/> )) }
             <GlobalPopover/>
+
+            {/* <Snackbar
+             open={props.snackbarString!=null && props.snackbarString!=""}
+             message={props.snackbarString !=null ?props.snackbarString: "nothing"}
+             autoHideDuration={4000}
+             onRequestClose={()=>{}}
+             />*/}
         </div>
     </MuiThemeProvider >
 };
 
 
 const mapStateToProps = (state: ReduxState): Props => {
+    var c = "confirmation=";
+    var cl = window.location.hash;
     return {
-        logged: loggedUserSelector(state)!=null,
-        registering: state.registerState != null
+        confirmationLink: (window.location.hash.substr(1) || "").startsWith(c) || (state.confirmationLinkState != null && state.confirmationLinkState.uid != null),
+        //  confirmationLinkString: cl.substring(cl.indexOf(c)),
+        logged: loggedUserSelector(state) != null,
+        registering: state.registerState != null,
+        //snackbarString: null//state.currentSelection.snackbarInfo
     }
 };
 
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
-        onLogout: () =>  dispatch(LOGOUT.new({}))
+        onLogout: () => dispatch(LOGOUT.new({})),
+
     }
 };
 

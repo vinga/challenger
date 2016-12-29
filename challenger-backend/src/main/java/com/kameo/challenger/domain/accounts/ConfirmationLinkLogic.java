@@ -10,7 +10,7 @@ import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.utils.DateUtil;
-import com.kameo.challenger.utils.MailService;
+import com.kameo.challenger.utils.mail.MailService;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,13 +30,13 @@ public class ConfirmationLinkLogic {
     @Inject
     private ServerConfig serverConfig;
 
-    public void confirmLinkByUid(String uid) {
+   /* public void confirmLinkByUid(String uid) {
 
         ConfirmationLinkODB cclDB = anyDao.getOnlyOne(ConfirmationLinkODB.class,
                 cc -> cc.getUid().equals(uid)
         );
         switch (cclDB.getConfirmationLinkType()) {
-            case CHALLENGE_CONTRACT_CONFIRMATION:
+            case CHALLENGE_CONFIRMATION:
                 long challengeId = cclDB.getChallengeId();
 
                 acceptChallengeForExistingUser(cclDB.getChallengeId());
@@ -52,19 +52,7 @@ public class ConfirmationLinkLogic {
         anyDao.getEm().remove(cclDB);
 
     }
-    public void resetPassword(String uid, String newPassword) {
-        ConfirmationLinkODB cclDB = anyDao.getOnlyOne(ConfirmationLinkODB.class,
-                cc -> cc.getUid().equals(uid)
-        );
-        if (cclDB.getSysCreationDate().before(DateUtil.addDays(new Date(),-1))) {
-            throw new IllegalArgumentException();
-        }
 
-        String salt = PasswordUtil.createSalt();
-        cclDB.getUser().passwordHash = PasswordUtil.getPasswordHash(newPassword, salt);
-        cclDB.getUser().salt=salt;
-        anyDao.getEm().persist(cclDB.getUser());
-    }
 
 
     private void acceptChallengeForExistingUser(long challengeContractId) {
@@ -76,13 +64,12 @@ public class ConfirmationLinkLogic {
         ccDB.setChallengeStatus(ChallengeStatus.ACTIVE);
         anyDao.getEm().merge(ccDB);
 
-    }
+    }*/
 
-    /**
+  /*  *//**
      * Can be invoked from both confirm challenge and confirm email
-     *
-     * @param cclDB
-     */
+
+     *//*
     private void confirmEmail(ConfirmationLinkODB cclDB) {
         String email = cclDB.getEmail();
         if (Strings.isNullOrEmpty(email))
@@ -102,15 +89,17 @@ public class ConfirmationLinkLogic {
 
         }
     }
+*/
 
-
+/*
     public boolean isConfirmationLinkRequireParams(String uid) {
         ConfirmationLinkODB cclDB = anyDao.getOnlyOne(ConfirmationLinkODB.class,
                 cc -> cc.getUid().equals(uid)
         );
-        if (cclDB.getConfirmationLinkType() == ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION) {
+
+        if (cclDB.getConfirmationLinkType() == ConfirmationLinkType.CHALLENGE_CONFIRMATION) {
             long challengeId = cclDB.getChallengeId();
-            String email = cclDB.getEmail();
+            String email = cclDB.getUser().getEmail();
             ChallengeParticipantODB cpa = anyDao
                     .getOnlyOne(ChallengeParticipantODB.class, c -> c.getChallenge().getId() == challengeId && c
                             .getUser().getEmail().equals(email));
@@ -135,27 +124,10 @@ public class ConfirmationLinkLogic {
         cclDB.setFieldPasswordHash(PasswordUtil.getPasswordHash(password, cclDB.getFieldSalt()));
         anyDao.getEm().merge(cclDB);
     }
+*/
 
 
-    public void createAndSendChallengeConfirmationLink(ChallengeODB cb, ChallengeParticipantODB cp) {
-        ConfirmationLinkODB ccl = new ConfirmationLinkODB();
-        ccl.setEmail(cp.getUser().getEmail());
-        ccl.setChallengeId(cb.getId());
-        ccl.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONTRACT_CONFIRMATION);
-        ccl.setUid(UUID.randomUUID().toString());
-        anyDao.getEm().persist(ccl);
-
-
-        String login = "you";
-        if (cp.getUser().getUserStatus() != UserStatus.WAITING_FOR_EMAIL_CONFIRMATION)
-            login = cp.getUser().getLogin();
-        mailService.sendHtml(new MailService.Message(cp.getUser().getEmail(),
-                "Invitation",
-                "Dear " + login + ",\n" +
-                        cb.getCreatedBy().getLogin() + " challenged you: " + cb.getLabel() + "\n" +
-                        "Click <a href='" + toActionLink(ccl) + "'>here</a> if you accept the challenge."));
-    }
-
+/*
     public void createAndSendEmailConfirmationLink(String login, String password, String email) {
         ConfirmationLinkODB ccl = new ConfirmationLinkODB();
         ccl.setEmail(email);
@@ -165,29 +137,19 @@ public class ConfirmationLinkLogic {
         ccl.setConfirmationLinkType(ConfirmationLinkType.EMAIL_CONFIRMATION);
         ccl.setUid(UUID.randomUUID().toString());
 
-        mailService.sendHtml(new MailService.Message(email,
+        mailService.send(new MailService.Message(email,
                 "Email confirmation",
                 "Dear you,\n" +
-                        "Click <a href='" + toActionLink(ccl) + "'>here</a> to confirm you account."));
+                        "Click <a href='" + toActionLink(ccl) + "'>here</a> to confirm you account.",null,null));
         anyDao.getEm().persist(ccl);
-    }
+    }*/
 
 
     private String toActionLink(ConfirmationLinkODB cl) {
         return serverConfig.getConfirmEmailInvitationPattern(cl.getUid());
     }
 
-    public void createAndSendPasswordResetLink(UserODB u) {
-        ConfirmationLinkODB ccl = new ConfirmationLinkODB();
-        ccl.setEmail(u.getEmail());
-        ccl.setUser(u);
-        ccl.setConfirmationLinkType(ConfirmationLinkType.PASSWORD_RESET);
-        ccl.setUid(UUID.randomUUID().toString());
 
-        mailService.sendHtml(new MailService.Message(u.getEmail(),
-                "Password reset",
-                "Dear you,\n" +
-                        "Click <a href='" + toActionLink(ccl) + "'>here</a> to reset your password."));
-        anyDao.getEm().persist(ccl);
-    }
+
+
 }

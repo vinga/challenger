@@ -12,3 +12,18 @@ export interface AccountDTO {
     challengeStatus?: string, // filled dynamically
 }
 
+export interface ConfirmationLinkRequestDTO {
+    newLogin?: string,
+    newPassword?: string
+}
+
+export interface ConfirmationLinkResponseDTO {
+    description: string,
+    newLoginRequired: boolean
+    newPasswordRequired: boolean
+    displayLoginButton: boolean
+    validationError?: string
+    done: boolean
+    proposedLogin?: string
+}
+

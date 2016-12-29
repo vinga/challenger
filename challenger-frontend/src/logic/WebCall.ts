@@ -1,4 +1,7 @@
-export const baseApiUrl: string = "http://localhost:9080/api";
+
+//export const baseApiUrl = "http://localhost:9080/api";
+
+export const baseApiUrl = "/api";
 
 class BaseWebCall {
     webToken: string;
@@ -14,14 +17,30 @@ class BaseWebCall {
         }));
     }
 
-    postUnauthorizedNoJson(path: string, payload: any): Promise<any> {
+    // unlike Json it sends simple string in POST without parenthesis
+    postUnauthorizedString(path: string, payload: string): Promise<any> {
         return Promise.resolve($.ajax({
             url: baseApiUrl + path,
             type: 'POST',
-            //contentType: "charset=utf-8",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
             data: payload
         }));
     }
+
+    postUnauthorizedNoJson(path: string, payload: any=null): Promise<any> {
+        var data:any={
+            url: baseApiUrl + path,
+            type: 'POST',
+            //contentType: "charset=utf-8",
+
+        };
+        if (payload!=null) {
+            data.data=payload;
+        }
+        return Promise.resolve($.ajax(data));
+    }
+
     postCustomNoJson(path: string, payload: any, customJWT: string): Promise<any> {
         return Promise.resolve($.ajax({
             url: baseApiUrl + path,
@@ -35,6 +54,7 @@ class BaseWebCall {
             throw Object.assign({}, reason, {jwtToken: customJWT})
         });
     }
+
     get(path: string): Promise<any> {
         return Promise.resolve($.ajax({
             url: baseApiUrl + path,
@@ -62,7 +82,7 @@ class BaseWebCall {
     }
 
     put(path: string, payload: any): Promise<any> {
-        return Promise.resolve($.ajax({
+        var req:any={
             url: baseApiUrl + path,
             data: JSON.stringify(payload),
             contentType: "application/json; charset=utf-8",
@@ -71,8 +91,30 @@ class BaseWebCall {
             headers: {
                 "Authorization": "Bearer " + this.webToken
             }
-        })).catch((reason: XMLHttpRequest) => {
+        };
+        if (payload != null) {
+            req.data = JSON.stringify(payload);
+        }
+        return Promise.resolve($.ajax(req)).catch((reason: XMLHttpRequest) => {
             throw Object.assign({}, reason, {jwtToken: this.webToken})
+        });
+    }
+
+    putAuthorizedCustom(path: string, payload: any, jwtToken: string): Promise<any> {
+        var req:any = {
+            url: baseApiUrl + path,
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            type: "PUT",
+            headers: {
+                "Authorization": "Bearer " + jwtToken
+            }
+        };
+        if (payload != null) {
+            req.data = JSON.stringify(payload);
+        }
+        return Promise.resolve($.ajax(req)).catch((reason: XMLHttpRequest) => {
+            throw Object.assign({}, reason, {jwtToken: jwtToken})
         });
     }
 
@@ -175,6 +217,7 @@ class BaseWebCall {
             throw Object.assign({}, reason, {jwtToken: this.webToken})
         });
     }
+
     deleteMultiAuthorized(path: string, jwtTokens: Array<String>): Promise<any> {
         return Promise.resolve($.ajax({
             url: baseApiUrl + path,

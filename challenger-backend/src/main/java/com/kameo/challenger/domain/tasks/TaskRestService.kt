@@ -111,10 +111,10 @@ class TaskRestService : ITaskRestService {
     @WebResponseStatus(CREATED)
     @Path("/challenges/{challengeId}/tasks/")
     fun createTask(@PathParam("challengeId") challengeId: Long, taskDTO: TaskDTO): TaskDTO? {
-        val callerId = session.userId
         if (challengeId != taskDTO.challengeId)
             throw IllegalArgumentException()
-        var challengeTaskODB = taskDao.createTask(callerId, taskDTO.toODB())
+        val callerIds = multiSessions.get().userIds
+        var challengeTaskODB = taskDao.createTask(callerIds, taskDTO.toODB())
         eventGroupDao.createTaskEventAfterServerAction(task = challengeTaskODB, eventType = CREATE_TASK)
         return TaskDTO.fromOdb(challengeTaskODB)
     }

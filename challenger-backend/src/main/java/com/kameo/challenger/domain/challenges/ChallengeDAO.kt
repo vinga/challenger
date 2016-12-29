@@ -3,11 +3,17 @@ package com.kameo.challenger.domain.challenges
 import com.google.common.base.Strings
 import com.google.common.collect.Lists
 import com.kameo.challenger.domain.accounts.AccountDAO
+import com.kameo.challenger.domain.accounts.ConfirmationLinkDAO
+import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.ACTIVE
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.WAITING_FOR_ACCEPTANCE
+import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.EntityHelper
+import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -16,15 +22,15 @@ import javax.inject.Inject
 
 @Component
 @Transactional
-open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao: AccountDAO) {
+open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao: AccountDAO, @Inject val permissionDao: PermissionDAO) {
+
 
 
     open fun createNewChallenge(userId: Long, cb: ChallengeODB): ChallengeODB {
 
 
         val challengeCreator = anyDaoNew.reload(cb.participants.find { it.user.id == userId }!!.user)
-        if (cb.participants.size == 1)
-            throw IllegalArgumentException()
+
 
         for (cp in cb.participants) {
             // creator has accepted challenge by default
@@ -96,7 +102,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
 
 
     private fun calculateLastSeenChallengeId(challengeParticipantsForThisUser: List<ChallengeParticipantODB>,
-                                             visibleChallenges: List<ChallengeODB>): Long {
+                                             visibleChallenges: List<ChallengeODB>): Long? {
         if (!visibleChallenges.isEmpty()) {
             val challengeToLastSeen = mutableMapOf<ChallengeODB, Date>()
             for (cp in challengeParticipantsForThisUser) {
@@ -108,6 +114,38 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew, @Inject val accountDao
 
 
         }
-        throw IllegalArgumentException()
+        return null;
+    }
+
+    open fun updateChallengeState(callerId: Long, challengeId: Long, status: ChallengeStatus) {
+        if (status != ChallengeStatus.ACTIVE && status != ChallengeStatus.REFUSED)
+            throw IllegalArgumentException()
+
+
+
+       val waitingParticipation=anyDaoNew.getOne(ChallengeParticipantODB::class) {
+            it get ChallengeParticipantODB::challenge eqId challengeId
+            it get ChallengeParticipantODB::user eqId callerId
+            it get ChallengeParticipantODB::challengeStatus eq ChallengeStatus.WAITING_FOR_ACCEPTANCE
+        }
+        waitingParticipation.challengeStatus=status
+        if (status==ACTIVE)
+          waitingParticipation.lastSeen=Date();
+
+        anyDaoNew.em.merge(waitingParticipation)
+
+
+        // set state to active only if everybody answered
+        val stillWaiting=anyDaoNew.exists(ChallengeParticipantODB::class) {
+            it get ChallengeParticipantODB::challenge eqId challengeId
+            it get ChallengeParticipantODB::challengeStatus eq ChallengeStatus.WAITING_FOR_ACCEPTANCE
+        }
+        if (!stillWaiting) {
+            anyDaoNew.update(ChallengeODB::class) {
+                it.set(ChallengeODB::challengeStatus,ChallengeStatus.ACTIVE)
+            }
+        }
+
+
     }
 }

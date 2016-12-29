@@ -12,7 +12,10 @@ import Chip from "material-ui/Chip";
 import {possibleChallengeParticipantsSelector} from "../challengeSelectors";
 import {updateChallengeParticipants} from "../../module_accounts/accountActions";
 import Subheader from "material-ui/Subheader";
-import {validateEmail} from "../../views/common-components/TextFieldExt";
+import {validateEmail, default as TextFieldExt} from "../../views/common-components/TextFieldExt";
+import {FontIcon} from "material-ui";
+import {IconButton} from "material-ui";
+import {YesNoConfirmationDialog} from "../../views/common-components/YesNoConfirmationDialog";
 
 interface Props {
 
@@ -24,6 +27,7 @@ interface ReduxProps {
     possibleParticipants: Array<ChallengeParticipantDTO>,
     possibleLabels: Array<string>,
     errorText: string,
+    canSubmit: boolean
 }
 
 interface PropsFunc {
@@ -37,19 +41,32 @@ interface State {
     challenge: ChallengeDTO,
     submitDisabled: boolean,
     searchText: string,
+    showConfirmDialog: boolean
 }
 
 class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
+    textField: TextField;
     constructor(props) {
         super(props);
         this.state = {
             challenge: this.props.challenge,
             submitDisabled: false,
-            searchText: ""
+            searchText: "",
+            showConfirmDialog: false
         };
     }
 
     handleSubmit = () => {
+        if(this.state.searchText.length > 0) {
+            this.state.showConfirmDialog=true;
+            this.setState(this.state);
+            return;
+          /*  if (confirm('Add '+ this.state.searchText +' to users list?')) {
+                console.log(this.state.searchText);
+                this.handleNewRequest(this.state.searchText);
+                return;
+            }*/
+        }
         this.props.onCreateChallengeFunc(this.state.challenge);
         this.props.onCloseFunc();
     };
@@ -87,12 +104,19 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
     }
 
+    componentDidMount = () => {
+
+        setTimeout(()=> {
+            this.textField.focus();
+        },200);
+    }
+
     render() {
         const actions = [
             <FlatButton
                 label="Submit"
                 primary={true}
-                disabled={this.state.submitDisabled}
+                disabled={this.state.submitDisabled || !this.props.canSubmit}
                 onTouchTap={this.handleSubmit}
             />,
             <FlatButton
@@ -112,6 +136,8 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
             >
                 <div>
                     <TextField
+                        ref={(c)=>this.textField=c}
+                        autoFocus={true}
                         floatingLabelText="Challenge Name"
                         hintText="Challenge name"
                         defaultValue={this.props.challenge.label}
@@ -148,11 +174,19 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                     onUpdateInput={this.handleUpdateInput}
                     onNewRequest={this.handleNewRequest}
                 />
-
-
+                <IconButton onClick={()=>this.handleNewRequest(this.state.searchText)} > <FontIcon
+                    className="fa fa-plus-circle cyan-text"/></IconButton>
 
             </div>
             </Dialog>
+
+            {this.state.showConfirmDialog &&
+            <YesNoConfirmationDialog closeYes={()=>{    this.handleNewRequest(this.state.searchText); }}
+                                     closeNo={()=>{this.state.searchText="";this.setState(this.state); }}
+                                     closeDialog={()=>{this.state.showConfirmDialog=false; this.setState(this.state); }}>
+                Add {this.state.searchText} to users list?'
+            </YesNoConfirmationDialog> }
+
         </div>);
 
 
@@ -163,6 +197,7 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 
     return {
         challenge: state.challenges.editedChallenge,
+        canSubmit: state.challenges.challengeParticipantIsChecked!=true,
         currentUserId: loggedUserSelector(state).id,
         possibleParticipants: possibleChallengeParticipantsSelector(state),
         possibleLabels: possibleChallengeParticipantsSelector(state).map(u=>u.label),

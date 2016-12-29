@@ -6,17 +6,17 @@ import {
     CREATE_NEW_CHALLENGE,
     UPDATE_CHALLENGE_PARTICIPANTS,
     DELETE_CHALLENGE_PARTICIPANT,
-    UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION
+    UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION, CHECK_CHALLENGE_PARTICIPANTS_REQUEST, CHECK_CHALLENGE_PARTICIPANTS_RESPONSE
 } from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
-import {VisibleChallengesDTO, ChallengeStatus} from "./ChallengeDTO";
+import {VisibleChallengesDTO, ChallengeStatus, NO_CHALLENGES_LOADED_YET} from "./ChallengeDTO";
 import {copy} from "../redux/ReduxState";
 import _ = require("lodash");
 
 
 const initial = (): VisibleChallengesDTO => {
     return {
-        selectedChallengeId: -1,
+        selectedChallengeId: NO_CHALLENGES_LOADED_YET,
         visibleChallenges: [],
         editedChallenge: undefined,
         errorText: null
@@ -85,6 +85,14 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
     } else if (isAction(action, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION)) {
         return Object.assign({}, state, {
             errorText: action.errorText
+        })
+    } else if (isAction(action, CHECK_CHALLENGE_PARTICIPANTS_REQUEST)) {
+        return Object.assign({}, state, {
+            challengeParticipantIsChecked: true
+        })
+    } else if (isAction(action, CHECK_CHALLENGE_PARTICIPANTS_RESPONSE)) {
+        return Object.assign({}, state, {
+            challengeParticipantIsChecked: false
         })
     }
 

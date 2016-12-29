@@ -8,13 +8,15 @@ import {registerUserAction} from "../accountActions";
 import {Col, Row, RowCol} from "../../views/common-components/Flexboxgrid";
 import FlatButton from "material-ui/FlatButton";
 import {REGISTER_EXIT_TO_LOGIN_PANEL} from "../accountActionTypes";
+import {WebCallAwareComponent} from "../../views/common-components/WebAwareComponent";
+import {WebCallDTO, WebCallState} from "../../logic/domain/Common";
+import {RegisterResponseDTO} from "../RegisterResponseDTO";
 
 interface Props {
-    registeredSuccessfully: boolean,
-    requireEmailConfirmation: boolean,
     registerFailed: boolean,
     inProgress: boolean,
-    errorDescription: string
+    errorDescription: string,
+    webCall: WebCallDTO<RegisterResponseDTO>
 }
 interface PropsFunc {
     onRegisterFunc: (email: string, login: string, pass: string)=>void;
@@ -51,37 +53,17 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
     }
 
     render() {
-        if (this.props.registeredSuccessfully) {
-            if (this.props.requireEmailConfirmation)
-                return <div id="main" className="container ">
-                    <div className="section ">
 
-                        <div className="row valign" style={{height: '100px'}}>
-                            <div className="col s3 offset-s4">
-                                <h2>Registration finished.</h2>
-                                <h2>Please confirm your email address</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>;
-
-            return <LoginPanel
-                infoDescription={<b>Registration finished.<br/> Please login to the system</b>}
-                currentLogin={this.loginField.state.fieldValue}
-                currentPass={this.passwordField.state.fieldValue}
-                registerButtonVisible={false}
-            />
-        }
         //var height = Math.max(300, Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 200) + "px";
         return (
             <div id="main" className="container ">
 
                     {this.props.registerFailed &&
-                    <Row horizontal="center" style={{height: '120px', paddingTop:'50px'}}>
-                        <Col col="8">
-                            <p className="grey-text">
+                    <Row horizontal="center" style={{minHeight: '120px', paddingTop:'50px'}}>
+                        <Col col="8" >
+                            <p className="grey-text" >
                                 There is problem with registration:<br/>
-                                <b className="red-text text-darken-3">{this.props.errorDescription}</b>
+                                <b className="red-text text-darken-3" >{this.props.errorDescription}</b>
                             </p>
                         </Col>
                     </Row> }
@@ -90,7 +72,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                     <Row horizontal="center" style={{height: '120px', paddingTop:'50px'}}>
                         <Col col="8-5-3">
                             <RowCol horizontal="start">
-                                <h2>Register</h2>
+                                <h2>{this.props.inProgress? "Please wait..." : "Register"}</h2>
                             </RowCol>
                         </Col>
                     </Row>
@@ -100,6 +82,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                         <Col col="8-5-3">
                             <RowCol>
                                 <TextFieldExt
+                                    autoFocus={true}
                                     fullWidth={true}
                                     floatingLabelText="Email"
                                     useRequiredValidator={true}
@@ -107,7 +90,8 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                                     minLengthNumber={4}
                                     maxLengthNumber={100}
                                     checkEmailPattern={true}
-                                    fieldValue="newUser22@email.com"
+                                    fieldValue="kamila.myczkowska@gmail.com"
+                                    onEnterKeyDown={()=> { this.loginField.focus(); } }
                                     ref={(c)=>{this.emailField=c}}/>
                             </RowCol>
                             <RowCol>
@@ -118,7 +102,8 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                                     minLengthNumber={6}
                                     maxLengthNumber={30}
                                     floatingLabelText="Login"
-                                    fieldValue="kami22"
+                                    fieldValue="kamilka"
+                                    onEnterKeyDown={()=> { this.passwordField.focus(); } }
                                     ref={(c)=>{this.loginField=c}}/>
                             </RowCol>
                             <RowCol>
@@ -126,11 +111,12 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                                     fullWidth={true}
                                     floatingLabelText="Password"
                                     validateOnChange={true}
-                                    fieldValue="kamipass22"
+                                    fieldValue="kamilka"
                                     type="password"
                                     minLengthNumber={6}
                                     maxLengthNumber={30}
                                     useRequiredValidator={true}
+                                    onEnterKeyDown={this.onRegister}
                                     ref={(c)=>{this.passwordField=c}}/>
 
                             </RowCol>
@@ -138,6 +124,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                             <RowCol colStyle={{paddingTop: '20px', paddingBottom: '30px'}}>
                                 <div style={{display:"block"}}>
                                     <RaisedButton
+                                        disabled={this.props.inProgress}
                                         label="Register"
                                         fullWidth={true}
                                         primary={true}
@@ -163,7 +150,7 @@ const mapStateToProps = (state: ReduxState) => {
 
 
     var errorDescription = state.registerState.registerError;
-    var inProgress = state.registerState.registerInProgress;
+    var inProgress = state.registerState.webCall.webCallState==WebCallState.IN_PROGRESS;
     if (inProgress == undefined)
         inProgress = false;
 
@@ -171,7 +158,8 @@ const mapStateToProps = (state: ReduxState) => {
         errorDescription: errorDescription,
         inProgress: inProgress,
         registerFailed: errorDescription != null,
-        registeredSuccessfully: state.registerState.registeredSuccessfully
+        webCall: state.registerState.webCall,
+
 
     }
 };
@@ -190,8 +178,8 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 
-export const RegisterPanel = connect(
+export const RegisterPanel = (connect(
     mapStateToProps,
     mapDispatchToProps
-)(RegisterPanelInternal);
+))(WebCallAwareComponent(RegisterPanelInternal, false));
 

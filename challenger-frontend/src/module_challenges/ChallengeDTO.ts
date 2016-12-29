@@ -8,10 +8,12 @@ export interface ChallengeDTO {
     userLabels: Array<ChallengeParticipantDTO>,
 }
 
+export const NO_CHALLENGES_LOADED_YET=-1;
 export interface VisibleChallengesDTO {
-    selectedChallengeId: number,
+    selectedChallengeId?: number,
     visibleChallenges: Array<ChallengeDTO>
     editedChallenge: ChallengeDTO,
+    challengeParticipantIsChecked? : boolean // remote call is progress, edited challenge cannot be added until this is false or null
     errorText?: string
 }
 

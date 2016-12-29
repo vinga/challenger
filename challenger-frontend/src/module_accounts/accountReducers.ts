@@ -10,11 +10,16 @@ import {
     REGISTER_USER_REQUEST,
     REGISTER_USER_RESPONSE,
     UNAUTHORIZED_WEB_RESPONSE,
-    REGISTER_USER_RESPONSE_FAILURE, REGISTER_EXIT_TO_LOGIN_PANEL
+    REGISTER_USER_RESPONSE_FAILURE,
+    REGISTER_EXIT_TO_LOGIN_PANEL,
+    SET_CURRENT_CONFIRMATION_ID,
+    CONFIRMATION_LINK_RESPONSE,
+    CLEAR_CONFIRMATION_LINK_STATE
 } from "./accountActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {baseWebCall} from "../logic/WebCall";
-import {RegisterState} from "./RegisterResponseDTO";
+import {RegisterState, ConfirmationLinkState} from "./RegisterResponseDTO";
+import {WebCallState} from "../logic/domain/Common";
 
 
 export function accounts(state: Array<AccountDTO> = [], action) {
@@ -115,11 +120,12 @@ export function accounts(state: Array<AccountDTO> = [], action) {
 }
 
 
+const initialRegisterState = (): RegisterState => {
+   return  { webCall: {webCallState: WebCallState.INITIAL}}
+}
 export function registerState(state: RegisterState = null, action): RegisterState {
     if (isAction(action, REGISTER_SHOW_REGISTRATION_PANEL)) {
-        if (state == null)
-            state = {};
-        return state;
+        return initialRegisterState();
     }
     else if (isAction(action, REGISTER_EXIT_TO_LOGIN_PANEL)) {
         return null;
@@ -127,32 +133,44 @@ export function registerState(state: RegisterState = null, action): RegisterStat
 
         return Object.assign({}, state, {
             registerError: null,
-            registerInProgress: true
+            webCall: {webCallState: WebCallState.IN_PROGRESS}
         });
     }
     else if (isAction(action, REGISTER_USER_RESPONSE)) {
         if (action.registerSuccess) {
-            return Object.assign({}, state, {
-                registerError: null,
-                registerInProgress: false,
-                registeredSuccessfully: true,
-            });
+            return null;
         } else {
             return Object.assign({}, state, {
                 registerError: action.registerError,
-                registerInProgress: false,
-                registeredSuccessfully: false,
+                webCall: {webCallState: WebCallState.RESPONSE_OK}
             });
         }
     } else if (isAction(action, REGISTER_USER_RESPONSE_FAILURE)) {
         return Object.assign({}, state, {
             registerError: action.responseText,
-            registerInProgress: false,
-            registeredSuccessfully: false,
+            webCall: {webCallState: WebCallState.RESPONSE_FAILURE}
         });
     } else if (isAction(action, LOGIN_USER_REQUEST)) {
         return null;
     }
     else return state;
 
+}
+
+
+export function confirmationLinkState(state: ConfirmationLinkState = null, action): ConfirmationLinkState {
+    if (isAction(action, CONFIRMATION_LINK_RESPONSE)) {
+        if (state == null)
+            state = {};
+        return Object.assign({}, state, {
+            confirmationLinkResponse: action.confirmationLink
+        });
+    } else if (isAction(action, SET_CURRENT_CONFIRMATION_ID)) {
+        if (state == null)
+            state = {};
+        return {uid: action.uid}
+    } else if (isAction(action, CLEAR_CONFIRMATION_LINK_STATE)) {
+        return null;
+    } else
+        return state;
 }

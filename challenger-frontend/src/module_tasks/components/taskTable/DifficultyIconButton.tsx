@@ -7,6 +7,8 @@ import * as ReactDOM from "react-dom";
 import {Tooltip} from "../../../views/common-components/Tooltip";
 import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
 import ReactInstance = __React.ReactInstance;
+import {getColorLightenForUser} from "../../../views/common-components/Colors";
+import {FontIcon} from "material-ui";
 
 //import * as Tooltip from "@cypress/react-tooltip";
 
@@ -16,6 +18,7 @@ interface Props {
     task: TaskDTO
     showTooltip: boolean
     onCloseTask?: (task: TaskDTO)=>void;
+    userIsLogged: boolean
 }
 
 interface PropsFunc {
@@ -61,12 +64,13 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
             </Tooltip>*/}
 
 
+
             <Tooltip tooltip="Show details" delay="1s">
                 <a onClick={()=>{this.onEditTask(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className="fa fa-info-circle"/>
             </Tooltip>
 
 
-            {this.props.task.closeDate == null &&
+            {this.props.task.closeDate == null && this.props.userIsLogged &&
             <Tooltip tooltip="Close task" delay="1s">
                 <a onClick={()=>{this.onCloseTask(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className="fa fa-close"/>
             </Tooltip>
@@ -92,11 +96,11 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
 
 
     render() {
-
+        var userColor=getColorLightenForUser(this.props.no)
         var background;
-        var styleName = {fill: "#80deea", width: '40px', height: '40px'}; //cyan-lighten3
-        if (this.props.no == 0)
-            styleName = {fill: "#ffcc80", width: '40px', height: '40px'};
+        var styleName = {fill: userColor, width: '40px', height: '40px'}; //cyan-lighten3
+
+
 
         if (this.props.task.difficulty == 0)
             background = <DiffSimpleIcon className="centered fa-stack-2xz" style={styleName}/>;

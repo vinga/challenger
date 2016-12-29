@@ -134,7 +134,7 @@ public class JWTVerifier<E extends TokenInfo> {
                     checker);
             JsonToken jt;
             try {
-                 System.out.println("TOKEN TO VERIFY |" + token + "| " + new Date());
+               //  System.out.println("TOKEN TO VERIFY |" + token + "| " + new Date());
 
                 verify(token);
 

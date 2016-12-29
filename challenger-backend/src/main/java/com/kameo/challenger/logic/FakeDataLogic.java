@@ -3,6 +3,8 @@ package com.kameo.challenger.logic;
 
 import com.google.common.collect.Lists;
 import com.kameo.challenger.domain.accounts.PasswordUtil;
+import com.kameo.challenger.domain.accounts.db.ConfirmationLinkODB;
+import com.kameo.challenger.domain.accounts.db.ConfirmationLinkType;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.accounts.db.UserStatus;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
@@ -31,7 +33,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.UUID;
 
 @Component
 @Transactional
@@ -269,6 +271,14 @@ public class FakeDataLogic implements CommandLineRunner {
         ac7.setTaskType(TaskType.monthly);
         em.persist(ac7);
         approveTaskForCreator(ac7);
+
+
+        ConfirmationLinkODB confirmationLinkODB = new ConfirmationLinkODB();
+        confirmationLinkODB.setUser(data.userKami);
+        confirmationLinkODB.setChallengeId(contract3.getId());
+        confirmationLinkODB.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONFIRMATION);
+        confirmationLinkODB.setUid("blah");
+        em.persist(confirmationLinkODB);
 
     }
 

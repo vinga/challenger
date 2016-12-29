@@ -2,10 +2,10 @@ import * as React from "react";
 import {ReduxState, connect} from "../../../redux/ReduxState";
 import FlatButton from "material-ui/FlatButton";
 import {TaskUserDTO} from "../../TaskDTO";
-import colors from "../../../views/common-components/Colors";
 import {CREATE_AND_OPEN_EDIT_TASK} from "../../taskActionTypes";
 import {TaskTableHeaderAccountPanel} from "../../../module_accounts/index";
 import {makeCalculateAllAndCheckedCount} from "../../taskSelectors";
+import {getColor} from "../../../views/common-components/Colors";
 
 
 interface Props {
@@ -53,7 +53,7 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
                         label="Add task"
                         labelPosition="before"
                         primary={true}
-                        style={{color: colors.userColors[this.props.no]}}
+                        style={{color: getColor(this.props.no)}}
                     />
                 </div>
             </div>

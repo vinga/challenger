@@ -29,11 +29,11 @@ open class TaskDAO {
     private lateinit var permissionDao: PermissionDAO
 
 
-    open fun createTask(callerId: Long, taskODB: TaskODB): TaskODB {
+    open fun createTask(callerIds: Set<Long>, taskODB: TaskODB): TaskODB {
         val cc = anyDaoNew.find(ChallengeODB::class, taskODB.challenge.id)
-        if (!cc.participants.any { it.user.id == callerId })
+        if (!cc.participants.any { it.user.id in callerIds })
             throw IllegalArgumentException()
-        if (!cc.participants.any { it.user.id == taskODB.user.id })
+        if (!cc.participants.any { it.user.id in callerIds })
             throw IllegalArgumentException()
         if (taskODB.startDate?.isAfter(taskODB.dueDate) ?: false) {
             throw IllegalArgumentException("Start date cannot be bigger than due date")
@@ -43,13 +43,16 @@ open class TaskDAO {
         normalizeMonthdays(taskODB)
 
 
+        taskODB.createdByUser =
+                if (cc.createdBy.id in callerIds)
+                    cc.createdBy
+                else UserODB(callerIds.first())
 
-        taskODB.createdByUser = UserODB(callerId)
         taskODB.taskStatus =
-                /*if (taskODB.user.id == callerId)
+                if (callerIds.size == cc.participants.size)
                     TaskStatus.accepted
-                else*/
-                TaskStatus.waiting_for_acceptance
+                else
+                    TaskStatus.waiting_for_acceptance
 
         anyDaoNew.persist(taskODB)
         anyDaoNew.persist(TaskApprovalODB(taskODB.createdByUser, taskODB, TaskStatus.accepted))
@@ -73,6 +76,7 @@ open class TaskDAO {
                 taskODB.monthDays = null
         }
     }
+
     open fun getTasksById(callerId: Long, challengeId: Long, ids: List<Long>): List<TaskODB> {
         val callerPermission0 = anyDaoNew.getOne(ChallengeParticipantODB::class) {
             it get ChallengeParticipantODB::challenge eqId challengeId
@@ -106,9 +110,9 @@ open class TaskDAO {
             val tasksTests = anyDaoNew.getAll(TaskODB::class) {
                 it get TaskODB::challenge eqId challengeId
 
-                val tit=it
-               // val subq = it.subquery(UserODB::class);
-               // val sit = subq.from(UserODB::class);
+                val tit = it
+                // val subq = it.subquery(UserODB::class);
+                // val sit = subq.from(UserODB::class);
                 it.get(TaskODB::label).isInSubquery(UserODB::class) {
                     it.get(+UserODB::login) like "kami"
                     it.select(+UserODB::login)
@@ -118,18 +122,18 @@ open class TaskDAO {
                     it.get(+UserODB::login) like "kami"
                     it.select(+UserODB::login)
                 }
-               it.get(TaskODB::label) exists it.subqueryFrom(UserODB::class) {
+                it.get(TaskODB::label) exists it.subqueryFrom(UserODB::class) {
                     it.get(+UserODB::login) like "kami"
                     it.get(+UserODB::id) eq tit.get(TaskODB::id)
                 }
 
-              /*  it.get(TaskODB::createdByUser) isIn it.subqueryFrom(UserODB::class) {
-                    it.get(+UserODB::login) like "kami"
-                }*/
-                        /*   it.get(TaskODB:label) like it.subqueryFrom(UserODB.class) {
-                    it.get(UserODB::email) like 'kami'
-                    it.select(UserODB::email)
-                } */
+                /*  it.get(TaskODB::createdByUser) isIn it.subqueryFrom(UserODB::class) {
+                      it.get(+UserODB::login) like "kami"
+                  }*/
+                /*   it.get(TaskODB:label) like it.subqueryFrom(UserODB.class) {
+            it.get(UserODB::email) like 'kami'
+            it.select(UserODB::email)
+        } */
                 it
             }
         }
@@ -359,9 +363,11 @@ open class TaskDAO {
         return approvals + pendingApprovals;
     }
 
-    open fun closeTask(callerId: Long, taskId: Long):TaskODB {
-        val t=anyDaoNew.find(TaskODB::class, taskId);
-        t.closeDate=LocalDate.now()
+    open fun closeTask(callerId: Long, taskId: Long): TaskODB {
+        val t = anyDaoNew.find(TaskODB::class, taskId);
+        if (callerId!=t.user.id)
+            throw IllegalArgumentException("User can close only his own tasks");
+        t.closeDate = LocalDate.now()
         anyDaoNew.merge(t)
         return t
     }

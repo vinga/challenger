@@ -9,7 +9,7 @@ import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
 import com.kameo.challenger.domain.tasks.db.TaskStatus;
 import com.kameo.challenger.logic.FakeDataLogic;
-import com.kameo.challenger.utils.MailService;
+import com.kameo.challenger.utils.mail.MailService;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

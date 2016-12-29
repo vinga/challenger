@@ -1,6 +1,7 @@
 package com.kameo.challenger.domain.accounts.db
 
 import com.kameo.challenger.odb.api.IIdentity
+import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -16,13 +17,13 @@ data class ConfirmationLinkODB(@Id
     @Enumerated
     lateinit var confirmationLinkType: ConfirmationLinkType
 
-    var fieldLogin: String? = null
-    var fieldPasswordHash: String? = null
-    var fieldSalt: String? = null
-    var email: String? = null
+//    var fieldLogin: String? = null
+//    var fieldPasswordHash: String? = null
+//    var fieldSalt: String? = null
+  //  var email: String? = null
     var challengeId: Long? = null
-    @Temporal(TemporalType.TIMESTAMP)
-    val sysCreationDate:Date= Date()
+
+    val sysCreationDate:LocalDateTime= LocalDateTime.now()
     @ManyToOne
-    var user: UserODB?=null
+    lateinit var user: UserODB;
 }

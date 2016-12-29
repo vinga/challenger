@@ -46,22 +46,23 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
     }
 
     onChangeChallengeHanlder = (challenge: ChallengeDTO) => {
-        if (challenge.userLabels.some(ul=> ul.id == this.props.loggedUserId && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)) {
+  /*      if (challenge.userLabels.some(ul=> ul.id == this.props.loggedUserId && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)) {
             this.setState({
                 showConfirmDialog: true,
                 confirmingChallenge: challenge
             });
-        } else
+        } else*/
             this.props.onChangeChallenge(challenge.id);
     }
     handleConfirmChallenge = () => {
-        console.log("CONFIRM ME");
+        this.props.onAcceptRejectChallenge(this.state.confirmingChallenge.id,true);
         this.handleCloseConfirmDialog();
     }
     handleRejectChallenge = () => {
-        console.log("REJECT ME");
+        this.props.onAcceptRejectChallenge(this.state.confirmingChallenge.id,false);
         this.handleCloseConfirmDialog();
     }
+
     handleCloseConfirmDialog = () => {
         this.setState({
             showConfirmDialog: false

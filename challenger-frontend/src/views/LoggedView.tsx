@@ -6,10 +6,15 @@ import {ChallengeParticipantDTO, EditChallengeDialog, selectedChallengeIdSelecto
 import {EventGroupPanel} from "../module_events/index";
 import {TaskDTO, EditTaskDialog} from "../module_tasks/index";
 import {Col, Row} from "./common-components/Flexboxgrid";
+import {Paper} from "material-ui";
+import NoChallengesPanel from "../module_challenges/components/NoChallengesPanel";
+import {challengeStatusSelector} from "../module_challenges/challengeSelectors";
+import {ChallengeStatus} from "../module_challenges/ChallengeDTO";
 
 
 interface ReduxProps {
     challengeId?: number,
+    challengeIsActive: boolean,
     userId: number,
     challengeAccounts: Array<ChallengeParticipantDTO>,
     editChallenge: boolean,
@@ -30,7 +35,7 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
 
         var rows = [];
-        if (this.props.challengeId != null) {
+        if (this.props.challengeIsActive) {
             var comps = this.props.challengeAccounts.map((u, iter)=>
                 <Col col="12-5">
                     <UserSlot user={u}
@@ -50,15 +55,18 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-Domyślny filtr na cheked/unchecked bo zasmiecają okienko?.  Jak call trwa za dlugo pokazac kreciolek.<br/>
-                Kto mzoe usunac taska? Tylko jego wlasciciel chyba? - w tej chwili kazdy moze, tak nie powinno byc<br/>
-Potwierdzanie maili i odswiezanie info o niepotwierdzonych challengach.<br/>
+                Domyślny filtr na cheked/unchecked bo zasmiecają okienko?.  Jak call trwa za dlugo pokazac kreciolek.<br/>
+                Potwierdzanie maili i odswiezanie info o niepotwierdzonych challengach.<br/>
                 Konfirmacja challenga<br/>
+
+
+                Przetestować jeśli ktoś jest rejestruje normalkniue a był zaproszony
+                <NoChallengesPanel/>
                 <div>{rows}</div>
 
 
                 {
-                    this.props.challengeId != null &&
+                    this.props.challengeIsActive &&
                     <EventGroupPanel authorId={this.props.userId}/>
                 }
 
@@ -95,6 +103,7 @@ const mapStateToProps = (state: ReduxState): ReduxProps => {
     return {
         userId: loggedUserSelector(state).id,
         challengeId: selectedChallengeIdSelector(state),
+        challengeIsActive: challengeStatusSelector(state) == ChallengeStatus.ACTIVE,
         challengeAccounts: challengeParticipantsSelector(state),
         editChallenge: state.challenges.editedChallenge != null,
         editedTask: state.tasksState.editedTask,

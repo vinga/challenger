@@ -2,6 +2,7 @@
   "name": "challenger",
   "version": "1.0.0",
   "description": "Challenger",
+  "proxy": "http://localhost:9080/",
   "scripts": {
     "start": "node server.js",
     "lint": "eslint src",
@@ -38,6 +39,7 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
+    "npm": "^3.10.8",
     "@cypress/react-tooltip": "^0.1.1",
     "dot-prop-immutable": "^1.1.2",
     "immutability-helper": "^2.0.0",

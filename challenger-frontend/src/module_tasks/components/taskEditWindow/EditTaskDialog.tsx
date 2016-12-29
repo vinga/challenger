@@ -40,6 +40,8 @@ interface State {
 }
 
 class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
+    taskNameTextField: TextField;
+
     constructor(props) {
         super(props);
         var vType = "day"
@@ -52,6 +54,12 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
             taskDeleteConfirmation: false,
             visibilityType: vType
         };
+    }
+
+    componentDidMount = () => {
+        setTimeout(()=> {
+            this.taskNameTextField.focus();
+        },200);
     }
 
     isDisabled = () => {
@@ -187,7 +195,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                             floatingLabelText="Name"
                             hintText="Name"
                             defaultValue={this.state.task.label}
-                            ref="actionName"
+                            ref={(c)=>this.taskNameTextField=c}
                             onChange={this.handleActionNameFieldChange}
                         />
                         {  this.props.task.id > 0 && this.props.isTaskUserLogged &&

@@ -15,6 +15,9 @@ open class ExpressionWrap<E, G> constructor(
         ISelectExpressionProvider<E>,
         ISugarQuerySelect<G>, //by pathSelect,
         IExpression<E, G> {
+
+
+
     open val it: ExpressionWrap<E, G> by lazy {
         this
     }
@@ -85,6 +88,10 @@ open class ExpressionWrap<E, G> constructor(
     infix fun groupBy(expr: IExpression<*, *>): ExpressionWrap<E, G> {
         pc.groupBy(arrayOf(expr) as Array<out IExpression<Any, Any>>)
         return this
+    }
+
+    fun  count(): ExpressionWrap<Long, G> {
+        return ExpressionWrap(pc,pc.cb.count(value));
     }
 
 }

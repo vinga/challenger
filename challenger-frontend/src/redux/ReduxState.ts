@@ -1,7 +1,7 @@
 import {connect} from "react-redux";
 import {VisibleChallengesDTO} from "../module_challenges/index";
 import {TaskDTOState} from "../module_tasks/index";
-import {RegisterState} from "../module_accounts/index";
+import {RegisterState, ConfirmationLinkState} from "../module_accounts/index";
 import {EventState} from "../module_events/index";
 import {AccountDTO} from "../module_accounts/AccountDTO";
 import {ReportState} from "../module_reports/ReportUserDTO";
@@ -9,7 +9,12 @@ import {ReportState} from "../module_reports/ReportUserDTO";
 
 export interface CurrentSelection {
     day: Date,
-    loginErrorDescription? :string
+    loginErrorDescription? :string,
+    internalErrorsCount: number,
+    forgotPasswordMode?: boolean,
+    snackbarInfo?: string
+    loginInfoDescription? : string,
+
 }
 
 export interface ReduxState {
@@ -20,6 +25,7 @@ export interface ReduxState {
     eventsState: EventState;
     reportsState: ReportState;
     currentSelection: CurrentSelection,
+    confirmationLinkState: ConfirmationLinkState
 }
 
 

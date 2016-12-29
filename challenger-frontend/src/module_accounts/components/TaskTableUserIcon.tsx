@@ -1,6 +1,6 @@
 import * as React from "react";
-import colors from "../../views/common-components/Colors";
 import {ChallengeStatus} from "../../module_challenges/ChallengeDTO";
+import {getColor} from "../../views/common-components/Colors";
 
 export default class TaskTableUserIcon extends React.Component<{userNo:number, challengeStatus: string},void> {
     constructor(props) {
@@ -9,9 +9,9 @@ export default class TaskTableUserIcon extends React.Component<{userNo:number, c
 
 
     render() {
-        var className = "fa fa-circle fa-stack-2x " + colors.userColorsTextClass[this.props.userNo];
+        var className = "fa fa-circle fa-stack-2x ";
 
-        /*var ucolor = colors.userColorsLighten[this.props.userNo];*/
+        var ucolor = getColor(this.props.userNo);
         var style: any={opacity: 0.9, fontSize: '24px'}
         var userIconName = "fa-user";
         if(this.props.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE) {
@@ -25,7 +25,7 @@ export default class TaskTableUserIcon extends React.Component<{userNo:number, c
             <div  style={{ overflow: 'hidden'}}>
 
                 <span className="fa-stack fa-lg" style={{marginRight: '10px'}}>
-                            <i className={className}></i>
+                            <i className={className} style={{color: ucolor}}></i>
                             <i className={"fa " + userIconName + " fa-stack-1x fa-inverse"} style={style}></i>
 
 

@@ -30,6 +30,10 @@ open class PathWrap<E, G> constructor(
         return pc.groupBy(arrayOf(ExpressionWrap<E, G>(pc, root.get(expr.name))));
     }
 
+    infix fun groupBy(expr: ExpressionWrap<E, *>) {
+        return pc.groupBy(arrayOf(ExpressionWrap<E, G>(pc, expr.getExpression())));
+    }
+
     fun groupBy(vararg exprs: KMutableProperty1<E, *>) {
         return pc.groupBy(exprs.map { ExpressionWrap<E, G>(pc, root.get(it.name)) }.toTypedArray());
     }
@@ -443,6 +447,7 @@ open class PathWrap<E, G> constructor(
         isIn(subqueryFrom(clz,query))
         return this
     }
+
 
 
 

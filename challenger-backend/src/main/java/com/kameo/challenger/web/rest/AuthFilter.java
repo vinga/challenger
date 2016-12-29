@@ -68,7 +68,9 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
             return false;
         System.out.println(req.getPathInfo());
         return
-                !(req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().contains("swagger"));
+                !(
+                        req.getPathInfo().startsWith("/accounts/passwordReset") ||
+                        req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().startsWith("/accounts/confirmationLinks/") || req.getPathInfo().contains("swagger"));
     }
 
     @Override

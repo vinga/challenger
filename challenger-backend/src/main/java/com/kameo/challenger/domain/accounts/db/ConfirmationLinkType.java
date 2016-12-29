@@ -4,6 +4,6 @@ import java.io.Serializable;
 
 public enum ConfirmationLinkType implements Serializable {
     EMAIL_CONFIRMATION,
-    CHALLENGE_CONTRACT_CONFIRMATION,
+    CHALLENGE_CONFIRMATION,
     PASSWORD_RESET
 }

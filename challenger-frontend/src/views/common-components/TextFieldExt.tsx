@@ -22,7 +22,8 @@ interface Props {
     checkEmailPattern?: boolean,
     name?: string,
     onEnterKeyDown?: ()=>void,
-    fullWidth?: boolean
+    fullWidth?: boolean,
+    id?: string
 }
 interface State {
     fieldValue: string,
@@ -36,6 +37,7 @@ export function validateEmail(email) {
 
 
 export default class TextFieldExt extends React.Component<Props,State> {
+    textField: TextField;
 
     state: State = {fieldValue: this.props.fieldValue};
     public static defaultProps: Props = {
@@ -45,6 +47,10 @@ export default class TextFieldExt extends React.Component<Props,State> {
         useRequiredValidator: false,
 
     };
+
+    focus = () => {
+        this.textField.focus()
+    }
 
     clear = () => {
         this.state.fieldValue = "";
@@ -127,6 +133,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
 
     render() {
         return (<TextField
+            ref={(c)=>this.textField=c}
             autoFocus={this.props.autoFocus}
             floatingLabelText={this.props.floatingLabelText}
             onChange={this.handleFieldChange}
@@ -138,6 +145,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
             name={this.props.name}
             onKeyDown={this.handleKeyDown}
             fullWidth={this.props.fullWidth}
+            id={this.props.id}
 
         />);
     }
