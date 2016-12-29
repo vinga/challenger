@@ -6,7 +6,6 @@ import {ChallengeParticipantDTO, EditChallengeDialog, selectedChallengeIdSelecto
 import {EventGroupPanel} from "../module_events/index";
 import {TaskDTO, EditTaskDialog} from "../module_tasks/index";
 import {Col, Row} from "./common-components/Flexboxgrid";
-import {Paper} from "material-ui";
 import NoChallengesPanel from "../module_challenges/components/NoChallengesPanel";
 import {challengeStatusSelector} from "../module_challenges/challengeSelectors";
 import {ChallengeStatus} from "../module_challenges/ChallengeDTO";
@@ -55,11 +54,8 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-                Domyślny filtr na cheked/unchecked bo zasmiecają okienko?.  Jak call trwa za dlugo pokazac kreciolek.<br/>
-                Potwierdzanie maili i odswiezanie info o niepotwierdzonych challengach.<br/>
-                Konfirmacja challenga<br/>
-
-
+                Odswiezanie info o niepotwierdzonych challengach.<br/>
+                Konfirmacja challenga - accept/reject bez potrzeby logowania<br/>
                 Przetestować jeśli ktoś jest rejestruje normalkniue a był zaproszony
                 <NoChallengesPanel/>
                 <div>{rows}</div>

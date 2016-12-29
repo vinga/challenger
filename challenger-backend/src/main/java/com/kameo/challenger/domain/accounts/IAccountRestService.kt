@@ -1,13 +1,11 @@
 package com.kameo.challenger.domain.accounts
 
-import javax.ws.rs.PathParam
-
 
 interface IAccountRestService {
 
-    data class RegisterRequestDTO(val email: String="",
-                                  val login: String="",
-                                  val password: String="")
+    data class RegisterRequestDTO(val email: String = "",
+                                  val login: String = "",
+                                  val password: String = "")
 
     data class RegisterResponseDTO(
             val registerSuccess: Boolean,
@@ -16,17 +14,17 @@ interface IAccountRestService {
 
     )
 
-    fun registerUser(rr: RegisterRequestDTO):RegisterResponseDTO
+    fun registerUser(rr: RegisterRequestDTO): RegisterResponseDTO
 
 
     data class ConfirmationLinkRequestDTO(val newLogin: String? = null, val newPassword: String? = null);
     data class ConfirmationLinkResponseDTO(val description: String,
-                                          val newLoginRequired: Boolean = false,
-                                          val newPasswordRequired: Boolean = true,
-                                          val displayLoginButton: Boolean=false,
-                                          val validationError: String?=null,
-                                          val done: Boolean=true,
-                                           val proposedLogin: String? = null);
+                                           val newLoginRequired: Boolean = false,
+                                           val newPasswordRequired: Boolean = true,
+                                           val displayLoginButton: Boolean = false,
+                                           val validationError: String? = null,
+                                           val done: Boolean = true,
+                                           val proposedLogin: String? = null)
 
 
     fun confirmOrGetInfoIfNeeded(uid: String, confirmParams: ConfirmationLinkRequestDTO): ConfirmationLinkResponseDTO

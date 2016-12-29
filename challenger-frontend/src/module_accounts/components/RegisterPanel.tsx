@@ -177,9 +177,17 @@ const mapDispatchToProps = (dispatch) => {
 
 };
 
-
+/*
 export const RegisterPanel = (connect(
     mapStateToProps,
     mapDispatchToProps
 ))(WebCallAwareComponent(RegisterPanelInternal, false));
+*/
+
+
+export const RegisterPanel  = (connect(
+    mapStateToProps,
+    mapDispatchToProps
+))(RegisterPanelInternal);
+
 

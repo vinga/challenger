@@ -27,7 +27,7 @@ export function changeChallengeAction(challengeId: number) {
 export function fetchWebChallenges() {
     return function (dispatch, getState: ()=>ReduxState) {
         dispatch(WEB_CHALLENGES_REQUEST.new({}));
-        webCall.loadVisibleChallenges().then(
+        webCall.loadVisibleChallenges(dispatch).then(
             visibleChallengesDTO=> {
                 var initialLoad = (getState().challenges.selectedChallengeId != visibleChallengesDTO.selectedChallengeId);
                 dispatch(WEB_CHALLENGES_RESPONSE.new(visibleChallengesDTO));
@@ -41,7 +41,7 @@ export function fetchWebChallenges() {
 export function createChallenge(challenge: ChallengeDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
         challenge.userLabels=getState().challenges.editedChallenge.userLabels
-        webCall.createChallenge(challenge).then(
+        webCall.createChallenge(dispatch, challenge).then(
             ()=> {
                 dispatch(fetchWebChallenges());
             }
@@ -56,7 +56,7 @@ export function acceptOrRejectChallenge(challengeId: number, accept: boolean) {
         if(!accept)
             challenge.challengeStatus = ChallengeStatus.REFUSED;*/
 
-        webCall.acceptOrRejectChallenge(challengeId, accept).then(
+        webCall.acceptOrRejectChallenge(dispatch, challengeId, accept).then(
             ()=> {
                 dispatch(fetchWebChallenges());
             }

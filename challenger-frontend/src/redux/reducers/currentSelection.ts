@@ -1,15 +1,14 @@
 import {isAction} from "../ReduxTask";
-import {INCREMENT_DAY, INTERNAL_ERROR_WEB_RESPONSE} from "../actions/actions";
-import {CurrentSelection, copy} from "../ReduxState";
 import {
-    LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_RESPONSE_SUCCESS, START_FORGOT_PASSWORD_MODE, FINISH_FORGOT_PASSWORD_MODE,
-    REGISTER_USER_RESPONSE
-} from "../../module_accounts/accountActionTypes";
-import {CHECK_CHALLENGE_PARTICIPANTS_REQUEST} from "../../module_challenges/challengeActionTypes";
+    INCREMENT_DAY, INTERNAL_ERROR_WEB_RESPONSE, WEB_CALL_START, WEB_CALL_END, WEB_CALL_END_ERROR,
+    DISPLAY_LONG_CALL, HIDE_LONG_CALL
+} from "../actions/actions";
+import {CurrentSelection, copy, WebCallData} from "../ReduxState";
+import {LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_RESPONSE_SUCCESS, START_FORGOT_PASSWORD_MODE, FINISH_FORGOT_PASSWORD_MODE} from "../../module_accounts/accountActionTypes";
 
 
 const getInitialState = () => {
-    return {day: new Date(), internalErrorsCount: 0};
+    return {day: new Date(), internalErrorsCount: 0, currentWebCalls: []};
 }
 export function currentSelection(state: CurrentSelection = getInitialState(), action): CurrentSelection {
     if (isAction(action, 'LOGOUT')) {
@@ -56,8 +55,29 @@ export function currentSelection(state: CurrentSelection = getInitialState(), ac
                 loginInfoDescription: null
             });
         }
+    } else if (isAction(action,DISPLAY_LONG_CALL)) {
+        return copy(state).and({
+            longCallVisible: action.longCallVisible
+        });
+    } else if (isAction(action,HIDE_LONG_CALL)) {
+        return copy(state).and({
+            longCallVisible: null
+        });
     }
 
+    return state;
+}
+
+export function webCallsState(state: WebCallData[] = [], action): WebCallData[] {
+    if (isAction(action, 'LOGOUT')) {
+        return []
+    } else if (isAction(action, WEB_CALL_START)) {
+        return state.concat(action.webCallData)
+    } else if (isAction(action, WEB_CALL_END)) {
+        return state.filter(cw=> cw.callUid != action.callUid)
+    } else if (isAction(action, WEB_CALL_END_ERROR)) {
+        return state.filter(cw=> cw.callUid != action.callUid)
+    }
     return state;
 }
 

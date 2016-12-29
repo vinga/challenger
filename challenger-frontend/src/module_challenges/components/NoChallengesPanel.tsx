@@ -39,9 +39,10 @@ class NoChallengesPanelInternal extends React.Component<{} & ReduxProps & ReduxF
         }
 
         if (this.props.stillLoading) {
-            return <RowCol horizontal="center">
+            return null;
+/*            <RowCol horizontal="center">
                     <CircularProgress />
-            </RowCol>
+            </RowCol>*/
         }
 
         return <Row style={{marginTop:"100px"}}>

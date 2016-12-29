@@ -9,7 +9,7 @@ export function downloadProgressiveReports(challengeId: number) {
 
         var date=new Date();
         date.setDate(date.getDate()-5);
-        webCall.downloadProgressiveReports(challengeId, date ).then(
+        webCall.downloadProgressiveReports(dispatch, challengeId, date ).then(
             (reportData: ReportDataDTO[])=> dispatch(REPORT_RESPONSE.new({challengeId, reportData}))
         ).catch((reason)=>authPromiseErr(reason, dispatch));
     }

@@ -18,7 +18,7 @@ import {ConfirmationLinkRequestDTO, ConfirmationLinkResponseDTO} from "./Account
 function renewToken(login: string, jwtToken: string) {
     return function (dispatch, getState: ()=>ReduxState) {
         console.log("renew token");
-        webCall.renewToken(login, jwtToken).then(jwtToken=> {
+        webCall.renewToken(dispatch, login, jwtToken).then(jwtToken=> {
                 dispatch(LOGIN_USER_RESPONSE_SUCCESS.new({login, jwtToken}));
                 dispatch(queueRenewAccessToken(login));
             }).catch((reason)=>authPromiseErr(reason,dispatch));
@@ -44,7 +44,7 @@ function queueRenewAccessToken(login) {
 export function loginUserAction(login: string, password: string, primary: boolean, userId?: number) {
     return function (dispatch) {
         dispatch(LOGIN_USER_REQUEST.new({login, password, primary, userId}));
-        return webCall.login(login, password).then(
+        return webCall.login(dispatch, login, password).then(
                 jwtToken=> {
 
                     dispatch(LOGIN_USER_RESPONSE_SUCCESS.new({login, jwtToken}));
@@ -69,7 +69,7 @@ export function loginUserAction(login: string, password: string, primary: boolea
 export function registerUserAction(email: string, login: string, password: string) {
     return function (dispatch) {
         dispatch(REGISTER_USER_REQUEST.new({}));
-        webCall.register(email, login, password).then(
+        webCall.register(dispatch, email, login, password).then(
             registerResponseDTO=> {
 
                 dispatch(REGISTER_USER_RESPONSE.new(registerResponseDTO));
@@ -109,7 +109,7 @@ export function updateChallengeParticipants(loginOrEmail: string) {
             dispatch(UPDATE_CHALLENGE_PARTICIPANTS.new({loginOrEmail: loginOrEmail}))
         } else {
             dispatch(CHECK_CHALLENGE_PARTICIPANTS_REQUEST.new({}));
-            webCall.checkIfLoginExists(loginOrEmail).then(
+            webCall.checkIfLoginExists(dispatch,loginOrEmail).then(
                 exists => {
 
                     if (exists) {
@@ -130,7 +130,7 @@ export function getConfirmationLinkResponse(uid: string, confirmationRequest: Co
     return function (dispatch, getState: ()=>ReduxState) {
             history.pushState("", document.title, window.location.pathname);
             dispatch(SET_CURRENT_CONFIRMATION_ID.new({uid: uid}));
-            webCall.getConfirmationLinkResponse(uid, confirmationRequest).then(
+            webCall.getConfirmationLinkResponse(dispatch, uid, confirmationRequest).then(
                 (response: ConfirmationLinkResponseDTO) => {
                     console.log("cwir cwir ", response);
                     dispatch(CONFIRMATION_LINK_RESPONSE.new({confirmationLink: response}))
@@ -143,6 +143,6 @@ export function getConfirmationLinkResponse(uid: string, confirmationRequest: Co
 export function sendResetPasswordLinkAction(email: string) {
     return function (dispatch, getState: ()=>ReduxState) {
         dispatch(FINISH_FORGOT_PASSWORD_MODE.new({emailSent: true}))
-        webCall.sendResetPasswordLink(email);
+        webCall.sendResetPasswordLink(dispatch, email);
     }
 }

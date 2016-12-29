@@ -32,7 +32,7 @@ export function sendEvent(authorId: number, content: string) {
 
         dispatch(ADD_NEW_EVENT_OPTIMISTIC.new(eventDTO));
 
-        webCall.sendEventWithAuthFailure(eventDTO, content == "ERR").then(
+        webCall.sendEventWithAuthFailure(dispatch, eventDTO, content == "ERR").then(
             (eventDTO: EventDTO) => {
                 //loadEventsAsyncAllTheTime should handle this case
                 // dispatch(fetchEvents(getState().challenges.selectedChallengeId));
@@ -62,7 +62,7 @@ export function loadEventsAsyncAllTheTime() {
         if (challengeId != null && challengeId != -1) {
             console.log("loadEventsAsyncAllTheTime " + maxEventId);
 
-            webCall.loadEventsForChallengeAsync(challengeId, maxEventId).then(
+            webCall.loadEventsForChallengeAsync(dispatch, challengeId, maxEventId).then(
                 (events: EventDTO[])=> {
                     dispatch(WEB_ASYNC_EVENT_RESPONSE.new({events}))
 
@@ -169,7 +169,7 @@ export function loadEventsAsyncAllTheTime() {
 function markAsRead(challengeId, eventId) {
     return function (dispatch, getState: ()=>ReduxState) {
         var readDate = new Date().getTime();
-        var p = webCall.markEventRead(challengeId, eventId, readDate)
+        var p = webCall.markEventRead(dispatch, challengeId, eventId, readDate)
             .catch((reason)=>authPromiseErr(reason, dispatch))
         dispatch(MARK_EVENT_AS_READ_OPTIMISTIC.new({challengeId, eventId, readDate}))
         return p;
@@ -179,7 +179,7 @@ function markAsRead(challengeId, eventId) {
 
 export function fetchInitialEvents(challengeId: number) {
     return function (dispatch) {
-        webCall.loadEventsForChallenge(challengeId).then(
+        webCall.loadEventsForChallenge(dispatch, challengeId).then(
             (challengeConversation: EventGroupDTO)=> dispatch(WEB_EVENTS_RESPONSE.new(challengeConversation))
         ).catch((reason)=>authPromiseErr(reason, dispatch));
     }
@@ -188,7 +188,7 @@ export function fetchInitialEvents(challengeId: number) {
 
 export function showTaskEvents(challengeId: number, taskId: number) {
     return function (dispatch) {
-        webCall.loadEventsForTask(challengeId, taskId).then(
+        webCall.loadEventsForTask(dispatch, challengeId, taskId).then(
             (eventGroup: EventGroupDTO)=> dispatch(WEB_EVENTS_RESPONSE.new(eventGroup))
         ).catch((reason)=>authPromiseErr(reason, dispatch));
     }

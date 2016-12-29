@@ -23,15 +23,13 @@ export default store;
 
 console.log(store.getState());
 
+
+
 let unsubscribe = store.subscribe(() =>
     console.log(store.getState())
 );
 
 
-//INCREMENT_DAY.new({amount:2});
 
-
-//store.dispatch(INCREMENT_DAY.new({amount:1}));
-//store.dispatch(INCREMENT_DAY.new({amount:-1}));
 
 unsubscribe();

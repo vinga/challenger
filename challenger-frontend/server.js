@@ -3,12 +3,8 @@ var WebpackDevServer = require('webpack-dev-server');
 var config = require('./webpack.config');
 
 new WebpackDevServer(webpack(config), {
-  proxy: {
-    '/api': {
-      target: 'http://localhost:9080/api/',
-      pathRewrite: {'^/api' : ''}
-    }
-  },
+  proxy:{ '/api/**': { target: 'http://localhost:9080', secure: false, changeOrigin: true } },
+
   publicPath: config.output.publicPath,
   hot: true,
   historyApiFallback: true

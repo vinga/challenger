@@ -5,7 +5,20 @@ import {RegisterState, ConfirmationLinkState} from "../module_accounts/index";
 import {EventState} from "../module_events/index";
 import {AccountDTO} from "../module_accounts/AccountDTO";
 import {ReportState} from "../module_reports/ReportUserDTO";
+import {WebCallDTO} from "../logic/domain/Common";
 
+export interface WebCallData {
+    startDate: Date
+    callUid: number,
+    fromStart: boolean
+}
+
+export enum LongCallVisible {
+    FROM_START,
+    LONG,
+    VERY_LONG,
+    ERROR
+}
 
 export interface CurrentSelection {
     day: Date,
@@ -14,6 +27,7 @@ export interface CurrentSelection {
     forgotPasswordMode?: boolean,
     snackbarInfo?: string
     loginInfoDescription? : string,
+    longCallVisible?: LongCallVisible
 
 }
 
@@ -25,7 +39,8 @@ export interface ReduxState {
     eventsState: EventState;
     reportsState: ReportState;
     currentSelection: CurrentSelection,
-    confirmationLinkState: ConfirmationLinkState
+    confirmationLinkState: ConfirmationLinkState,
+    webCallsState: WebCallData[]
 }
 
 

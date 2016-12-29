@@ -287,8 +287,8 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setLogin("kami");
         u.setEmail("kami@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
-        u.setSalt(PasswordUtil.createSalt());
-        u.setPasswordHash(PasswordUtil.getPasswordHash("kamipass", u.getSalt()));
+        u.setSalt(PasswordUtil.INSTANCE.createSalt());
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("kamipass", u.getSalt()));
         data.userKami = u;
         anyDao.getEm().persist(u);
 
@@ -296,8 +296,8 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setLogin("jack");
         u.setEmail("jack@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
-        u.setSalt(PasswordUtil.createSalt());
-        u.setPasswordHash(PasswordUtil.getPasswordHash("jackpass", u.getSalt()));
+        u.setSalt(PasswordUtil.INSTANCE.createSalt());
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("jackpass", u.getSalt()));
         anyDao.getEm().persist(u);
         data.userJack = u;
 
@@ -306,8 +306,8 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setLogin("milena");
         u.setEmail("milena@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
-        u.setSalt(PasswordUtil.createSalt());
-        u.setPasswordHash(PasswordUtil.getPasswordHash("milenapass", u.getSalt()));
+        u.setSalt(PasswordUtil.INSTANCE.createSalt());
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("milenapass", u.getSalt()));
         anyDao.getEm().persist(u);
         data.userMilena = u;
 
@@ -315,8 +315,8 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setLogin("kiwi");
         u.setEmail("kiwi@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
-        u.setSalt(PasswordUtil.createSalt());
-        u.setPasswordHash(PasswordUtil.getPasswordHash("kiwiapass", u.getSalt()));
+        u.setSalt(PasswordUtil.INSTANCE.createSalt());
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("kiwiapass", u.getSalt()));
         anyDao.getEm().persist(u);
         data.userKiwi = u;
 
@@ -340,8 +340,8 @@ public class FakeDataLogic implements CommandLineRunner {
             UserODB u = new UserODB();
             u.setLogin(login);
             u.setEmail(login + "@email.em");
-            u.setSalt(PasswordUtil.createSalt());
-            u.setPasswordHash(PasswordUtil.getPasswordHash(login + "pass", u.getSalt()));
+            u.setSalt(PasswordUtil.INSTANCE.createSalt());
+            u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash(login + "pass", u.getSalt()));
             u.setUserStatus(UserStatus.ACTIVE);
             anyDao.getEm().persist(u);
             res.add(u);

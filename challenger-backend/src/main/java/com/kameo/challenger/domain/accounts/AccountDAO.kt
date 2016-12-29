@@ -3,27 +3,20 @@ package com.kameo.challenger.domain.accounts
 import com.google.common.base.Strings
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.accounts.db.UserStatus
-import com.kameo.challenger.domain.accounts.db.UserStatus.ACTIVE
-import com.kameo.challenger.domain.accounts.db.UserStatus.WAITING_FOR_EMAIL_CONFIRMATION
+import com.kameo.challenger.domain.accounts.db.UserStatus.*
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.joda.time.DateTime
-import org.springframework.beans.factory.config.BeanDefinition
-import org.springframework.context.annotation.Scope
-import org.springframework.context.annotation.ScopedProxyMode.INTERFACES
-import org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import javax.inject.Inject
-import javax.inject.Singleton
 
 
 @Component
-@Scope(BeanDefinition.SCOPE_SINGLETON, proxyMode = TARGET_CLASS)
 @Transactional
 open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                       @Inject val confirmationLinkDAO: ConfirmationLinkDAO) {
@@ -90,13 +83,14 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     class InternalRegisterResponseDTO(val error: String? = null, val requireEmailConfirmation: Boolean = false)
 
     open fun registerUser(login: String, password: String, email: String): InternalRegisterResponseDTO {
-        println("register user " + login + " " + password + " " + email)
+        println("register user $login $password $email")
+
 
         val existingUser = anyDaoNew.getFirst(UserODB::class) {
             it get UserODB::email eq email
         }
 
-        var loginIsTaken = anyDaoNew.exists(UserODB::class) { it get +UserODB::login like login }
+        val loginIsTaken = anyDaoNew.exists(UserODB::class) { it get +UserODB::login like login }
         if (loginIsTaken)
             return InternalRegisterResponseDTO("Login $login is already registered.")
 
@@ -151,7 +145,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
               return InternalRegisterResponseDTO(requireEmailConfirmation = true)
           } else
   */
-        return InternalRegisterResponseDTO("Cannot register")
+        //   return InternalRegisterResponseDTO("Cannot register")
     }
 
     private fun updateUserFields(login: String, password: String, user: UserODB) {
@@ -168,11 +162,11 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                 it.get(UserODB::email) isIn labels
                 it.get(UserODB::login) isIn labels
             }
-        };//TODO comparator with enums, first user active.sortedBy { it.userStatus }
+        }
     }
 
     open fun sendResetMyPasswordLink(email: String) {
-       val u = anyDaoNew.getFirst(UserODB::class) {
+        val u = anyDaoNew.getFirst(UserODB::class) {
             it get UserODB::email eq email
             it get UserODB::userStatus notEq UserStatus.SUSPENDED
         }
@@ -194,6 +188,14 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         return anyDaoNew.exists(UserODB::class) {
             it get UserODB::login eq login
         }
+    }
+
+    open fun resetPassword(user: UserODB, newPassword: String) {
+        if (user.userStatus == SUSPENDED)
+            throw IllegalArgumentException()
+        user.salt = PasswordUtil.createSalt()
+        user.passwordHash = PasswordUtil.getPasswordHash(newPassword, user.salt)
+        anyDaoNew.merge(user)
     }
 
 

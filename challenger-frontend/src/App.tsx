@@ -8,6 +8,7 @@ import store from "./redux/store.ts";
 import {LOGOUT, LoginPanel, RegisterPanel, loggedUserSelector} from "./module_accounts/index";
 import {GlobalPopover} from "./views/common-components/GlobalPopover";
 import {ConfirmationPanel} from "./module_accounts/components/ConfirmationPanel";
+import {GlobalWebCallProgress} from "./views/GlobalWebCallProgress";
 
 
 //2.0.3
@@ -17,8 +18,6 @@ interface Props {
     logged: boolean,
     registering: boolean,
     confirmationLink: boolean,
-
-
 }
 interface PropsFunc {
     onLogout: ()=>void
@@ -27,9 +26,9 @@ interface PropsFunc {
 
 const App = (props: Props & PropsFunc)=> {
 
-
     return <MuiThemeProvider>
         <div>
+            <GlobalWebCallProgress/>
             <Header logged={props.logged} onLogout={props.onLogout}/> {
             props.registering ?
                 <RegisterPanel/>:
@@ -56,7 +55,6 @@ const mapStateToProps = (state: ReduxState): Props => {
     var cl = window.location.hash;
     return {
         confirmationLink: (window.location.hash.substr(1) || "").startsWith(c) || (state.confirmationLinkState != null && state.confirmationLinkState.uid != null),
-        //  confirmationLinkString: cl.substring(cl.indexOf(c)),
         logged: loggedUserSelector(state) != null,
         registering: state.registerState != null,
         //snackbarString: null//state.currentSelection.snackbarInfo
@@ -66,7 +64,6 @@ const mapStateToProps = (state: ReduxState): Props => {
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
         onLogout: () => dispatch(LOGOUT.new({})),
-
     }
 };
 
