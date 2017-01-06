@@ -3,6 +3,7 @@ package com.kameo.challenger.domain.accounts
 import com.kameo.challenger.config.ServerConfig
 import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkRequestDTO
 import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkResponseDTO
+import com.kameo.challenger.domain.challenges.ChallengeDAO
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus
 import org.springframework.stereotype.Component
 import javax.inject.Inject
@@ -21,13 +22,16 @@ open class AccountRestService : IAccountRestService {
     @Inject
     private lateinit var confirmationLinkDAO: ConfirmationLinkDAO
 
+    @Inject
+    private lateinit var challengeDao: ChallengeDAO
 
     @POST
     @Path("/accounts/register")
     override fun registerUser(rr: IAccountRestService.RegisterRequestDTO): IAccountRestService.RegisterResponseDTO {
         val internalResponse = accountDao.registerUser(rr.login,
                 rr.password,
-                rr.email)
+                rr.email,
+                rr.emailIsConfirmedByConfirmationLink)
         var errorInfo: String? = null
         if (internalResponse.error != null) {
             errorInfo = internalResponse.error
@@ -54,7 +58,7 @@ open class AccountRestService : IAccountRestService {
     @POST
     @Path("/accounts/confirmationLinks/confirmation={uid}")
     override fun confirmOrGetInfoIfNeeded(@PathParam("uid") uid: String, confirmParams: ConfirmationLinkRequestDTO): ConfirmationLinkResponseDTO {
-        return confirmationLinkDAO.confirmLink(uid, confirmParams, accountDao)
+        return confirmationLinkDAO.confirmLink(uid, confirmParams, accountDao, challengeDao)
     }
 
 

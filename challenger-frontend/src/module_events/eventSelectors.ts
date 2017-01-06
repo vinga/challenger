@@ -26,7 +26,7 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
             return [];
 
         var events: Array<DisplayedEventUI> = eventGroups.posts
-            .filter(p=> (filteredTask == null || p.taskId == filteredTask.id) && (eventActionsVisible || p.eventType == EventType.POST))
+            .filter(p=> (filteredTask == null || p.taskId == filteredTask.id) && (eventActionsVisible || (p.eventType != EventType.UNCHECKED_TASK && p.eventType!=EventType.CHECKED_TASK)))
             .sort((a, b)=> {
                 if (a.readDate != null && b.readDate != null) return a.readDate - b.readDate;
                 else if (a.readDate != null)

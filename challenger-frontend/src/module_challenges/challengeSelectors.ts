@@ -78,10 +78,10 @@ export const possibleChallengeParticipantsSelector: Selector<ReduxState,Array<Ch
         return uniqueParticipants;
     });
 
-export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<String>> = createSelector(
+export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<string>> = createSelector(
     challengeParticipantsSelector,
-    (challengeAccounts: Array<ChallengeParticipantDTO>): Array<String> => {
-        var jwtTokensOfApprovingUsers: Array<String> = challengeAccounts.filter(a=>a.jwtToken != null)
+    (challengeAccounts: Array<ChallengeParticipantDTO>): Array<string> => {
+        var jwtTokensOfApprovingUsers: Array<string> = challengeAccounts.filter(a=>a.jwtToken != null)
             .map(a=>a.jwtToken);
         return jwtTokensOfApprovingUsers;
     }

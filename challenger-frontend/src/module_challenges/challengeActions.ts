@@ -4,21 +4,24 @@ import * as webCall from "./challengeWebCalls";
 import {fetchTasksWhenNeeded} from "../module_tasks/index";
 import {fetchInitialEvents} from "../module_events/index";
 import {loadEventsAsyncAllTheTime} from "../module_events/eventActions";
-import {authPromiseErr} from "../module_accounts/accountActions";
 import {ChallengeDTO, ChallengeStatus} from "./ChallengeDTO";
 import {downloadProgressiveReports} from "../module_reports/index";
-import {selectedChallengeSelector, selectedChallengeParticipantsSelector, challengeStatusSelector} from "./challengeSelectors";
+import {challengeStatusSelector} from "./challengeSelectors";
 
 
+var loading: boolean=false;
 export function changeChallengeAction(challengeId: number) {
     return function (dispatch, getState) {
 
 
         dispatch(CHANGE_CHALLENGE.new({challengeId}));
-        if (  challengeStatusSelector(getState()) == ChallengeStatus.ACTIVE) {
+        if (challengeStatusSelector(getState()) == ChallengeStatus.ACTIVE) {
             dispatch(fetchTasksWhenNeeded(challengeId, getState().currentSelection.day));
             dispatch(fetchInitialEvents(challengeId));
-            dispatch(loadEventsAsyncAllTheTime());
+            if (!loading) {
+                loading=true;
+                dispatch(loadEventsAsyncAllTheTime());
+            }
             dispatch(downloadProgressiveReports(challengeId));
         }
     };
@@ -31,21 +34,36 @@ export function fetchWebChallenges() {
             visibleChallengesDTO=> {
                 var initialLoad = (getState().challenges.selectedChallengeId != visibleChallengesDTO.selectedChallengeId);
                 dispatch(WEB_CHALLENGES_RESPONSE.new(visibleChallengesDTO));
-                if (initialLoad && visibleChallengesDTO.selectedChallengeId!=null)
+                if (initialLoad && visibleChallengesDTO.selectedChallengeId != null)
                     dispatch(changeChallengeAction(visibleChallengesDTO.selectedChallengeId))
             }
-        ).catch((reason)=>authPromiseErr(reason, dispatch));
+        );
     }
-};
+}
+
+// we want just refesh state, like sb who accepted or rejected
+export function fetchWebChallengesNoReload() {
+    console.log("fetchWebChallengesNoReload");
+    return function (dispatch, getState: ()=>ReduxState) {
+        dispatch(WEB_CHALLENGES_REQUEST.new({}));
+        webCall.loadVisibleChallenges(dispatch).then(
+            visibleChallengesDTO=> {
+
+                dispatch(WEB_CHALLENGES_RESPONSE.new(visibleChallengesDTO));
+
+            }
+        );
+    }
+}
 
 export function createChallenge(challenge: ChallengeDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
-        challenge.userLabels=getState().challenges.editedChallenge.userLabels
+        challenge.userLabels = getState().challenges.editedChallenge.userLabels
         webCall.createChallenge(dispatch, challenge).then(
             ()=> {
                 dispatch(fetchWebChallenges());
             }
-        ).catch((reason)=>authPromiseErr(reason, dispatch));
+        );
     }
 }
 
@@ -53,14 +71,14 @@ export function createChallenge(challenge: ChallengeDTO) {
 export function acceptOrRejectChallenge(challengeId: number, accept: boolean) {
     return function (dispatch, getState: ()=>ReduxState) {
         /*var challenge = getState().challenges.visibleChallenges.find(ch => (ch.id == challengeId));
-        if(!accept)
-            challenge.challengeStatus = ChallengeStatus.REFUSED;*/
+         if(!accept)
+         challenge.challengeStatus = ChallengeStatus.REFUSED;*/
 
         webCall.acceptOrRejectChallenge(dispatch, challengeId, accept).then(
             ()=> {
                 dispatch(fetchWebChallenges());
             }
-        ).catch((reason)=>authPromiseErr(reason, dispatch));
+        );
     }
 }
 

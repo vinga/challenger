@@ -15,7 +15,6 @@ import {
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
 import * as webCall from "./taskWebCalls";
-import {authPromiseErr} from "../module_accounts/accountActions";
 import {jwtTokensOfChallengeParticipants} from "../module_challenges/index";
 import {selectedChallengeParticipantsSelector, challengeParticipantsSelector, jwtTokenOfUserWithId} from "../module_challenges/challengeSelectors";
 import _ = require("lodash");
@@ -32,12 +31,12 @@ export function updateTask(task: TaskDTO) {
             webCall.createTask(dispatch, task, jwtTokensOfLoggedChallengeUsers)
                 .then((task: TaskDTO)=> {
 
-                }).catch((reason)=>authPromiseErr(reason, dispatch));
+                });
         } else {
             webCall.updateTask(dispatch, task)
                 .then((task: TaskDTO)=> {
 
-                }).catch((reason)=>authPromiseErr(reason, dispatch));
+                });
         }
         dispatch(displayInProgressWebRequestsIfAny());
     }
@@ -53,7 +52,7 @@ export function deleteTask(task: TaskDTO) {
         var jwtTokenOfTaskUser=challengeParticipantsSelector(getState()).find(chp=>chp.id==task.userId).jwtToken;
         webCall.deleteTask(dispatch, task, jwtTokenOfTaskUser).then(()=> {
 
-        }).catch((reason)=>authPromiseErr(reason, dispatch));
+        });
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }
@@ -81,7 +80,7 @@ export function markTaskDoneOrUndone(caller: TaskUserDTO, challengeId: number, t
 
                 // tpRes caused wrong date (previous day), cause response had zeroed hour
                 //dispatch(fetchTasks(challengeId, new Date(taskProgress.progressTime)));
-            }).catch((reason)=>authPromiseErr(reason, dispatch));
+            });
 
         dispatch(displayInProgressWebRequestsIfAny());
 
@@ -104,7 +103,7 @@ export function fetchTasksProgresses(challengeId: number, day: Date): any {
 
                 dispatch(checkTasksNeedLoaading(challengeId, taskProgresses.map(tp=>tp.taskId)));
             }
-        ).catch((reason)=>authPromiseErr(reason, dispatch));
+        );
     }
 };
 function checkTasksNeedLoaading(challengeId: number, taskIds: number[]): any {
@@ -131,7 +130,7 @@ export function loadTasksNewWay(challengeId: number, newTaskIds: number[]): any 
             (tasks: Array<TaskDTO>)=> {
                 dispatch(LOAD_TASKS_RESPONSE_NEWWAY.new({tasks}));
             }
-        ).catch((reason)=>authPromiseErr(reason, dispatch));
+        );
     }
 }
 
@@ -180,7 +179,7 @@ export function updateTaskStatus(challengeId: number, taskApproval: TaskApproval
             .then(()=> {
 
 
-            }).catch((reason)=>authPromiseErr(reason, dispatch))
+            })
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }
@@ -192,7 +191,7 @@ export function onCloseTask(task: TaskDTO) {
         var state = getState();
         dispatch(CLOSE_TASK_OPTIMISTIC.new({task}));
         webCall.closeTask(dispatch, task.challengeId, task, jwtTokenOfUserWithId(state, task.userId))
-            .catch((reason)=>authPromiseErr(reason, dispatch))
+
         dispatch(displayInProgressWebRequestsIfAny());
     }
 }

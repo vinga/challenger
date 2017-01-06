@@ -31,6 +31,11 @@ open class MailService {
 
     open fun send(m: Message) {
         println("Send message "+mailSenderFrom)
+
+        println(m.toEmail)
+        println(m.content)
+        if (true)
+            return
         val mail = javaMailSender!!.createMimeMessage()
         try {
             val helper = MimeMessageHelper(mail, true)

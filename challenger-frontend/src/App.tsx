@@ -9,6 +9,7 @@ import {LOGOUT, LoginPanel, RegisterPanel, loggedUserSelector} from "./module_ac
 import {GlobalPopover} from "./views/common-components/GlobalPopover";
 import {ConfirmationPanel} from "./module_accounts/components/ConfirmationPanel";
 import {GlobalWebCallProgress} from "./views/GlobalWebCallProgress";
+import {CustomNotificationPanel} from "./views/CustomNotificationPanel";
 
 
 //2.0.3
@@ -29,7 +30,9 @@ const App = (props: Props & PropsFunc)=> {
     return <MuiThemeProvider>
         <div>
             <GlobalWebCallProgress/>
-            <Header logged={props.logged} onLogout={props.onLogout}/> {
+            <Header logged={props.logged} onLogout={props.onLogout}/>
+            <CustomNotificationPanel/>
+            {
             props.registering ?
                 <RegisterPanel/>:
                 (props.logged ?

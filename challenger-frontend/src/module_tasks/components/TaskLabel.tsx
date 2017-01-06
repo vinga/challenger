@@ -63,9 +63,14 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
         }
     }
 
+    closedTxt = () => {
+        if (this.props.taskDTO.closeDate!=null)
+            return " (Closed)";
+        else return null;
+    }
     render() {
         if (this.props.taskDTO.taskStatus == TaskStatus.accepted) {
-            return <div>{this.props.taskDTO.label}</div>
+            return <div>{this.props.taskDTO.label}{this.closedTxt()}</div>
         } else if (this.props.taskDTO.taskStatus == TaskStatus.rejected) {
             var style = Object.assign({}, styles.chip, {
                 backgroundColor: getColorSuperlightenForUser(this.props.taskCreatorOrdinal),
@@ -76,7 +81,7 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
                 <div style={styles.wrapper}>
                     <div style={{ lineHeight:'15px', display:'flex', flexDirection: 'column', overflow: "hidden",
                                     textOverflow: "ellipsis",minWidth: '50px',flexBasis:'min-content'}}>
-                        <div style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}</div>
+                        <div style={{textDecoration: "line-through"}}>{this.props.taskDTO.label}{this.closedTxt()}</div>
 
                         <div style={{flexDirection: 'row', display:'flex'}}>
                             <div style={{fontSize:'10px', overflow:'hidden',
@@ -101,7 +106,7 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
 
         if (!this.props.userThatCanAcceptIsLogged) {
             return (<div style={styles.wrapper}>
-                <div className="taskLabel">{this.props.taskDTO.label}</div>
+                <div className="taskLabel">{this.props.taskDTO.label}{this.closedTxt()}</div>
                 <Chip style={chipWaiting} className="clickableChip">
                     <div style={{lineHeight:'12px',fontSize: '12px',
                     color:getColorLightenForUser(this.props.no)}}>
@@ -113,7 +118,7 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
             var chipStyle = Object.assign({}, styles.chip, {backgroundColor: getColorSuperlightenForUser(this.props.userThatCanAcceptOrdinal)});
             return (<div style={styles.wrapper}>
                 <div style={{lineHeight:'32px',minWidth:'50px',overflow:'hidden',
-                            whiteSpace: "nowrap", textOverflow: "ellipsis", marginRight:'5px'}}>{this.props.taskDTO.label}</div>
+                            whiteSpace: "nowrap", textOverflow: "ellipsis", marginRight:'5px'}}>{this.props.taskDTO.label}{this.closedTxt()}</div>
                 <div style={{flexBasis:'fit-content',  display:'flex'}}>
                     <Chip className="clickableChip" style={chipStyle}
                           labelStyle={{ fontSize:'12px'}}

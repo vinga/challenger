@@ -1,7 +1,12 @@
 package com.kameo.challenger.domain.events
 
+import com.kameo.challenger.domain.accounts.db.UserODB
+import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.domain.events.IEventGroupRestService.EventDTO
 import com.kameo.challenger.logic.PermissionDAO
+import com.kameo.challenger.utils.odb.AnyDAONew
+import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import com.kameo.challenger.utils.synchCopyThenClear
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Scope
@@ -20,8 +25,11 @@ open class EventPushDAO {
     lateinit var eventGroupDAO: EventGroupDAO
     @Inject
     lateinit var permissionDAO: PermissionDAO
-    private var subscribers = mutableMapOf<Long, ChallengeSubscribers>()
+    @Inject
+    lateinit var anyDaoNew: AnyDAONew
 
+
+    private var listeningUsers = mutableMapOf<Long, MutableList<UserClient>>()
 
     /**
      * check if there is anything unread for caller for specified challenge
@@ -31,40 +39,23 @@ open class EventPushDAO {
     open fun listenToNewEvents(uniqueClientIdentifier: String, callerId: Long, asyncResponse: AsyncResponse, challengeId: Long, lastReadEventId: Long?) {
         permissionDAO.checkHasPermissionToChallenge(callerId, challengeId)
 
-        val subscriber = Subscriber(uniqueClientIdentifier = uniqueClientIdentifier,
-                userId = callerId,
-                challengeId = challengeId,
-                asyncResponse = asyncResponse,
-                lastReadEventId = lastReadEventId)
+
+        val userClient = UserClient(callerId, lastReadEventId, asyncResponse)
+        if (broadcastEventsToCustomClient(userClient))
+            return;
 
 
-        val challengeSubscribers: ChallengeSubscribers? = subscribers[challengeId]
-        if (challengeSubscribers == null) {
-            synchronized(subscribers, {
-                val challengeSubscribersSynch = subscribers[challengeId]
-                if (challengeSubscribersSynch == null) {
-                    // create new ChallengeSubscribers
-                    subscribers.put(challengeId, ChallengeSubscribers(users = mutableListOf(subscriber)))
-                } else {
-                    synchronized(challengeSubscribersSynch, {
-                        challengeSubscribersSynch.users.add(subscriber)
-                    })
-                }
-                Unit
-            })
+        synchronized(listeningUsers, {
+            val list = listeningUsers.getOrPut(callerId) {
+                mutableListOf()
+            }
+            synchronized(list, { list.add(userClient) })
 
-        } else {
-            synchronized(challengeSubscribers, {
-                challengeSubscribers.users.add(subscriber)
-            })
-        }
+        })
+
 
         asyncResponse.setTimeout(500, TimeUnit.SECONDS)
         asyncResponse.setTimeoutHandler { it.cancel() }
-
-        //broadcastAllUnreadEvents(callerId, challengeId);
-
-        broadcastEventsToCustomClient(subscriber)
 
     }
 
@@ -72,85 +63,50 @@ open class EventPushDAO {
     open fun broadcastNewEvent(challengeId: Long) {
         // fetch everyhing unread for those challenge and subscribers
 
-        subscribers[challengeId]?.let {
-            synchronized(it) {
-                it.users.toList().forEach {
-                    broadcastEventsToCustomClient(it)
+        val userIds = anyDaoNew.getAll(ChallengeParticipantODB::class) {
+            it get ChallengeParticipantODB::challenge eqId challengeId
+            it get ChallengeParticipantODB::challengeStatus notEq ChallengeStatus.REFUSED
+            it.select(it get ChallengeParticipantODB::user get +UserODB::id)
+        }
+
+
+        userIds.forEach {
+            listeningUsers[it]?.let {
+                synchronized(it) {
+                    it.forEach {
+                        broadcastEventsToCustomClient(it)
+                    }
+                    it.clear()
                 }
             }
         }
+
+
     }
 
-    /**
-     * check if there are any unread posts, if yes, send them immediatelly
-     */
-    private fun broadcastAllUnreadEvents(callerId: Long, challengeId: Long) {
-        eventGroupDAO.getUnreadEventsForChallenge(callerId, challengeId)
-                .map { EventDTO.fromODB(it) }
-                .toTypedArray()
-                .let { internalBroadcastNewEvent(*it) }
-    }
 
-    /**
-     * check if there are any posts with greater ID, if yes, send them immediatelly
-     */
-    private fun broadcastEventsToCustomClient(subscriber: Subscriber) {
-        if (subscriber.lastReadEventId==null) {
+    private fun broadcastEventsToCustomClient(client: UserClient): Boolean {
+        val events = if (client.lastReadEventId == null) {
             // first time after login we don't have last read event id
-            broadcastAllUnreadEvents(subscriber.userId, subscriber.challengeId)
-            return
+            eventGroupDAO.getUnreadEventsForChallenge(client.userId, null)
+        } else {
+            eventGroupDAO.getLaterEventsForChallenge(client.userId, null, client.lastReadEventId)
+        } .map { EventDTO.fromODB(it) }
 
-        }
-        val events = eventGroupDAO.getLaterEventsForChallenge(subscriber.userId, subscriber.challengeId, subscriber.lastReadEventId)
-                .map { EventDTO.fromODB(it) }
 
         if (events.isEmpty())
-            return
-        if (events.groupBy { it.challengeId }.keys.size > 1)
-            throw IllegalArgumentException("Only events from same event may be broadcasted together")
+            return false
+        client.asyncResponse.resume(events.toTypedArray())
 
-        subscribers[subscriber.challengeId]?.let {
-            synchronized(it) {
-                val sub = it.users.find { it.uniqueClientIdentifier == subscriber.uniqueClientIdentifier }
-                if (sub != null) {
-                    it.users.remove(sub)
-                    sub.asyncResponse.resume(events.toTypedArray())
-                }
-            }
-        }
-
+        return true
     }
 
 
-    /**
-     * eventDtoArray - should be from same challenge
-     */
-    private fun internalBroadcastNewEvent(vararg eventDtoArray: EventDTO) {
-        println("BROADCAST NEW EVENTS: " + eventDtoArray.size)
-        if (eventDtoArray.isEmpty()) {
-            return
-        }
-        if (eventDtoArray.groupBy { it.challengeId }.keys.size > 1)
-            throw IllegalArgumentException("Only events from same challenge can be broadcast together")
 
 
-
-        subscribers[eventDtoArray.first().challengeId]?.let {
-            synchronized(it) {
-                it.users.synchCopyThenClear().forEach {
-                    it.asyncResponse.resume(eventDtoArray)
-                }
-            }
-        }
-    }
-
-
-    private class ChallengeSubscribers(val users: MutableList<Subscriber> = mutableListOf())
-
-    private class Subscriber(val uniqueClientIdentifier: String,
-                             val userId: Long,
-                             val challengeId: Long,
-                             val asyncResponse: AsyncResponse, val lastReadEventId: Long?)
-
+    private class UserClient(
+            val userId: Long,
+            val lastReadEventId: Long?,
+            val asyncResponse: AsyncResponse)
 
 }

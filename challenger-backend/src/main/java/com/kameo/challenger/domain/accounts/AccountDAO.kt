@@ -1,6 +1,8 @@
 package com.kameo.challenger.domain.accounts
 
 import com.google.common.base.Strings
+import com.kameo.challenger.domain.accounts.db.ConfirmationLinkODB
+import com.kameo.challenger.domain.accounts.db.ConfirmationLinkType
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.accounts.db.UserStatus
 import com.kameo.challenger.domain.accounts.db.UserStatus.*
@@ -73,7 +75,6 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
 
     protected open fun createPendingUserWithEmailOnly(email: String): UserODB {
         val user = UserODB()
-        user.login = ""
         user.email = email
         user.userStatus = UserStatus.WAITING_FOR_EMAIL_CONFIRMATION
         anyDaoNew.em.persist(user)
@@ -82,13 +83,25 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
 
     class InternalRegisterResponseDTO(val error: String? = null, val requireEmailConfirmation: Boolean = false)
 
-    open fun registerUser(login: String, password: String, email: String): InternalRegisterResponseDTO {
-        println("register user $login $password $email")
+    open fun registerUser(login: String, password: String, email: String, emailIsConfirmedByConfirmationLink: String?): InternalRegisterResponseDTO {
+        println("register user $login $password $email $emailIsConfirmedByConfirmationLink")
+        if (login.isNullOrBlank())
+            throw IllegalArgumentException();
+
+        val confirmationLink =
+                if (emailIsConfirmedByConfirmationLink != null)
+                    anyDaoNew.getFirst(ConfirmationLinkODB::class) {
+                        it get +ConfirmationLinkODB::uid eq emailIsConfirmedByConfirmationLink
+                        it get ConfirmationLinkODB::confirmationLinkType eq ConfirmationLinkType.EMAIL_CONFIRMATION
+                    }
+                else null;
 
 
-        val existingUser = anyDaoNew.getFirst(UserODB::class) {
-            it get UserODB::email eq email
-        }
+        val existingUser =
+                confirmationLink?.user ?: anyDaoNew.getFirst(UserODB::class) {
+                    it get UserODB::email eq email
+                }
+
 
         val loginIsTaken = anyDaoNew.exists(UserODB::class) { it get +UserODB::login like login }
         if (loginIsTaken)
@@ -98,63 +111,43 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         if (existingUser == null) {
             val user = UserODB()
             user.email = email
-            updateUserFields(login, password, user)
+            user.login = login
+            user.userStatus = WAITING_FOR_EMAIL_CONFIRMATION
+            //updateUserFields(login, password, user)
+
             anyDaoNew.persist(user)
-            return InternalRegisterResponseDTO(requireEmailConfirmation = false)
+
+            val salt = PasswordUtil.createSalt()
+            val passwordHash = PasswordUtil.getPasswordHash(password, salt)
+            confirmationLinkDAO.createAndSendEmailConfirmationLink(user, login, passwordHash, salt)
+            return InternalRegisterResponseDTO(requireEmailConfirmation = true)
+        } else if (existingUser.userStatus == SUSPENDED) {
+            return InternalRegisterResponseDTO("This account is suspended. Try again after a while.")
         } else if (existingUser.userStatus != WAITING_FOR_EMAIL_CONFIRMATION) {
             return InternalRegisterResponseDTO("Email $email is already registered.")
         } else {
+
             // user exists but has state waiting for email confirmation (this is when for example sb invited email)
+            val salt = PasswordUtil.createSalt()
+            val passwordHash = PasswordUtil.getPasswordHash(password, salt)
 
-            updateUserFields(login, password, existingUser)
-            anyDaoNew.merge(existingUser)
-            return InternalRegisterResponseDTO(requireEmailConfirmation = false)
+            if (emailIsConfirmedByConfirmationLink != null) {
+                // because user clicked on link from email we know it's confirmed
+                existingUser.login = login
+                existingUser.salt = salt
+                existingUser.passwordHash = passwordHash
+                existingUser.userStatus = ACTIVE
+
+                // we can now remove confirmationLink
+                anyDaoNew.remove(ConfirmationLinkODB::class) { it get ConfirmationLinkODB::uid eq emailIsConfirmedByConfirmationLink }
+
+                return InternalRegisterResponseDTO(requireEmailConfirmation = false)
+            } else {
+                confirmationLinkDAO.createAndSendEmailConfirmationLink(existingUser, login, passwordHash, salt)
+                return InternalRegisterResponseDTO(requireEmailConfirmation = true)
+            }
         }
-
-        /*  val challengeParticipant = anyDaoNew.getFirst(ChallengeParticipantODB::class, {
-              it.get(ChallengeParticipantODB::user).get(UserODB::email) eq email
-
-          })
-
-          if (challengeParticipant == null) {
-
-              val existingUser = anyDaoNew.getFirst(UserODB::class) {
-                  it get UserODB::login eq login
-              }
-              if (existingUser != null)
-                  return InternalRegisterResponseDTO("Login $login is already registered.")
-              val existingEmail = anyDaoNew.getFirst(UserODB::class) {
-                  it get UserODB::email eq email
-              }
-              if (existingEmail != null)
-                  return InternalRegisterResponseDTO("Email $email is already registered.")
-
-
-              val user = UserODB()
-              user.login = login
-              user.email = email
-              user.userStatus = UserStatus.ACTIVE
-              user.salt = PasswordUtil.createSalt()
-              user.passwordHash = PasswordUtil.getPasswordHash(password, user.salt)
-              anyDaoNew.em.persist(user)
-              return InternalRegisterResponseDTO(requireEmailConfirmation = false)
-
-
-          } else if (challengeParticipant.user.userStatus == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
-              confirmationLinkLogic.createAndSendEmailConfirmationLink(login, password, email)
-              return InternalRegisterResponseDTO(requireEmailConfirmation = true)
-          } else
-  */
-        //   return InternalRegisterResponseDTO("Cannot register")
     }
-
-    private fun updateUserFields(login: String, password: String, user: UserODB) {
-        user.login = login
-        user.userStatus = ACTIVE
-        user.salt = PasswordUtil.createSalt()
-        user.passwordHash = PasswordUtil.getPasswordHash(password, user.salt)
-    }
-
 
     open fun getUsersForLabels(labels: List<String>): List<UserODB> {
         return anyDaoNew.getAll(UserODB::class) {
@@ -168,7 +161,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun sendResetMyPasswordLink(email: String) {
         val u = anyDaoNew.getFirst(UserODB::class) {
             it get UserODB::email eq email
-            it get UserODB::userStatus notEq UserStatus.SUSPENDED
+            it get UserODB::userStatus eq UserStatus.ACTIVE // quietly don't send anything if email is not confirmed
         }
         if (u != null)
             confirmationLinkDAO.createAndSendPasswordResetLink(u)
@@ -193,6 +186,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun resetPassword(user: UserODB, newPassword: String) {
         if (user.userStatus == SUSPENDED)
             throw IllegalArgumentException()
+        user.userStatus = ACTIVE
         user.salt = PasswordUtil.createSalt()
         user.passwordHash = PasswordUtil.getPasswordHash(newPassword, user.salt)
         anyDaoNew.merge(user)

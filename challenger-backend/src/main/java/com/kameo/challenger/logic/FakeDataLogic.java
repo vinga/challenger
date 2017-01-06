@@ -273,12 +273,7 @@ public class FakeDataLogic implements CommandLineRunner {
         approveTaskForCreator(ac7);
 
 
-        ConfirmationLinkODB confirmationLinkODB = new ConfirmationLinkODB();
-        confirmationLinkODB.setUser(data.userKami);
-        confirmationLinkODB.setChallengeId(contract3.getId());
-        confirmationLinkODB.setConfirmationLinkType(ConfirmationLinkType.CHALLENGE_CONFIRMATION);
-        confirmationLinkODB.setUid("blah");
-        em.persist(confirmationLinkODB);
+
 
     }
 

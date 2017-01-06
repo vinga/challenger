@@ -91,11 +91,15 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     }
 
     private void printTokenToResponse(HttpServletResponse httpRes, E tokenInfo) throws IOException {
-        String newToken = signer
-                .createJsonWebToken(tokenInfo, tokenInfo.getExpires().toDate());
+        String newToken = tokenToString(tokenInfo);
         httpRes.addHeader("Content-Type", "text/html; charset=utf-8");
         httpRes.getWriter().print(newToken);
         httpRes.getWriter().flush();
+    }
+
+    public String tokenToString(E tokenInfo) {
+        return signer
+                    .createJsonWebToken(tokenInfo, tokenInfo.getExpires().toDate());
     }
 
     /**

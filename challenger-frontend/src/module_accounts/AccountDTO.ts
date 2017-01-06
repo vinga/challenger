@@ -19,11 +19,16 @@ export interface ConfirmationLinkRequestDTO {
 
 export interface ConfirmationLinkResponseDTO {
     description: string,
-    newLoginRequired: boolean
-    newPasswordRequired: boolean
+    newPasswordRequired: boolean,
+    emailRequiredForRegistration? : string,
+    loginProposedForRegistration? : string,
+    emailIsConfirmedByConfirmationLink? : string,
+    displayRegisterButton: boolean,
     displayLoginButton: boolean
     validationError?: string
     done: boolean
     proposedLogin?: string
+    jwtToken?: string,
+    login?: string
 }
 

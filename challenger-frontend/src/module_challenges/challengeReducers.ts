@@ -32,13 +32,18 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         console.log("change challenge to " + action.challengeId);
         return copy(state).and({selectedChallengeId: action.challengeId});
     } else if (isAction(action, WEB_CHALLENGES_RESPONSE)) {
-        state.visibleChallenges.map(vc=> {
+
+        var newState:VisibleChallengesDTO=action;
+        if (state.selectedChallengeId!=null && state.selectedChallengeId!=NO_CHALLENGES_LOADED_YET && newState.visibleChallenges.some(vc=>vc.id==state.selectedChallengeId)) {
+            newState.selectedChallengeId=state.selectedChallengeId;
+        }
+        newState.visibleChallenges.map(vc=> {
             var ord = 0;
             vc.userLabels.forEach(ul=> {
                 ul.ordinal = ord++;
             })
         });
-        return action;
+        return newState;
     } else if (isAction(action, CLOSE_EDIT_CHALLENGE)) {
         return Object.assign({}, state, {
             editedChallenge: null,

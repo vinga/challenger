@@ -18,7 +18,7 @@ import {
 } from "./accountActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {baseWebCall} from "../logic/WebCall";
-import {RegisterState, ConfirmationLinkState} from "./RegisterResponseDTO";
+import {RegisterState, ConfirmationLinkState, RegisterResponseDTO} from "./RegisterResponseDTO";
 import {WebCallState} from "../logic/domain/Common";
 
 
@@ -121,11 +121,17 @@ export function accounts(state: Array<AccountDTO> = [], action) {
 
 
 const initialRegisterState = (): RegisterState => {
-   return  { webCall: {webCallState: WebCallState.INITIAL}}
+    return {webCall: {webCallState: WebCallState.INITIAL},
+        finishedWithSuccess: false,
+        stillRequireEmailConfirmation: false}
 }
 export function registerState(state: RegisterState = null, action): RegisterState {
     if (isAction(action, REGISTER_SHOW_REGISTRATION_PANEL)) {
-        return initialRegisterState();
+        var state = initialRegisterState();
+        state.requiredEmail = action.requiredEmail;
+        state.proposedLogin = action.proposedLogin;
+        state.emailIsConfirmedByConfirmationLink = action.emailIsConfirmedByConfirmationLink;
+        return state;
     }
     else if (isAction(action, REGISTER_EXIT_TO_LOGIN_PANEL)) {
         return null;
@@ -133,21 +139,25 @@ export function registerState(state: RegisterState = null, action): RegisterStat
 
         return Object.assign({}, state, {
             registerError: null,
+            stillRequireEmailConfirmation: null,
+            finishedWithSuccess: false,
             webCall: {webCallState: WebCallState.IN_PROGRESS}
         });
     }
     else if (isAction(action, REGISTER_USER_RESPONSE)) {
-        if (action.registerSuccess) {
-            return null;
-        } else {
-            return Object.assign({}, state, {
-                registerError: action.registerError,
-                webCall: {webCallState: WebCallState.RESPONSE_OK}
-            });
-        }
+        var regResp: RegisterResponseDTO = action;
+        return Object.assign({}, state, {
+            stillRequireEmailConfirmation: regResp.needsEmailConfirmation,
+            finishedWithSuccess: action.registerError == null,
+            registerError: action.registerError,
+            webCall: {webCallState: WebCallState.RESPONSE_OK}
+        });
+
     } else if (isAction(action, REGISTER_USER_RESPONSE_FAILURE)) {
         return Object.assign({}, state, {
-            registerError: action.responseText,
+            registerError: action.humanReadableException,
+            stillRequireEmailConfirmation: null,
+            finishedWithSuccess: false,
             webCall: {webCallState: WebCallState.RESPONSE_FAILURE}
         });
     } else if (isAction(action, LOGIN_USER_REQUEST)) {

@@ -8,7 +8,11 @@ export const EventType = {
     CHECKED_TASK:"CHECKED_TASK",
     UNCHECKED_TASK:"UNCHECKED_TASK",
     DELETE_TASK: "DELETE_TASK",
-    CLOSE_TASK: "CLOSE_TASK"
+    CLOSE_TASK: "CLOSE_TASK",
+    ACCEPT_CHALLENGE: "ACCEPT_CHALLENGE",
+    REJECT_CHALLENGE: "REJECT_CHALLENGE",
+
+
 };
 
 
@@ -28,17 +32,23 @@ export interface EventDTO {
 export interface EventGroupDTO {
     challengeId?: number
     taskId?: number
-    posts: Array<EventDTO>,
-    maxEventId?: number
+    posts: Array<EventDTO>
+
 }
 
 export interface EventState {
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
     eventGroups: Array<EventGroupDTO>,
+    maxEventId?: number,
     selectedTask: TaskDTO,
     selectedNo: number,
-    eventActionsVisible: boolean
+    eventActionsVisible: boolean,
+    unreadNotifications: UnreadNotificationsList
+
+}
+export interface UnreadNotificationsList {
+    [challengeId: number]: number
 }
 
 

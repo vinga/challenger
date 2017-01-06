@@ -11,12 +11,16 @@ export function login(dispatch, login: string, pass: string): Promise<string> {
 
 }
 
-export function register(dispatch, email: string, login: string, pass: string): Promise<RegisterResponseDTO> {
-    return baseWebCall.postUnauthorized(dispatch, "/accounts/register", {
+export function register(dispatch, email: string, login: string, pass: string, emailIsConfirmedByConfirmationLink: string): Promise<RegisterResponseDTO> {
+    var data:any={
         'email': email,
         'login': login,
         'password': pass
-    });
+    };
+    if (emailIsConfirmedByConfirmationLink!=null)
+        data.emailIsConfirmedByConfirmationLink=emailIsConfirmedByConfirmationLink;
+
+    return baseWebCall.postUnauthorized(dispatch, "/accounts/register", data);
 }
 
 export function renewToken(dispatch,login: string, jwtToken: string): Promise<string> {

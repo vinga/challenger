@@ -11,16 +11,23 @@ import {selectedChallengeSelector} from "../challengeSelectors";
 import {changeChallengeAction, acceptOrRejectChallenge} from "../challengeActions";
 import {CREATE_NEW_CHALLENGE} from "../challengeActionTypes";
 import {loggedUserSelector} from "../../module_accounts/accountSelectors";
+import {YesNoConfirmationDialog} from "../../views/common-components/YesNoConfirmationDialog";
+import {UnreadNotificationsList} from "../../module_events/EventDTO";
+import {Badge} from "material-ui";
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 import IconMenuProps = __MaterialUI.Menus.IconMenuProps;
-import {YesNoConfirmationDialog} from "../../views/common-components/YesNoConfirmationDialog";
+import _ = require("lodash");
 
 interface Props {
+    selectedChallengeId: number,
     selectedChallengeLabel: string,
     visibleChallengesDTO: VisibleChallengesDTO,
     day: Date,
     creatorLabel: string
-    loggedUserId: number
+    loggedUserId: number,
+    unreadNotifications: UnreadNotificationsList,
+    totalUnreadNotifications: number
+
 }
 
 interface PropsFunc {
@@ -46,20 +53,20 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
     }
 
     onChangeChallengeHanlder = (challenge: ChallengeDTO) => {
-  /*      if (challenge.userLabels.some(ul=> ul.id == this.props.loggedUserId && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)) {
-            this.setState({
-                showConfirmDialog: true,
-                confirmingChallenge: challenge
-            });
-        } else*/
-            this.props.onChangeChallenge(challenge.id);
+        /*      if (challenge.userLabels.some(ul=> ul.id == this.props.loggedUserId && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)) {
+         this.setState({
+         showConfirmDialog: true,
+         confirmingChallenge: challenge
+         });
+         } else*/
+        this.props.onChangeChallenge(challenge.id);
     }
     handleConfirmChallenge = () => {
-        this.props.onAcceptRejectChallenge(this.state.confirmingChallenge.id,true);
+        this.props.onAcceptRejectChallenge(this.state.confirmingChallenge.id, true);
         this.handleCloseConfirmDialog();
     }
     handleRejectChallenge = () => {
-        this.props.onAcceptRejectChallenge(this.state.confirmingChallenge.id,false);
+        this.props.onAcceptRejectChallenge(this.state.confirmingChallenge.id, false);
         this.handleCloseConfirmDialog();
     }
 
@@ -96,20 +103,34 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 
     }
 
+    getLabel = (ch: ChallengeDTO) => {
+        var un = this.props.unreadNotifications[ch.id];
+        if (un != null && un>0 && ch.id!=this.props.selectedChallengeId && this.props.selectedChallengeId!=-1)
+            return <div>{ch.label}<Badge
+                badgeContent={un}
+                primary={true}
+                badgeStyle={{top: 17, right: 5}}
+            /></div>;
+        return ch.label;
+    }
 
     render() {
 
-        return (<div>
+        return (<div style={{display:"flex"}}>
             <IconButton onClick={()=>this.props.onIncrementDayFunc(-1)}>
                 <FontIcon className="fa fa-caret-left white-text"/>
             </IconButton>
 
-            {this.props.day.dayMonth3()}
+            <div style={{paddingTop:"5px"}}>{this.props.day.dayMonth3()}</div>
 
             <IconButton onClick={()=>this.props.onIncrementDayFunc(1)}>
                 <FontIcon className="fa fa-caret-right white-text"/>
             </IconButton>
-            {this.props.selectedChallengeLabel}
+
+
+            <div style={{paddingTop:"5px"}}>{this.props.selectedChallengeLabel}</div>
+
+
 
             <IconMenu style={this.props.style}
                       iconButtonElement={<IconButton> <FontIcon
@@ -123,7 +144,7 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                             <MenuItem key={ch.id}
                                       rightIcon={this.calculateChallengeStatusIcon(ch)}
                                       onTouchTap={()=>this.onChangeChallengeHanlder(ch)}
-                                      primaryText={ch.label}/>)
+                                      primaryText={this.getLabel(ch)}/>)
                 }
                 {this.props.visibleChallengesDTO.visibleChallenges.length > 0 &&
                 <Divider />
@@ -137,6 +158,16 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                 />
             </IconMenu>
 
+
+            {this.props.totalUnreadNotifications > 0 ?
+                <div >
+                    <Badge
+                        badgeContent={this.props.totalUnreadNotifications}
+                        primary={true}
+                        badgeStyle={{top: 7, right: 5}}
+                    />
+                </div>
+                :  <div style={{minWidth:"36px"}}/>}
 
             {this.state.showConfirmDialog &&
             <YesNoConfirmationDialog
@@ -155,12 +186,23 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 }
 
 const mapStateToProps = (state: ReduxState): Props => {
+
+
+    var count = 0;
+    _.forOwn(state.eventsState.unreadNotifications, function (value, key) {
+
+        if (value != null  && ""+state.challenges.selectedChallengeId!=key)
+            count += value;
+    });
     return {
+        selectedChallengeId: state.challenges.selectedChallengeId,
         selectedChallengeLabel: selectedChallengeSelector(state) != null ? selectedChallengeSelector(state).label : "<not set>",
         visibleChallengesDTO: state.challenges,
         day: state.currentSelection.day,
         creatorLabel: loggedUserSelector(state).login,
-        loggedUserId: loggedUserSelector(state).id
+        loggedUserId: loggedUserSelector(state).id,
+        unreadNotifications: state.eventsState.unreadNotifications,
+        totalUnreadNotifications: count
 
     }
 };

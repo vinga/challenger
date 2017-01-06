@@ -257,10 +257,12 @@ open class TaskDAO {
         if (task.challenge.id != challengeId)
             throw IllegalArgumentException()
 
+        if (task.closeDate != null && dayMidnight.isAfter(task.closeDate))
+            throw IllegalArgumentException("Cannot mark task after close date")
 
         if (task.taskType == onetime) {
-            if (task.closeDate != null && done)
-                throw IllegalArgumentException("Onetime task is already marked as done")
+            anyDaoNew.remove(TaskProgressODB::class) {it get TaskProgressODB::task eqId taskId}
+
             task.closeDate = if (done) dayMidnight else null
             anyDaoNew.merge(task)
         }

@@ -43,6 +43,21 @@ export class SecondUserAuthorizePopoverDialog extends React.Component<Props& Pro
 
     render() {
 
+
+        if (this.props.user!=null && this.props.user.login==null)
+            return <Popover
+                anchorEl={this.props.popoverAnchorEl}
+                anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
+                targetOrigin={{horizontal: 'left', vertical: 'top'}}
+                onRequestClose={this.internalClose}
+                open={this.props.open}>
+
+                <div className="margined10">
+                    User account isn't active yet.
+                </div>
+
+            </Popover>;
+
         return (<Popover
             open={this.props.open}
             anchorEl={this.props.popoverAnchorEl}

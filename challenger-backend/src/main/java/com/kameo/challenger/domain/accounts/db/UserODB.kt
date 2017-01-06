@@ -15,7 +15,7 @@ data class UserODB(@Id
                    override val id: Long = 0) : IIdentity {
 
 
-    //@Size(min=6,max=30)
+   @Size(min=4,max=30)
     var login: String? = null
 
     @Size(min=5,max=100)

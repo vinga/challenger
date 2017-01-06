@@ -23,7 +23,8 @@ interface Props {
     name?: string,
     onEnterKeyDown?: ()=>void,
     fullWidth?: boolean,
-    id?: string
+    id?: string,
+    disabled?: boolean
 }
 interface State {
     fieldValue: string,
@@ -133,6 +134,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
 
     render() {
         return (<TextField
+
             ref={(c)=>this.textField=c}
             autoFocus={this.props.autoFocus}
             floatingLabelText={this.props.floatingLabelText}
@@ -146,6 +148,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
             onKeyDown={this.handleKeyDown}
             fullWidth={this.props.fullWidth}
             id={this.props.id}
+            disabled={this.props.disabled}
 
         />);
     }

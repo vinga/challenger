@@ -1,7 +1,13 @@
 import {isAction} from "../ReduxTask";
 import {
-    INCREMENT_DAY, INTERNAL_ERROR_WEB_RESPONSE, WEB_CALL_START, WEB_CALL_END, WEB_CALL_END_ERROR,
-    DISPLAY_LONG_CALL, HIDE_LONG_CALL
+    INCREMENT_DAY,
+    INTERNAL_ERROR_WEB_RESPONSE,
+    WEB_CALL_START,
+    WEB_CALL_END,
+    WEB_CALL_END_ERROR,
+    DISPLAY_LONG_CALL,
+    HIDE_LONG_CALL,
+    SHOW_CUSTOM_NOTIFICATION
 } from "../actions/actions";
 import {CurrentSelection, copy, WebCallData} from "../ReduxState";
 import {LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_RESPONSE_SUCCESS, START_FORGOT_PASSWORD_MODE, FINISH_FORGOT_PASSWORD_MODE} from "../../module_accounts/accountActionTypes";
@@ -20,7 +26,7 @@ export function currentSelection(state: CurrentSelection = getInitialState(), ac
     }
     else if (isAction(action, LOGIN_USER_RESPONSE_FAILURE)) {
         return copy(state).and({
-            loginErrorDescription: getErrorDescriptionForLogin(action.status, action.textStatus, action.responseText),
+            loginErrorDescription: action.humanReadableException,
             loginInfoDescription: null
         })
     } else if (isAction(action, LOGIN_USER_RESPONSE_SUCCESS)) {
@@ -55,13 +61,18 @@ export function currentSelection(state: CurrentSelection = getInitialState(), ac
                 loginInfoDescription: null
             });
         }
-    } else if (isAction(action,DISPLAY_LONG_CALL)) {
+    } else if (isAction(action, DISPLAY_LONG_CALL)) {
         return copy(state).and({
             longCallVisible: action.longCallVisible
         });
-    } else if (isAction(action,HIDE_LONG_CALL)) {
+    } else if (isAction(action, HIDE_LONG_CALL)) {
+        if (state.longCallVisible != null)
+            return copy(state).and({
+                longCallVisible: null
+            });
+    } else if (isAction(action, SHOW_CUSTOM_NOTIFICATION)) {
         return copy(state).and({
-            longCallVisible: null
+            closableText: action.textClosable
         });
     }
 
@@ -81,14 +92,5 @@ export function webCallsState(state: WebCallData[] = [], action): WebCallData[] 
     return state;
 }
 
-const getErrorDescriptionForLogin = (status: number, textStatus, responseText: string) => {
-    if (status === 0)
-        return "Connection refused"; //('Not connect.\n Verify Network.');
-    else if (status == 401) {
-        return responseText;
-    } else {
-        console.log("Error unexpected... " + status + " " + responseText);
-        return "Unexpected problem"
-    }
-};
+
 

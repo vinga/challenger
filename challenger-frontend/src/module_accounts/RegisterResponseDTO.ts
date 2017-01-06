@@ -15,9 +15,16 @@ export interface RegisterResponseDTO {
 export interface RegisterState {
     webCall: WebCallDTO<RegisterResponseDTO>
 
-    //registerInProgress?: boolean;
+    finishedWithSuccess: boolean,
+    stillRequireEmailConfirmation: boolean;
+
     registerError?: string;
-    registeredSuccessfully?: boolean;
+
+
+
+    emailIsConfirmedByConfirmationLink?: string,
+    requiredEmail?: string;
+    proposedLogin?: string
 
 
 }

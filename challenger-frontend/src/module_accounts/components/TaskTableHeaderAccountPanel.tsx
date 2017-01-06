@@ -16,7 +16,9 @@ interface Props {
     challengeStatus: string
 }
 interface ReduxProps {
-    user: AccountDTO
+    user: AccountDTO,
+    //canLogin: boolean
+
 }
 
 
@@ -42,7 +44,7 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
             />
 
             <span style={{}}><span style={{lineHeight: '65px'}}>{this.props.user.label}</span>
-                {this.props.no != 0 && this.props.challengeStatus == ChallengeStatus.ACTIVE && (this.props.user.jwtToken != null ?
+                {this.props.no != 0 && /*this.props.canLogin &&*/ this.props.challengeStatus == ChallengeStatus.ACTIVE && (this.props.user.jwtToken != null ?
 
                         <IconButton
                             onClick={() => {this.props.onSecondUserLogout(this.props.user.id)}}>
@@ -71,6 +73,7 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
 
 const mapStateToProps = (state: ReduxState, ownProps: Props & PropsFunc): {} => {
     return {
+        //canLogin: ownProps.userLogin!=null && ownProps.userLogin!="",
         user: anyUserAsAccountSelector(state, ownProps.userId, ownProps.userLabel, ownProps.userLogin)
 
     };

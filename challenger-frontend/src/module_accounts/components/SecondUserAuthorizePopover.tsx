@@ -96,6 +96,7 @@ class SecondUserAuthorizePopoverInternal extends React.Component<Props& ReduxPro
 
 const mapStateToProps = (state: ReduxState, ownProps: Props): any => {
     return {
+
         errorDescription:state.currentSelection.loginErrorDescription
 
     }

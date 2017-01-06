@@ -5,7 +5,6 @@ import {RegisterState, ConfirmationLinkState} from "../module_accounts/index";
 import {EventState} from "../module_events/index";
 import {AccountDTO} from "../module_accounts/AccountDTO";
 import {ReportState} from "../module_reports/ReportUserDTO";
-import {WebCallDTO} from "../logic/domain/Common";
 
 export interface WebCallData {
     startDate: Date
@@ -22,12 +21,12 @@ export enum LongCallVisible {
 
 export interface CurrentSelection {
     day: Date,
-    loginErrorDescription? :string,
+    loginErrorDescription?: string,
     internalErrorsCount: number,
     forgotPasswordMode?: boolean,
-    snackbarInfo?: string
-    loginInfoDescription? : string,
+    loginInfoDescription?: string,
     longCallVisible?: LongCallVisible
+    closableText?: string
 
 }
 
@@ -54,10 +53,13 @@ function steal(result: any, data: any): any {
 }
 
 export class SameAs<a> {
-    constructor(public result: a) { }
+    constructor(public result: a) {
+    }
+
     public andMore<b>(value: b): SameAs<a & b> {
         return new SameAs<a & b>(steal(this.result, value));
     }
+
     public and<b>(value: b): a {
         return new SameAs<a & b>(steal(this.result, value)).result;
     }
@@ -65,22 +67,22 @@ export class SameAs<a> {
 export function copy<a>(value: a): SameAs<a> {
     return new SameAs(steal({}, value));
 }
-export function copyAndReplace<T>(source:Array<T>, incoming: T, exists: (t:T)=>boolean ): Array<T> {
-    var res:Array<T>=[];
+export function copyAndReplace<T>(source: Array<T>, incoming: T, exists: (t: T)=>boolean): Array<T> {
+    var res: Array<T> = [];
 
 
-    if (source.find(exists)==null) {
-        res=Object.assign([],source);
+    if (source.find(exists) == null) {
+        res = Object.assign([], source);
         res.push(incoming);
     } else {
-        res=source.map(eg=> {
+        res = source.map(eg=> {
             if (exists(eg)) {
                 return incoming;
             } else
                 return eg;
         });
     }
-   return res;
+    return res;
 }
 
 export {connect};

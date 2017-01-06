@@ -6,6 +6,7 @@ import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.ReflectionUtils;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
@@ -95,12 +96,26 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     protected ChallengerSess createNewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
         String login = req.getParameter("login");
         String pass = req.getParameter("pass");
+        return createNewTokenFromCredentials(login, pass);
+    }
+
+    @NotNull
+    private ChallengerSess createNewTokenFromCredentials(String login, String pass) throws AuthException {
         long userId = accountDao.login(login, pass);
         ChallengerSess td = new ChallengerSess();
         td.setUserId(userId);
         td.setExpires(new DateTime(DateUtil.addMinutes(new Date(), 15)));
         return td;
     }
+
+    @NotNull
+    public ChallengerSess createNewTokenFromUserId(long userId) throws AuthException {
+        ChallengerSess td = new ChallengerSess();
+        td.setUserId(userId);
+        td.setExpires(new DateTime(DateUtil.addMinutes(new Date(), 15)));
+        return td;
+    }
+
 
     @Override
     protected void setRequestScopeVariable(List<ChallengerSess> ti) {

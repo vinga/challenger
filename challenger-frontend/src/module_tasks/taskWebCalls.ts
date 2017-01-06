@@ -14,14 +14,14 @@ export function updateTask(dispatch, task: TaskDTO): Promise<TaskDTO> {
     return baseWebCall.put(dispatch, `/challenges/${task.challengeId}/tasks/${task.id}`, task);
 }
 
-export function createTask(dispatch, task: TaskDTO, jwtTokens: Array<String>): Promise<TaskDTO> {
+export function createTask(dispatch, task: TaskDTO, jwtTokens: Array<string>): Promise<TaskDTO> {
     return baseWebCall.postMultiAuthorized(dispatch, `/challenges/${task.challengeId}/tasks/`, task, jwtTokens);
 }
 
 export function deleteTask(dispatch, task: TaskDTO, jwtToken: string): Promise<void> {
     return baseWebCall.deleteMultiAuthorized(dispatch, `/challenges/${task.challengeId}/tasks/${task.id}`,[].concat(jwtToken));
 }
-export function updateTaskStatus(dispatch, challengeId: number, taskStatus: TaskApprovalDTO, jwtTokens: Array<String>): Promise<TaskDTO> {
+export function updateTaskStatus(dispatch, challengeId: number, taskStatus: TaskApprovalDTO, jwtTokens: Array<string>): Promise<TaskDTO> {
     return baseWebCall.postMultiAuthorized(dispatch, `/challenges/${challengeId}/tasks/${taskStatus.taskId}/taskStatus`, taskStatus, jwtTokens);
 }
 

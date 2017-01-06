@@ -55,8 +55,9 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
                 Odswiezanie info o niepotwierdzonych challengach.<br/>
+                Jak sie na onetime zmienia, to close date sie niauaktualnia a powinno<br/>
                 Konfirmacja challenga - accept/reject bez potrzeby logowania<br/>
-                Przetestować jeśli ktoś jest rejestruje normalkniue a był zaproszony
+                Przetestować jeśli ktoś jest rejestruje normalkniue a był zaproszony - wtedy konfirmacja maila jest wymagana
                 <NoChallengesPanel/>
                 <div>{rows}</div>
 

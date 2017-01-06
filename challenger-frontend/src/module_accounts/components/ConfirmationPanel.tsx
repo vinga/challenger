@@ -5,7 +5,7 @@ import {Col, Row, RowCol} from "../../views/common-components/Flexboxgrid";
 import {RaisedButton, CircularProgress} from "material-ui";
 import {ConfirmationLinkRequestDTO, ConfirmationLinkResponseDTO} from "../AccountDTO";
 import {getConfirmationLinkResponse} from "../accountActions";
-import {CLEAR_CONFIRMATION_LINK_STATE} from "../accountActionTypes";
+import {CLEAR_CONFIRMATION_LINK_STATE, REGISTER_SHOW_REGISTRATION_PANEL} from "../accountActionTypes";
 
 
 interface ReactProps {
@@ -15,6 +15,7 @@ interface PropsFunc {
     getConfirmationLinkResponse: (uid, confirmationLinkRequest: ConfirmationLinkRequestDTO)=>void;
     stateUid: string,
     clearConfirmationLinkState: () => void;
+    handleOpenRegistrationWithFixedEmailFunc: (requiredEmail: string, proposedLogin: string, emailIsConfirmedByConfirmationLink: string) => void;
 }
 
 interface Props {
@@ -38,7 +39,15 @@ class ConfirmationPanelInternal extends React.Component<ReactProps &  PropsFunc 
     }
 
     handleConfirmationLink = () => {
-        if(this.props.confirmationLinkResponse.done/* && this.props.confirmationLinkResponse.displayLoginButton*/) {
+
+        var resp=this.props.confirmationLinkResponse;
+        if (resp.done && resp.displayRegisterButton) {
+            this.props.handleOpenRegistrationWithFixedEmailFunc(resp.emailRequiredForRegistration, resp.loginProposedForRegistration, resp.emailIsConfirmedByConfirmationLink);
+            this.props.clearConfirmationLinkState();
+            return;
+        }
+
+        if(resp.done && this.props.confirmationLinkResponse.displayLoginButton) {
             this.props.clearConfirmationLinkState();
             return;
         }
@@ -51,12 +60,7 @@ class ConfirmationPanelInternal extends React.Component<ReactProps &  PropsFunc 
                 return;
             }
         }
-        if (this.props.confirmationLinkResponse.newLoginRequired) {
-            req.newLogin = this.newLoginField.state.fieldValue;
-            if (!this.newLoginField.checkIsValid()) {
-                return;
-            }
-        }
+
 
         this.props.getConfirmationLinkResponse(this.props.stateUid, req);
 
@@ -74,14 +78,11 @@ class ConfirmationPanelInternal extends React.Component<ReactProps &  PropsFunc 
         var buttonTitle = "Ok";
         if (this.props.confirmationLinkResponse.newPasswordRequired) {
             buttonTitle = "Change Password";
-
-            if (this.props.confirmationLinkResponse.newLoginRequired) {
-                buttonTitle = "Submit";
-            }
         } else if (this.props.confirmationLinkResponse.displayLoginButton) {
             buttonTitle = "Login";
+        } else if (this.props.confirmationLinkResponse.displayRegisterButton) {
+            buttonTitle = "Register";
         }
-
 
         return (
 
@@ -105,23 +106,7 @@ class ConfirmationPanelInternal extends React.Component<ReactProps &  PropsFunc 
                             <h5>{this.props.confirmationLinkResponse.description}</h5>
                         </RowCol>
                         {this.props.confirmationLinkResponse.validationError}
-                        { this.props.confirmationLinkResponse.newLoginRequired &&
-                        <RowCol>
-                            <TextFieldExt
 
-                                fullWidth={true}
-                                floatingLabelText="Login:"
-                                type="text"
-                                ref={(c)=>{this.newLoginField=c}}
-                                fieldValue={this.props.confirmationLinkResponse.proposedLogin!=null? this.props.confirmationLinkResponse.proposedLogin: "chuaa/////...."}
-                                onEnterKeyDown={()=> {this.newPasswordField!= null && this.newPasswordField.focus(); } }
-                                useRequiredValidator={true}
-                                validateOnChange={true}
-                                minLengthNumber={6}
-                                maxLengthNumber={30}
-                            />
-                        </RowCol>
-                        }
                         { this.props.confirmationLinkResponse.newPasswordRequired &&
                         <RowCol>
                             <TextFieldExt
@@ -159,7 +144,6 @@ const mapStateToProps = (state: ReduxState, props: Props): any => {
     if (state.confirmationLinkState == null)
         return {};
 
-    console.log(state.confirmationLinkState.confirmationLinkResponse);
     var resp = state.confirmationLinkState.confirmationLinkResponse;
     if (resp != null) {
         return {
@@ -180,6 +164,9 @@ const mapDispatchToProps = (dispatch): any => {
         },
         clearConfirmationLinkState: () => {
             dispatch(CLEAR_CONFIRMATION_LINK_STATE.new({}));
+        },
+        handleOpenRegistrationWithFixedEmailFunc: (requiredEmail: string, proposedLogin: string, emailIsConfirmedByConfirmationLink: string) =>  {
+            dispatch(REGISTER_SHOW_REGISTRATION_PANEL.new({requiredEmail, proposedLogin, emailIsConfirmedByConfirmationLink }))
         }
     }
 };

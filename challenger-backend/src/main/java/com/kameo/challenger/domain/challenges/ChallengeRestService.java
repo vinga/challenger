@@ -6,6 +6,8 @@ import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.challenges.IChallengeRestService.VisibleChallengesDTO.ChallengeDTO;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
+import com.kameo.challenger.domain.events.EventGroupDAO;
+import com.kameo.challenger.domain.events.EventPushDAO;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +33,8 @@ public class ChallengeRestService implements IChallengeRestService {
     private final ChallengerSess session;
     private AccountDAO accountDAO;
     private final ChallengeDAO challengeDao;
+
+
 
     @Inject
     public ChallengeRestService(ChallengeDAO challengeDao, ChallengerSess session, AccountDAO accountDAO) {
@@ -84,5 +88,8 @@ public class ChallengeRestService implements IChallengeRestService {
     public void acceptChallenge(@PathParam("challengeId") long challengeId, boolean accepted) {
         long callerId = session.getUserId();
         challengeDao.updateChallengeState(callerId, challengeId, (accepted) ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED);
+
+
+
     }
 }

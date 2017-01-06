@@ -17,10 +17,9 @@ data class ConfirmationLinkODB(@Id
     @Enumerated
     lateinit var confirmationLinkType: ConfirmationLinkType
 
-//    var fieldLogin: String? = null
-//    var fieldPasswordHash: String? = null
-//    var fieldSalt: String? = null
-  //  var email: String? = null
+    var fieldLogin: String? = null
+    var fieldPasswordHash: String? = null
+    var fieldSalt: String? = null
     var challengeId: Long? = null
 
     val sysCreationDate:LocalDateTime= LocalDateTime.now()

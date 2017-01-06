@@ -18,6 +18,9 @@ export const WEB_CALL_END: ActionType<{callUid: number}> = new ActionType<any>('
 export const WEB_CALL_END_ERROR: ActionType<{callUid: number}> = new ActionType<any>('WEB_CALL_END_ERROR');
 
 
+export const SHOW_CUSTOM_NOTIFICATION: ActionType<{textClosable: string}> = new ActionType<any>('SHOW_CUSTOM_NOTIFICATION');
+
+
 
 
 
