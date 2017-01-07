@@ -1,7 +1,7 @@
 import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
 import {TouchTapEvent, FlatButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
-import {createChallenge} from "../challengeActions";
+import {createChallengeAction, updateChallengeAction, deleteChallengeAction} from "../challengeActions";
 import {CLOSE_EDIT_CHALLENGE, DELETE_CHALLENGE_PARTICIPANT, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION} from "../challengeActionTypes";
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
@@ -10,7 +10,7 @@ import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 import AutoComplete from "material-ui/AutoComplete";
 import Chip from "material-ui/Chip";
 import {possibleChallengeParticipantsSelector} from "../challengeSelectors";
-import {updateChallengeParticipants} from "../../module_accounts/accountActions";
+import {updateChallengeParticipantsAction} from "../../module_accounts/accountActions";
 import Subheader from "material-ui/Subheader";
 import {validateEmail, default as TextFieldExt} from "../../views/common-components/TextFieldExt";
 import {FontIcon} from "material-ui";
@@ -36,12 +36,14 @@ interface PropsFunc {
     updateChallengeParticipant: (loginOrEmail: string) => void,
     deleteChallengeParticipant: (label: string) => void,
     updateErrorText: (errorText: string) => void
+    deleteChallengeFunc: (challenge: ChallengeDTO)=>void;
 }
 interface State {
     challenge: ChallengeDTO,
     submitDisabled: boolean,
     searchText: string,
     showConfirmDialog: boolean
+    showConfirmDeleteDialog: boolean
 }
 
 class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
@@ -52,7 +54,8 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
             challenge: this.props.challenge,
             submitDisabled: false,
             searchText: "",
-            showConfirmDialog: false
+            showConfirmDialog: false,
+            showConfirmDeleteDialog: false
         };
     }
 
@@ -83,6 +86,13 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
     };
 
+    resolveTitle = () => {
+        if(this.props.challenge.id <= 0) {
+            return "Create New Challenge";
+        }
+        return "Edited Challenge: " + this.props.challenge.label;
+    };
+
     handleChipTouchTap = (event) => {
 
     }
@@ -103,6 +113,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
 
     }
+
 
     componentDidMount = () => {
 
@@ -132,7 +143,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                 modal={true}
                 open={true}
                 style={{height: "600px", overflow: "none", display: "block"}}
-                title="Create new challenge"
+                title={this.resolveTitle()}
             >
                 <div>
                     <TextField
@@ -144,7 +155,18 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                         onChange={this.handleActionNameFieldChange}
 
                     />
-                </div><div>
+
+                    {  this.props.challenge.id > 0 && this.props.challenge.creatorId==this.props.currentUserId &&
+                    <div style={{float: "right"}}>
+                        <IconButton style={{width: 60, height: 60}}
+                                    onClick={()=>{this.state.showConfirmDeleteDialog=true; this.setState(this.state); }}>
+                            &nbsp;<i className={'fa fa-trash' }
+                                     style={{fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
+                        </IconButton>
+                    </div>
+                    }
+                </div>
+                <div>
                 <div style={{fontSize: '10px', marginTop: '10px'}}>
                     Selected Participants
                 </div>
@@ -187,6 +209,13 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                 Add {this.state.searchText} to users list?'
             </YesNoConfirmationDialog> }
 
+
+            {this.state.showConfirmDeleteDialog &&
+            <YesNoConfirmationDialog closeYes={()=>{ this.props.deleteChallengeFunc(this.props.challenge); this.props.onCloseFunc() }}
+                                     closeDialog={()=>{this.state.showConfirmDeleteDialog=false; this.setState(this.state); }}>
+               Do you really want to remove the challenge?
+            </YesNoConfirmationDialog> }
+
         </div>);
 
 
@@ -202,25 +231,33 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
         possibleParticipants: possibleChallengeParticipantsSelector(state),
         possibleLabels: possibleChallengeParticipantsSelector(state).map(u=>u.label),
         errorText: state.challenges.errorText,
+
     }
 };
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
         onCreateChallengeFunc: (challenge: ChallengeDTO)=> {
-            dispatch(createChallenge(challenge));
+            if (challenge.id<=0)
+                dispatch(createChallengeAction(challenge));
+            else
+                dispatch(updateChallengeAction(challenge));
+        },
+        deleteChallengeFunc: (challenge: ChallengeDTO)=> {
+            dispatch(deleteChallengeAction(challenge.id));
         },
         onCloseFunc: (event: TouchTapEvent)=> {
             dispatch(CLOSE_EDIT_CHALLENGE.new({}));
         },
         updateChallengeParticipant: (loginOrEmail: string) => {
-            dispatch(updateChallengeParticipants(loginOrEmail));
+            dispatch(updateChallengeParticipantsAction(loginOrEmail));
         },
         deleteChallengeParticipant: (label: string) => {
             dispatch(DELETE_CHALLENGE_PARTICIPANT.new({label}))
         },
         updateErrorText: (errorText: string) => {
             dispatch(UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION.new({errorText}))
-        }
+        },
+
 
     }
 };

@@ -17,6 +17,8 @@ interface IChallengeRestService {
     fun getVisibleChallenges(): IChallengeRestService.VisibleChallengesDTO
     fun createChallenge(challengeDTO: ChallengeDTO): ChallengeDTO
     fun acceptChallenge(challengeId: Long, accepted: Boolean)
+    fun updateChallenge(challengeId: Long, challengeDTO: ChallengeDTO) : ChallengeDTO
+    fun deleteChallenge(challengeId: Long) : Boolean
 
     @Data
     class UserLabelDTO(val id: Long=0,

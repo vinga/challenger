@@ -6,11 +6,10 @@ import com.kameo.challenger.domain.accounts.AccountDAO
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
-import com.kameo.challenger.domain.challenges.db.ChallengeStatus.ACTIVE
-import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REFUSED
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.*
 import com.kameo.challenger.domain.events.EventGroupDAO
-import com.kameo.challenger.domain.events.db.EventType.ACCEPT_CHALLENGE
-import com.kameo.challenger.domain.events.db.EventType.REJECT_CHALLENGE
+import com.kameo.challenger.domain.events.EventGroupDAO.ChallengeInviteRemoveUserEventInfo
+import com.kameo.challenger.domain.events.db.EventType.*
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.EntityHelper
 import org.springframework.stereotype.Component
@@ -143,5 +142,58 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
             else -> throw IllegalArgumentException();
         })
 
+    }
+
+
+    open fun deleteChallenge(callerId: Long, challengeId: Long): Boolean {
+
+        val challengeODB = anyDaoNew.find(ChallengeODB::class, challengeId)
+        if (!challengeODB.createdBy.id.equals(callerId)) {
+            throw IllegalArgumentException("No permisssions to delete");
+        }
+        challengeODB.challengeStatus = ChallengeStatus.REMOVED
+        anyDaoNew.merge(challengeODB);
+
+        eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, REMOVE_CHALLENGE)
+        return true;
+    }
+
+    open fun updateChallenge(callerId: Long, challenge: ChallengeODB): ChallengeODB {
+        val challengeODB = anyDaoNew.find(ChallengeODB::class, challenge.id)
+        if (!challengeODB.createdBy.id.equals(callerId)) {
+            throw IllegalArgumentException("No permisssions to modify");
+        }
+
+        val challengeChanged=!challenge.label.equals(challengeODB.label)
+        challengeODB.label = challenge.label;
+        anyDaoNew.merge(challengeODB);
+
+
+        // adding new participants
+        challenge.participants.filter {
+            challengeODB.participants.map { it.user.id }.contains(it.user.id)
+        }.forEach {
+            //TODO email verification?>
+            if (it.user.isNew()) {
+                it.user = accountDao.getOrCreateUserForEmail(it.user.email)
+            }
+            anyDaoNew.em.persist(it)
+            accountDao.createAndSendChallengeConfirmationLink(challengeODB, it)
+            eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, INVITE_USER_TO_CHALLENGE, ChallengeInviteRemoveUserEventInfo(it.user))
+        }
+
+        // deleting existing participants
+        challengeODB.participants.filter {
+            !challenge.participants.map { it.user.id }.contains(it.user.id)
+        }.forEach {
+            it.challengeStatus = REMOVED;
+            anyDaoNew.merge(it);
+            eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, REMOVE_USER_FROM_CHALLENGE, ChallengeInviteRemoveUserEventInfo(it.user))
+        }
+
+
+        if (challengeChanged)
+            eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, UPDATE_CHALLENGE)
+        return challengeODB;
     }
 }

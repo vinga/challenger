@@ -56,10 +56,32 @@ export function fetchWebChallengesNoReload() {
     }
 }
 
-export function createChallenge(challenge: ChallengeDTO) {
+export function createChallengeAction(challenge: ChallengeDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
         challenge.userLabels = getState().challenges.editedChallenge.userLabels
         webCall.createChallenge(dispatch, challenge).then(
+            ()=> {
+                dispatch(fetchWebChallenges());
+            }
+        );
+    }
+}
+
+export function updateChallengeAction(challenge: ChallengeDTO) {
+    return function (dispatch, getState: ()=>ReduxState) {
+        challenge.userLabels = getState().challenges.editedChallenge.userLabels
+        webCall.updateChallenge(dispatch, challenge).then(
+            ()=> {
+                dispatch(fetchWebChallenges());
+            }
+        );
+    }
+}
+
+export function deleteChallengeAction(challengeId: number) {
+    return function (dispatch, getState: ()=>ReduxState) {
+
+        webCall.deleteChallenge(dispatch, challengeId).then(
             ()=> {
                 dispatch(fetchWebChallenges());
             }

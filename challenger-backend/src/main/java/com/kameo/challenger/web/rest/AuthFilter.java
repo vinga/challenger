@@ -67,7 +67,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     protected boolean isResourceAuthorizationRequired(HttpServletRequest req) {
         if (req.getPathInfo() == null)
             return false;
-        System.out.println(req.getPathInfo());
+        System.out.println(req.getMethod()+" "+req.getPathInfo());
         return
                 !(
                         req.getPathInfo().startsWith("/accounts/passwordReset") ||

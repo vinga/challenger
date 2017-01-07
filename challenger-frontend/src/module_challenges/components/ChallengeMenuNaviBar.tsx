@@ -5,11 +5,11 @@ import MenuItem from "material-ui/MenuItem";
 import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import Divider from "material-ui/Divider";
-import {ChallengeStatus, VisibleChallengesDTO, ChallengeDTO} from "../ChallengeDTO";
+import {ChallengeStatus, VisibleChallengesDTO, ChallengeDTO, NO_CHALLENGES_LOADED_YET} from "../ChallengeDTO";
 import {incrementDayAction} from "../../redux/actions/dayActions";
 import {selectedChallengeSelector} from "../challengeSelectors";
 import {changeChallengeAction, acceptOrRejectChallenge} from "../challengeActions";
-import {CREATE_NEW_CHALLENGE} from "../challengeActionTypes";
+import {CREATE_NEW_CHALLENGE, EDIT_CHALLENGE} from "../challengeActionTypes";
 import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 import {YesNoConfirmationDialog} from "../../views/common-components/YesNoConfirmationDialog";
 import {UnreadNotificationsList} from "../../module_events/EventDTO";
@@ -34,6 +34,7 @@ interface PropsFunc {
     onIncrementDayFunc: (amount: number)=> void;
     onChangeChallenge: (challengeId: number)=>void;
     onCreateNewChallenge: (creatorLabel: string) => void;
+    onEditChallenge: (challengeId: number, creatorLabel: string) => void;
     onAcceptRejectChallenge: (challengeId: number, accept: boolean) => void
 
 }
@@ -149,6 +150,17 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                 {this.props.visibleChallengesDTO.visibleChallenges.length > 0 &&
                 <Divider />
                 }
+
+                {this.props.selectedChallengeId != NO_CHALLENGES_LOADED_YET &&
+                [<MenuItem
+                leftIcon={<FontIcon
+                style={menuIconStyle}
+                className={"fa fa-info-circle cyan-text"}/>}
+                primaryText="Challenge details"
+                onTouchTap={()=>this.props.onEditChallenge(this.props.selectedChallengeId, this.props.creatorLabel)}
+                />,
+                <Divider />]
+                }
                 <MenuItem
                     leftIcon={<FontIcon
                     style={menuIconStyle}
@@ -156,6 +168,8 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                     primaryText="Create new challenge"
                     onTouchTap={()=>this.props.onCreateNewChallenge(this.props.creatorLabel)}
                 />
+
+
             </IconMenu>
 
 
@@ -219,6 +233,9 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         },
         onAcceptRejectChallenge: (challengeId: number, accept: boolean) => {
             dispatch(acceptOrRejectChallenge(challengeId, accept))
+        },
+        onEditChallenge: (challengeId: number, creatorLabel: string) => {
+            dispatch(EDIT_CHALLENGE.new({challengeId: challengeId}))
         }
     }
 };

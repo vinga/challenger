@@ -6,12 +6,13 @@ import {
     CREATE_NEW_CHALLENGE,
     UPDATE_CHALLENGE_PARTICIPANTS,
     DELETE_CHALLENGE_PARTICIPANT,
-    UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION, CHECK_CHALLENGE_PARTICIPANTS_REQUEST, CHECK_CHALLENGE_PARTICIPANTS_RESPONSE
+    UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION, CHECK_CHALLENGE_PARTICIPANTS_REQUEST, CHECK_CHALLENGE_PARTICIPANTS_RESPONSE, EDIT_CHALLENGE
 } from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {VisibleChallengesDTO, ChallengeStatus, NO_CHALLENGES_LOADED_YET} from "./ChallengeDTO";
 import {copy} from "../redux/ReduxState";
 import _ = require("lodash");
+import {loadVisibleChallenges} from "./challengeWebCalls";
 
 
 const initial = (): VisibleChallengesDTO => {
@@ -99,7 +100,13 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         return Object.assign({}, state, {
             challengeParticipantIsChecked: false
         })
+    } else if (isAction(action, EDIT_CHALLENGE)) {
+        var selectedChallenge = state.visibleChallenges.find(
+            it => it.id == action.challengeId
+        )
+        return Object.assign({}, state, {
+            editedChallenge: selectedChallenge
+        })
     }
-
     return state
 }

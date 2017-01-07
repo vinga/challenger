@@ -31,15 +31,20 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
     class TaskCheckUncheckEventInfo(val taskCheckUncheckDate: LocalDate, val checkDate: LocalDate = LocalDate.now()) : IEventInfo
     class TaskRejectedEventInfo(val rejectionReason: String) : IEventInfo
+    class ChallengeInviteRemoveUserEventInfo(val user: UserODB) : IEventInfo;
 
 
-    open fun createChallengeEventAfterServerAction(userId: Long, challenge: ChallengeODB, eventType: EventType) {
+    open fun createChallengeEventAfterServerAction(userId: Long, challenge: ChallengeODB, eventType: EventType, eventInfo: ChallengeInviteRemoveUserEventInfo? = null) {
         val user=anyDaoNew.find(UserODB::class, userId)
         val e = EventODB()
         e.eventType = eventType
         e.content = when (eventType) {
             EventType.ACCEPT_CHALLENGE -> user.getLoginOrEmail() + " accepted challenge " + challenge.label
             EventType.REJECT_CHALLENGE -> user.getLoginOrEmail() + " rejected challenge " + challenge.label
+            EventType.REMOVE_CHALLENGE -> user.getLoginOrEmail() + " deleted challenge " + challenge.label
+            EventType.UPDATE_CHALLENGE -> user.getLoginOrEmail() + " updated challenge " + challenge.label
+            EventType.INVITE_USER_TO_CHALLENGE -> user.getLoginOrEmail() + " invited user "+(eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail()+" to challenge " + challenge.label
+            EventType.REMOVE_USER_FROM_CHALLENGE -> user.getLoginOrEmail() + " invited user "+(eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail()+" from challenge " + challenge.label
             else -> {
                 throw IllegalArgumentException();
             }
@@ -82,8 +87,8 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
             EventType.DELETE_TASK -> user.getLoginOrEmail() + " deleted " + task.label
             EventType.CLOSE_TASK -> user.getLoginOrEmail() + " closed " + task.label
-            EventType.ACCEPT_CHALLENGE -> throw IllegalArgumentException()
-            EventType.REJECT_CHALLENGE -> throw IllegalArgumentException()
+            else -> throw IllegalArgumentException()
+
         }
         e.challenge = task.challenge
         e.author = user

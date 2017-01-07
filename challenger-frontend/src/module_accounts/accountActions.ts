@@ -94,7 +94,7 @@ export function registerUserAction(email: string, login: string, password: strin
 }
 
 
-export function updateChallengeParticipants(loginOrEmail: string) {
+export function updateChallengeParticipantsAction(loginOrEmail: string) {
     return function (dispatch, getState: ()=>ReduxState) {
         if (validateEmail(loginOrEmail)) {
             dispatch(UPDATE_CHALLENGE_PARTICIPANTS.new({loginOrEmail: loginOrEmail}))
