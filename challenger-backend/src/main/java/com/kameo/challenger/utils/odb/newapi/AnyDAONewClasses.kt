@@ -1,23 +1,18 @@
 package com.kameo.challenger.utils.odb.newapi
 
-import com.kameo.challenger.odb.api.IIdentity
-import com.kameo.challenger.utils.odb.AnyDAO
-import com.kameo.challenger.utils.odb.AnyDAONew.PathPairSelect
-import com.kameo.challenger.utils.odb.AnyDAONew.PathTripleSelect
 import com.kameo.challenger.utils.odb.newapi.pc.PathContext
-import com.kameo.challenger.utils.odb.newapi.pc.UpdatePathContext
-import com.kameo.challenger.utils.odb.newapi.wraps.*
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
-import javax.persistence.EntityManager
-import javax.persistence.Query
-import javax.persistence.TypedQuery
-import javax.persistence.criteria.*
-import javax.persistence.metamodel.SingularAttribute
-import kotlin.reflect.*
+import com.kameo.challenger.utils.odb.newapi.wraps.ComparableExpressionWrap
+import com.kameo.challenger.utils.odb.newapi.wraps.ExpressionWrap
+import com.kameo.challenger.utils.odb.newapi.wraps.StringExpressionWrap
+import javax.persistence.criteria.Expression
+import javax.persistence.criteria.Predicate
+import javax.persistence.criteria.Selection
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KMutableProperty1.Setter
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty1
 import kotlin.reflect.KProperty1.Getter
+import kotlin.reflect.KType
 
 
 interface IExpression<F, G> {
@@ -39,9 +34,7 @@ interface IStringExpressionWrap<G> : IExpression<String, G> {
 
 class NumberExpressionWrap<F,G> constructor(
         pc: PathContext<G>,
-        value: Expression<F>) : ComparableExpressionWrap<F, G>(pc, value) where F : Number, F:Comparable<F> {
-
-}
+        value: Expression<F>) : ComparableExpressionWrap<F, G>(pc, value) where F : Number, F:Comparable<F>
 
 @Suppress("UNCHECKED_CAST")
 operator fun <T, R> KProperty1<T, R?>.unaryPlus(): KMutableProperty1<T, R> {

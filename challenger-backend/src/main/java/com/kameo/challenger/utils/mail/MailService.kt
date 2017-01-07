@@ -16,16 +16,13 @@ import javax.mail.internet.InternetAddress
 
 
 
-/**
- * Created by Kamila on 2016-12-22.
- */
 @Component
 open class MailService {
     @Inject
     private val javaMailSender: JavaMailSender? = null
 
     @Value("\${mailSenderFrom}")
-    private lateinit var mailSenderFrom:String;
+    private lateinit var mailSenderFrom:String
 
     data class Message(val toEmail: String, val subject: String, val content: String, val replyTo: String?=null, val from: String?=null)
 
@@ -43,7 +40,7 @@ open class MailService {
             if (m.replyTo != null)
                 helper.setReplyTo(m.replyTo)
 
-            helper.setFrom(mailSenderFrom);
+            helper.setFrom(mailSenderFrom)
             helper.setSubject(m.subject)
             helper.setText(m.content,m.content.startsWith("<html>",true))
         } catch (e: MessagingException) {
@@ -81,7 +78,7 @@ fun main(args : Array<String>) {
         message.setFrom(InternetAddress(username))
         message.setRecipients(RecipientType.TO,
                 InternetAddress.parse(recp))
-        message.setSubject("Jak tam")
+        message.subject="Jak tam"
         message.setText("DCo am")
 
         Transport.send(message)

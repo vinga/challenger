@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 open class ServerConfig {
 
     @Value("\${serverUrl}")
-    lateinit var serverUrl: String;
+    lateinit var serverUrl: String
 
 
     var isCrossDomain = true

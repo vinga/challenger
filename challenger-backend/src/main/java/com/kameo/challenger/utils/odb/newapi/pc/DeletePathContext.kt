@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.odb.newapi.pc
 
-import com.kameo.challenger.utils.odb.newapi.pc.PathContext
 import com.kameo.challenger.utils.odb.newapi.wraps.RootWrap
 import javax.persistence.EntityManager
 import javax.persistence.Query

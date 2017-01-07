@@ -73,12 +73,11 @@ export function accounts(state: Array<AccountDTO> = [], action) {
         console.log("login failure", action);
         return state.map((u: AccountDTO) => {
             if (u.login == action.login) {
-                var uu = Object.assign({}, u, {
+                return  Object.assign({}, u, {
                     jwtToken: null,
                     tokenExpirationDate: null,
                     inProgress: false
                 });
-                return uu;
             } else
                 return Object.assign({}, u);
         });

@@ -26,7 +26,7 @@ constructor(
         protected set
     var defaultSelection: ISugarQuerySelect<Any>? = null
         protected set
-    private var groupByList: MutableList<IExpression<*, *>>? = null;
+    private var groupByList: MutableList<IExpression<*, *>>? = null
 
     fun addOrder(o: Order) {
         orders.add(o)
@@ -68,10 +68,10 @@ constructor(
 
     fun mergeLevelUpAsOr() {
         val temp = currentArray
-        unstackArray();
-        val temp2 = currentArray;
+        unstackArray()
+        val temp2 = currentArray
 
-        var newCurr = mutableListOf<() -> Predicate?>()
+        val newCurr = mutableListOf<() -> Predicate?>()
         newCurr.add({ calculateAnd(temp2) })
         newCurr.add({ calculateAnd(temp) })
 
@@ -81,9 +81,9 @@ constructor(
 
     fun mergeLevelUpAsAnd() {
         val temp = currentArray
-        unstackArray();
+        unstackArray()
 
-        var newCurr = mutableListOf<() -> Predicate?>()
+        val newCurr = mutableListOf<() -> Predicate?>()
         newCurr.addAll(currentArray)
         newCurr.addAll(temp)
 

@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.odb.newapi.wraps
 
-import com.kameo.challenger.utils.odb.newapi.wraps.ExpressionWrap
 import com.kameo.challenger.utils.odb.newapi.IExpression
 import com.kameo.challenger.utils.odb.newapi.IStringExpressionWrap
 import com.kameo.challenger.utils.odb.newapi.pc.PathContext

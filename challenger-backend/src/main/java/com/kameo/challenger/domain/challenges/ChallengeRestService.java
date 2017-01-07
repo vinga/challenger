@@ -62,12 +62,7 @@ public class ChallengeRestService implements IChallengeRestService {
                                                    c.setCallerId(callerId);
                                                    return c;
                                                })
-                                               .sorted(new Comparator<ChallengeDTO>() {
-                                                   @Override
-                                                   public int compare(ChallengeDTO o1, ChallengeDTO o2) {
-                                                       return o1.getLabel().compareTo(o2.getLabel());
-                                                   }
-                                               })
+                                               .sorted((o1, o2) -> o1.getLabel().compareTo(o2.getLabel()))
                                                .collect(Collectors.toList()));
         return res;
     }
@@ -80,7 +75,7 @@ public class ChallengeRestService implements IChallengeRestService {
         if (challengeDTO.getUserLabels().length == 0)
             throw new IllegalArgumentException("No user labels provided");
         final List<UserODB> users = accountDAO
-                .getUsersForLabels(Lists.newArrayList(challengeDTO.getUserLabels()).stream().map(u -> u.getLabel()).collect(Collectors.toList()));
+                .getUsersForLabels(Lists.newArrayList(challengeDTO.getUserLabels()).stream().map(UserLabelDTO::getLabel).collect(Collectors.toList()));
         val challengeOdb = ChallengeDTO.toODB(challengeDTO, users);
         val cb = challengeDao.createNewChallenge(session.getUserId(), challengeOdb);
         return ChallengeDTO.fromODB(cb);
@@ -106,7 +101,7 @@ public class ChallengeRestService implements IChallengeRestService {
         if (challengeId!=challengeDTO.getId())
             throw new IllegalArgumentException();
         final List<UserODB> users = accountDAO
-                .getUsersForLabels(Lists.newArrayList(challengeDTO.getUserLabels()).stream().map(u -> u.getLabel()).collect(Collectors.toList()));
+                .getUsersForLabels(Lists.newArrayList(challengeDTO.getUserLabels()).stream().map(UserLabelDTO::getLabel).collect(Collectors.toList()));
         val challengeOdb = ChallengeDTO.toODB(challengeDTO, users);
 
         return ChallengeDTO.fromODB(challengeDao.updateChallenge(calllerId, challengeOdb));

@@ -18,7 +18,7 @@ interface IAccountRestService {
     fun registerUser(rr: RegisterRequestDTO): RegisterResponseDTO
 
 
-    data class ConfirmationLinkRequestDTO(val newLogin: String? = null, val newPassword: String? = null);
+    data class ConfirmationLinkRequestDTO(val newLogin: String? = null, val newPassword: String? = null)
     data class ConfirmationLinkResponseDTO(val description: String,
                                            val newPasswordRequired: Boolean = false,
                                            val validationError: String? = null,

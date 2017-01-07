@@ -101,7 +101,7 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
     componentWillUpdate() {
         var elem = $("#eventGroupChatContent")
-        var isScrolledToBottom = elem[0].scrollHeight - elem.scrollTop() - elem.outerHeight() < 1;
+        var isScrolledToBottom: boolean = elem[0].scrollHeight - elem.scrollTop() - elem.outerHeight() < 1;
         this.shouldScrollToBottom = isScrolledToBottom;
     }
 

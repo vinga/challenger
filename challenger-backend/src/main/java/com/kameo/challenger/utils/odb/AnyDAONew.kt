@@ -23,7 +23,7 @@ import kotlin.reflect.KClass
 class AnyDAONew(@Inject val em: EntityManager) {
 
     class PathPairSelect<E, F>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val distinct: Boolean, val cb: CriteriaBuilder) : ISugarQuerySelect<Pair<E, F>> {
-        override fun isDistinct(): Boolean = distinct;
+        override fun isDistinct(): Boolean = distinct
 
         override fun getSelection(): Selection<Tuple> {
             return cb.tuple(first.getSelection(), second.getSelection())
@@ -33,7 +33,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
     }
 
     class PathTripleSelect<E, F, G>(val first: ISugarQuerySelect<E>, val second: ISugarQuerySelect<F>, val third: ISugarQuerySelect<G>, val distinct: Boolean, val cb: CriteriaBuilder) : ISugarQuerySelect<Triple<E, F, G>> {
-        override fun isDistinct(): Boolean = distinct;
+        override fun isDistinct(): Boolean = distinct
 
         override fun getSelection(): Selection<Tuple> {
             return cb.tuple(first.getSelection(), second.getSelection(), third.getSelection())
@@ -77,7 +77,7 @@ class AnyDAONew(@Inject val em: EntityManager) {
         val one2 = getFirst(TaskODB::class) {
             it eqId 10
         }
-        println("Get max user id: " + one+" "+one2)
+        println("Get max user id: $one $one2")
 
         val two = getOne(TaskODB::class) {
             it limit 1

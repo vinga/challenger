@@ -22,8 +22,6 @@ import org.joda.time.DateTime;
 
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -63,7 +61,7 @@ public class JWTVerifier<E extends TokenInfo> {
         Clock clock = new SystemClock();
         String[] pieces = tokenString.split(Pattern.quote("."));
         if (pieces.length != 3) {
-            System.out.println("badtokenString "+tokenString);
+            System.out.println("bad token string: "+tokenString);
             throw new IllegalArgumentException("Expected JWT to have 3 segments separated by \'.\', but it has " + pieces.length + " segments");
         } else {
             String jwtHeaderSegment = pieces[0];

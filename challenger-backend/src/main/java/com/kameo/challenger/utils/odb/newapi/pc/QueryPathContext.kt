@@ -1,9 +1,8 @@
 package com.kameo.challenger.utils.odb.newapi.pc
 
 import com.kameo.challenger.utils.odb.newapi.ISugarQuerySelect
-import com.kameo.challenger.utils.odb.newapi.pc.PathContext
-import com.kameo.challenger.utils.odb.newapi.wraps.RootWrap
 import com.kameo.challenger.utils.odb.newapi.SelectWrap
+import com.kameo.challenger.utils.odb.newapi.wraps.RootWrap
 import javax.persistence.EntityManager
 import javax.persistence.TypedQuery
 import javax.persistence.criteria.CriteriaQuery
@@ -30,7 +29,7 @@ class QueryPathContext<G>(clz: Class<*>,
         val sell = selector!!.getSelection()
         val ss = criteria.select(sell as Selection<out G>).distinct(selector!!.isDistinct())
 
-        val groupBy = getGroupBy();
+        val groupBy = getGroupBy()
         if (groupBy.isNotEmpty()) {
             criteria.groupBy(groupBy.map { it.getExpression() })
         }

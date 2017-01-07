@@ -48,8 +48,8 @@ class ReportRestService : IReportRestService {
 
             val sortedMap = it.value
 
-            var labels = sortedMap.keys.map { it.toString() }
-            var values = sortedMap.values.map { it }
+            val labels = sortedMap.keys.map { it.toString() }
+            val values = sortedMap.values.map { it }
 
             ReportDataDTO(challengeId, progressive, userId, labels, values)
 

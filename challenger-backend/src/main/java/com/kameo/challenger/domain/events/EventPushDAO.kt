@@ -7,7 +7,6 @@ import com.kameo.challenger.domain.events.IEventGroupRestService.EventDTO
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
-import com.kameo.challenger.utils.synchCopyThenClear
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
@@ -42,7 +41,7 @@ open class EventPushDAO {
 
         val userClient = UserClient(callerId, lastReadEventId, asyncResponse)
         if (broadcastEventsToCustomClient(userClient))
-            return;
+            return
 
 
         synchronized(listeningUsers, {
@@ -61,7 +60,7 @@ open class EventPushDAO {
 
 
     open fun broadcastNewEvent(challengeId: Long) {
-        // fetch everyhing unread for those challenge and subscribers
+        // fetch everything unread for those challenge and subscribers
 
         val userIds = anyDaoNew.getAll(ChallengeParticipantODB::class) {
             it get ChallengeParticipantODB::challenge eqId challengeId

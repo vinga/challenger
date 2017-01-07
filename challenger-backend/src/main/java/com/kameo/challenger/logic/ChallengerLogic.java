@@ -10,16 +10,12 @@ import com.kameo.challenger.domain.events.EventGroupDAO;
 import com.kameo.challenger.domain.tasks.TaskDAO;
 import com.kameo.challenger.domain.tasks.db.TaskApprovalODB;
 import com.kameo.challenger.domain.tasks.db.TaskODB;
-import com.kameo.challenger.domain.tasks.db.TaskProgressODB;
 import com.kameo.challenger.domain.tasks.db.TaskStatus;
 import com.kameo.challenger.domain.tasks.db.TaskType;
-import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jetbrains.annotations.NotNull;
 import org.jinq.jpa.JPQL;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +23,8 @@ import javax.inject.Inject;
 import java.lang.invoke.MethodHandles;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.codehaus.groovy.runtime.DefaultGroovyMethods.collect;
 
 @Transactional
 @Component
@@ -56,7 +46,6 @@ public class ChallengerLogic {
     public UserODB getUserById(long callerId) {
         return anyDao.get(UserODB.class, callerId);
     }
-
 
     public List<ChallengeODB> getPendingChallenges(long userId) {
         return anyDao.streamAll(ChallengeParticipantODB.class).where(cp -> cp.getUser().getId() == userId && cp
@@ -84,8 +73,6 @@ public class ChallengerLogic {
                      .collect(Collectors.toList());
     }
 
-
-
     public TaskODB updateTask(long callerId, TaskODB taskODB) {
         ChallengeODB cc = anyDao.get(ChallengeODB.class, taskODB.getChallenge().getId());
         if (!cc.getParticipants().stream().anyMatch(cp -> cp.getUser().getId() == callerId))
@@ -111,17 +98,11 @@ public class ChallengerLogic {
         return caDB;
     }
 
-
-
-
-
-
     public List<TaskApprovalODB> getTasksApprovalForRejectedTasks(List<TaskODB> tasks) {
         List<Long> rejectedTaskIds = tasks.stream().filter(t -> t.getTaskStatus() == TaskStatus.rejected).map(TaskODB::getId).collect(Collectors.toList());
         if (rejectedTaskIds.isEmpty())
             return Lists.newArrayList();
-        return anyDao.streamAll(TaskApprovalODB.class).where(ta -> rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected).collect(Collectors.toList());
+        return anyDao.streamAll(TaskApprovalODB.class).where(ta -> rejectedTaskIds.contains(ta.getTask().getId()) && ta.getTaskStatus() == TaskStatus.rejected)
+                     .collect(Collectors.toList());
     }
-
-
 }

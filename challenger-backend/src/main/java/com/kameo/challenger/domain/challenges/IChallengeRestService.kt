@@ -8,9 +8,6 @@ import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import lombok.Data
 import java.time.LocalDateTime
-import javax.ws.rs.POST
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
 
 
 interface IChallengeRestService {
@@ -60,24 +57,24 @@ interface IChallengeRestService {
                 }
                 @JvmStatic
                 fun toODB(c: ChallengeDTO, existingUsers: List<UserODB>): ChallengeODB {
-                    val odb = ChallengeODB();
+                    val odb = ChallengeODB()
                     if (c.id > 0)
-                        odb.id = c.id;
-                    odb.challengeStatus = ChallengeStatus.valueOf(c.challengeStatus);
-                    odb.createDate = LocalDateTime.now();
-                    odb.createdBy = UserODB(c.creatorId);
-                    odb.label = c.label;
+                        odb.id = c.id
+                    odb.challengeStatus = ChallengeStatus.valueOf(c.challengeStatus)
+                    odb.createDate = LocalDateTime.now()
+                    odb.createdBy = UserODB(c.creatorId)
+                    odb.label = c.label
                     odb.participants = c.userLabels.map {
                         participant ->
-                        val cp = ChallengeParticipantODB(0);
+                        val cp = ChallengeParticipantODB(0)
                         cp.challenge = odb
-                        cp.user = existingUsers.find { it.getLoginOrEmail().equals(participant.label) }
+                        cp.user = existingUsers.find { it.getLoginOrEmail() == participant.label }
                                 ?:
                                 let { val u = UserODB(); u.email = participant.label; u }
 
                         cp
                     }
-                    return odb;
+                    return odb
                 }
             }
         }

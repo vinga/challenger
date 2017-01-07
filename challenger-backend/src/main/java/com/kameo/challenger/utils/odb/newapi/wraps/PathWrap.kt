@@ -27,15 +27,15 @@ open class PathWrap<E, G> constructor(
     }
 
     infix fun groupBy(expr: KMutableProperty1<E, *>) {
-        return pc.groupBy(arrayOf(ExpressionWrap<E, G>(pc, root.get(expr.name))));
+        return pc.groupBy(arrayOf(ExpressionWrap<E, G>(pc, root.get(expr.name))))
     }
 
     infix fun groupBy(expr: ExpressionWrap<E, *>) {
-        return pc.groupBy(arrayOf(ExpressionWrap<E, G>(pc, expr.getExpression())));
+        return pc.groupBy(arrayOf(ExpressionWrap(pc, expr.getExpression())))
     }
 
     fun groupBy(vararg exprs: KMutableProperty1<E, *>) {
-        return pc.groupBy(exprs.map { ExpressionWrap<E, G>(pc, root.get(it.name)) }.toTypedArray());
+        return pc.groupBy(exprs.map { ExpressionWrap<E, G>(pc, root.get(it.name)) }.toTypedArray())
     }
 
     override fun getDirectSelection(): ISugarQuerySelect<E> {
@@ -62,7 +62,7 @@ open class PathWrap<E, G> constructor(
     }
 
     infix fun <F> selectDistinct(pw: ExpressionWrap<F, G>): ISugarQuerySelect<F> {
-        return SelectWrap<F>(pw.getDirectSelection().getSelection() as Selection<F>, true)
+        return SelectWrap(pw.getDirectSelection().getSelection() as Selection<F>, true)
     }
 
     fun <F, G> select(pw1: ISelectExpressionProvider<F>, pw2: ISelectExpressionProvider<G>, distinct: Boolean = false): PathPairSelect<F, G> {
@@ -134,9 +134,10 @@ open class PathWrap<E, G> constructor(
     }
 
     infix fun ors(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> =
-        newOr(orClause);
+        newOr(orClause)
+
     infix fun ands(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> =
-            newAnd(orClause);
+            newAnd(orClause)
 
     infix fun newOr(orClause: (PathWrap<E, G>) -> Unit): PathWrap<E, G> {
         val list = mutableListOf<() -> Predicate?>()
@@ -440,7 +441,7 @@ open class PathWrap<E, G> constructor(
         val subqueryPc = SubqeryPathContext(clz.java, pc.em, pc as QueryPathContext<G>, criteriaQuery.subquery(clz.java) as Subquery<G>)
         val returnedExpression = subqueryPc.invokeQuery(query)
 
-        return returnedExpression as SubqueryWrap<RESULT, G>;
+        return returnedExpression as SubqueryWrap<RESULT, G>
     }
 
     fun <J: Any> isInSubquery(clz: KClass<J>, query: RootWrap<J, J>.() -> (ISugarQuerySelect<E>)): PathWrap<E, G>  {

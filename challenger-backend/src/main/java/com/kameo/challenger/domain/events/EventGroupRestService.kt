@@ -35,7 +35,7 @@ class EventGroupRestService : IEventGroupRestService {
     private lateinit var eventPushDAO: EventPushDAO
 
 
-    @Deprecated("use getEventsForChallenge instaed")
+    @Deprecated("use getEventsForChallenge instead")
     @GET
     @Path("/challenges/{challengeId}/tasks/{taskId}/events")
     @ApiOperation("Gets events for task")
@@ -81,7 +81,7 @@ class EventGroupRestService : IEventGroupRestService {
             throw IllegalArgumentException()
         val callerId = session.userId
 
-        var ev = EventODB(0)
+        val ev = EventODB(0)
         ev.author = UserODB(eventDTO.authorId)
         ev.challenge = ChallengeODB(eventDTO.challengeId)
         ev.taskId = eventDTO.taskId
@@ -89,7 +89,7 @@ class EventGroupRestService : IEventGroupRestService {
         ev.createDate = Date(eventDTO.sentDate)
         ev.eventType = EventType.POST
 
-        var updatedEvent = eventGroupDAO.createEventFromClient(callerId, challengeId, ev)
+        val updatedEvent = eventGroupDAO.createEventFromClient(callerId, challengeId, ev)
 
         return EventDTO.fromODB(updatedEvent)
     }

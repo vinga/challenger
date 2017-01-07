@@ -44,10 +44,9 @@ export function eventsState(state: EventState = getInitialState(), action): Even
         var eventGroups = copyAndReplace(state.eventGroups, action, eg=>eg.challengeId == action.challengeId);
 
 
-        var res = copy(state).and({eventGroups: eventGroups});
+        return copy(state).and({eventGroups: eventGroups});
 
 
-        return res;
     } else if (isAction(action, ADD_NEW_EVENT_OPTIMISTIC)) {
 
         var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == action.challengeId);

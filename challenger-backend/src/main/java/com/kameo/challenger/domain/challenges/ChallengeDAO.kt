@@ -106,7 +106,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
                 challengeToLastSeen[it]
             }.first().id
         }
-        return null;
+        return null
     }
 
 
@@ -121,7 +121,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
         }
         waitingParticipation.challengeStatus = status
         if (status == ACTIVE)
-            waitingParticipation.lastSeen = Date();
+            waitingParticipation.lastSeen = Date()
 
         anyDaoNew.em.merge(waitingParticipation)
 
@@ -139,7 +139,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
         eventGroupDAO.createChallengeEventAfterServerAction(callerId, waitingParticipation.challenge, when (status) {
             ACTIVE -> ACCEPT_CHALLENGE
             REFUSED -> REJECT_CHALLENGE
-            else -> throw IllegalArgumentException();
+            else -> throw IllegalArgumentException()
         })
 
     }
@@ -148,25 +148,25 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun deleteChallenge(callerId: Long, challengeId: Long): Boolean {
 
         val challengeODB = anyDaoNew.find(ChallengeODB::class, challengeId)
-        if (!challengeODB.createdBy.id.equals(callerId)) {
-            throw IllegalArgumentException("No permisssions to delete");
+        if (challengeODB.createdBy.id != callerId) {
+            throw IllegalArgumentException("No permissions to delete")
         }
         challengeODB.challengeStatus = ChallengeStatus.REMOVED
-        anyDaoNew.merge(challengeODB);
+        anyDaoNew.merge(challengeODB)
 
         eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, REMOVE_CHALLENGE)
-        return true;
+        return true
     }
 
     open fun updateChallenge(callerId: Long, challenge: ChallengeODB): ChallengeODB {
         val challengeODB = anyDaoNew.find(ChallengeODB::class, challenge.id)
-        if (!challengeODB.createdBy.id.equals(callerId)) {
-            throw IllegalArgumentException("No permisssions to modify");
+        if (challengeODB.createdBy.id != callerId) {
+            throw IllegalArgumentException("No permissions to modify")
         }
 
         val challengeChanged=!challenge.label.equals(challengeODB.label)
-        challengeODB.label = challenge.label;
-        anyDaoNew.merge(challengeODB);
+        challengeODB.label = challenge.label
+        anyDaoNew.merge(challengeODB)
 
 
         // adding new participants
@@ -186,14 +186,14 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
         challengeODB.participants.filter {
             !challenge.participants.map { it.user.id }.contains(it.user.id)
         }.forEach {
-            it.challengeStatus = REMOVED;
-            anyDaoNew.merge(it);
+            it.challengeStatus = REMOVED
+            anyDaoNew.merge(it)
             eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, REMOVE_USER_FROM_CHALLENGE, ChallengeInviteRemoveUserEventInfo(it.user))
         }
 
 
         if (challengeChanged)
             eventGroupDAO.createChallengeEventAfterServerAction(callerId, challengeODB, UPDATE_CHALLENGE)
-        return challengeODB;
+        return challengeODB
     }
 }

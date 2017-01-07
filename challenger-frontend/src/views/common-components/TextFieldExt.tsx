@@ -124,8 +124,7 @@ export default class TextFieldExt extends React.Component<Props,State> {
                 return false;
             }
             if (this.props.validator != null) {
-                var error = this.props.validator(this.state.fieldValue);
-                this.state.errorText = error;
+                this.state.errorText = this.props.validator(this.state.fieldValue);
             }
             this.setState(this.state);
         }

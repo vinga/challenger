@@ -146,8 +146,7 @@ public class EntityHelper {
 		return Optional.empty();
 	}
 	public static <E extends IIdentity> List<E> getAll(Collection<E> col,Collection<Long> ids ) {
-		List<E> list= col.stream().filter(e -> ids.contains(e.getId())).collect(Collectors.toList());
-		return list;
+		return col.stream().filter(e -> ids.contains(e.getId())).collect(Collectors.toList());
 	}
 
 

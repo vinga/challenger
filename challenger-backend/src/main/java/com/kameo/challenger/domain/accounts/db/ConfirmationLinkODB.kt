@@ -2,7 +2,6 @@ package com.kameo.challenger.domain.accounts.db
 
 import com.kameo.challenger.odb.api.IIdentity
 import java.time.LocalDateTime
-import java.util.*
 import javax.persistence.*
 
 
@@ -24,5 +23,5 @@ data class ConfirmationLinkODB(@Id
 
     val sysCreationDate:LocalDateTime= LocalDateTime.now()
     @ManyToOne
-    lateinit var user: UserODB;
+    lateinit var user: UserODB
 }

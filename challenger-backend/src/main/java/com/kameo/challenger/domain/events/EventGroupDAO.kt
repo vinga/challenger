@@ -31,7 +31,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
     class TaskCheckUncheckEventInfo(val taskCheckUncheckDate: LocalDate, val checkDate: LocalDate = LocalDate.now()) : IEventInfo
     class TaskRejectedEventInfo(val rejectionReason: String) : IEventInfo
-    class ChallengeInviteRemoveUserEventInfo(val user: UserODB) : IEventInfo;
+    class ChallengeInviteRemoveUserEventInfo(val user: UserODB) : IEventInfo
 
 
     open fun createChallengeEventAfterServerAction(userId: Long, challenge: ChallengeODB, eventType: EventType, eventInfo: ChallengeInviteRemoveUserEventInfo? = null) {
@@ -46,7 +46,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             EventType.INVITE_USER_TO_CHALLENGE -> user.getLoginOrEmail() + " invited user "+(eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail()+" to challenge " + challenge.label
             EventType.REMOVE_USER_FROM_CHALLENGE -> user.getLoginOrEmail() + " invited user "+(eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail()+" from challenge " + challenge.label
             else -> {
-                throw IllegalArgumentException();
+                throw IllegalArgumentException()
             }
         }
         e.challenge = challenge
@@ -207,7 +207,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 val notReadSize = it.size
                 if (it.size < desiredMaxEvents) {
                     it + anyDaoNew.getAll(EventReadODB::class) {
-                        val er=this;
+                        val er=this
                         er get EventReadODB::user eqId callerId
                         er get EventReadODB::challenge eqId challengeId
                         er get +EventReadODB::id lt firstNotRead.id
@@ -223,9 +223,9 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
     private fun sortEventsReadAsc(): Comparator<Pair<EventReadODB, EventODB>> {
-        return Comparator<Pair<EventReadODB, EventODB>> { o1, o2 ->
+        return Comparator { o1, o2 ->
             if (o1.first.read != null && o2.first.read != null)
-                o1.first.read!!.compareTo(o2.first.read);
+                o1.first.read!!.compareTo(o2.first.read)
             else if (o1.first.read == null && o2.first.read == null)
                 o1.first.id.compareTo(o2.first.id)
             else if (o1.first.read == null)

@@ -1,16 +1,11 @@
 package com.kameo.challenger.utils.odb.newapi.pc
 
 import com.kameo.challenger.utils.odb.newapi.ISugarQuerySelect
-import com.kameo.challenger.utils.odb.newapi.pc.PathContext
-import com.kameo.challenger.utils.odb.newapi.wraps.RootWrap
 import com.kameo.challenger.utils.odb.newapi.SelectWrap
-import com.kameo.challenger.utils.odb.newapi.wraps.ExpressionWrap
+import com.kameo.challenger.utils.odb.newapi.wraps.RootWrap
 import com.kameo.challenger.utils.odb.newapi.wraps.SubqueryWrap
 import javax.persistence.EntityManager
-import javax.persistence.TypedQuery
-import javax.persistence.criteria.CriteriaQuery
 import javax.persistence.criteria.Expression
-import javax.persistence.criteria.Selection
 import javax.persistence.criteria.Subquery
 
 class SubqeryPathContext<G>(clz: Class<*>,
@@ -39,7 +34,7 @@ class SubqeryPathContext<G>(clz: Class<*>,
 
 
         subquery.where(getPredicate())
-        val groupBy = getGroupBy();
+        val groupBy = getGroupBy()
         if (groupBy.isNotEmpty()) {
             subquery.groupBy(groupBy.map { it.getExpression() })
         }
@@ -48,7 +43,7 @@ class SubqeryPathContext<G>(clz: Class<*>,
 
 
        // return SubqueryWrap<RESULT,E>(parentContext as QueryPathContext<E>,ss, subquery as Subquery<RESULT>) as SubqueryWrap<RESULT, E>;
-        return SubqueryWrap<RESULT,E>(parentContext as QueryPathContext<E> ,subquery as Expression<RESULT>, subquery as Subquery<RESULT>) as SubqueryWrap<RESULT, E>;
+        return SubqueryWrap(parentContext as QueryPathContext<E> ,subquery as Expression<RESULT>, subquery as Subquery<RESULT>)
     }
 
 

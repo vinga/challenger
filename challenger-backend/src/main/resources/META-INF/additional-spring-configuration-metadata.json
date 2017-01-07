@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "mailSenderFrom",
+      "type": "java.lang.String",
+      "description": "Description for mailSenderFrom."
+    },
+    {
+      "name": "serverUrl",
+      "type": "java.lang.String",
+      "description": "Description for serverUrl."
+    }
+  ]
+}

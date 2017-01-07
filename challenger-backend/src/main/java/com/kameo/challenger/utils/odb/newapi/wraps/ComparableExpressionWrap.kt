@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.odb.newapi.wraps
 
-import com.kameo.challenger.utils.odb.newapi.wraps.ExpressionWrap
 import com.kameo.challenger.utils.odb.newapi.pc.PathContext
 import javax.persistence.criteria.Expression
 

@@ -86,7 +86,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun registerUser(login: String, password: String, email: String, emailIsConfirmedByConfirmationLink: String?): InternalRegisterResponseDTO {
         println("register user $login $password $email $emailIsConfirmedByConfirmationLink")
         if (login.isNullOrBlank())
-            throw IllegalArgumentException();
+            throw IllegalArgumentException()
 
         val confirmationLink =
                 if (emailIsConfirmedByConfirmationLink != null)
@@ -94,7 +94,7 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                         it get +ConfirmationLinkODB::uid eq emailIsConfirmedByConfirmationLink
                         it get ConfirmationLinkODB::confirmationLinkType eq ConfirmationLinkType.EMAIL_CONFIRMATION
                     }
-                else null;
+                else null
 
 
         val existingUser =

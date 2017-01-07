@@ -92,7 +92,7 @@ open class TaskDAO {
     private fun isAllSelected(it: String, min: Int, max: Int): Boolean
             = it
             .split(",")
-            .filter { it.length > 0 }
+            .filter(String::isNotEmpty)
             .map(String::toInt)
             .containsAll((min..max).toList())
 
@@ -348,27 +348,27 @@ open class TaskDAO {
 
         val mergedTasks = tasks.map { anyDaoNew.merge(it) }
         if (mergedTasks.isEmpty())
-            return emptyList();
+            return emptyList()
 
-        val participants = mergedTasks.first().challenge.participants;
+        val participants = mergedTasks.first().challenge.participants
         val approvals = anyDaoNew.getAll(TaskApprovalODB::class) {
             it get TaskApprovalODB::task inIds mergedTasks.map { it.id }
             it get TaskApprovalODB::task get TaskODB::taskStatus notEq TaskStatus.accepted
         }
 
         val pendingApprovals = approvals.groupBy({ it.task.id }, { it.user.id }).flatMap {
-            val (taskId, approvedUserIds) = it;
+            val (taskId, approvedUserIds) = it
             participants.filter { it.user.id !in approvedUserIds }.map {
                 TaskApprovalODB(it.user, TaskODB(taskId), TaskStatus.waiting_for_acceptance)
             }
         }
-        return approvals + pendingApprovals;
+        return approvals + pendingApprovals
     }
 
     open fun closeTask(callerId: Long, taskId: Long): TaskODB {
-        val t = anyDaoNew.find(TaskODB::class, taskId);
+        val t = anyDaoNew.find(TaskODB::class, taskId)
         if (callerId!=t.user.id)
-            throw IllegalArgumentException("User can close only his own tasks");
+            throw IllegalArgumentException("User can close only his own tasks")
         t.closeDate = LocalDate.now()
         anyDaoNew.merge(t)
         return t

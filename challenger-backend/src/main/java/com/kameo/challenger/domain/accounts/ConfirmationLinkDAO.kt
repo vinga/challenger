@@ -1,7 +1,6 @@
 package com.kameo.challenger.domain.accounts
 
 import com.kameo.challenger.config.ServerConfig
-import com.kameo.challenger.domain.accounts.AccountDAO.InternalRegisterResponseDTO
 import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkRequestDTO
 import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkResponseDTO
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkODB
@@ -47,7 +46,7 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
         val clODB = anyDaoNew.getFirst(ConfirmationLinkODB::class, {
             it get ConfirmationLinkODB::uid eq uid
         }) ?: return ConfirmationLinkResponseDTO("This link is no longer valid", done = true)
-        val user = clODB.user;
+        val user = clODB.user
 
         if (user.userStatus == SUSPENDED)
             throw IllegalArgumentException()
@@ -58,7 +57,7 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
             PASSWORD_RESET -> {
                 if (confirmParams.newPassword != null) {
                     if (user.login.isNullOrEmpty())
-                        throw IllegalArgumentException("Such link shouldn't be created because user's email isn't confirmed yet");
+                        throw IllegalArgumentException("Such link shouldn't be created because user's email isn't confirmed yet")
 
                     accountDAO.resetPassword(user, confirmParams.newPassword)
                     anyDaoNew.remove(clODB)
@@ -73,13 +72,13 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                     anyDaoNew.remove(clODB)
                     return ConfirmationLinkResponseDTO("This login is already taken, please try to register again.", displayRegisterButton = true)
                 }
-                user.login = clODB.fieldLogin;
+                user.login = clODB.fieldLogin
                 user.passwordHash = clODB.fieldPasswordHash!!
                 user.salt = clODB.fieldSalt!!
                 user.userStatus = ACTIVE
                 anyDaoNew.merge(user)
                 anyDaoNew.remove(clODB)
-                val au = authFilter.get();
+                val au = authFilter.get()
                 val jwtToken = au.tokenToString(au.createNewTokenFromUserId(user.id))
                 // user automatically be logged because jwtToken is set
                 ConfirmationLinkResponseDTO("Your email is confirmed. You can login now. ", displayLoginButton = true, login = clODB.user.login, jwtToken = jwtToken)
@@ -95,9 +94,9 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
 
-                var description = "You've accepted challenge " + anyDaoNew.getOne(ChallengeODB::class) { it eqId clODB.challengeId!! }.label + ".";
+                var description = "You've accepted challenge " + anyDaoNew.getOne(ChallengeODB::class) { it eqId clODB.challengeId!! }.label + "."
                 if (user.userStatus == WAITING_FOR_EMAIL_CONFIRMATION) {
-                    description += "You can register now";
+                    description += "You can register now"
 
                     val confirmationEmailLink = ConfirmationLinkODB()
                     confirmationEmailLink.user = user

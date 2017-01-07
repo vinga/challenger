@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.odb.newapi.wraps
 
-import com.kameo.challenger.utils.odb.newapi.wraps.PathWrap
 import com.kameo.challenger.utils.odb.newapi.pc.PathContext
 import java.time.LocalDateTime
 import javax.persistence.criteria.Expression

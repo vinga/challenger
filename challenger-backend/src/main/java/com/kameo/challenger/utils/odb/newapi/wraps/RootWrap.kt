@@ -1,9 +1,6 @@
 package com.kameo.challenger.utils.odb.newapi.wraps
 
-import com.kameo.challenger.utils.odb.newapi.ISugarQuerySelect
 import com.kameo.challenger.utils.odb.newapi.pc.PathContext
-import com.kameo.challenger.utils.odb.newapi.pc.QueryPathContext
-import com.kameo.challenger.utils.odb.newapi.pc.SubqeryPathContext
 import javax.persistence.criteria.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1

@@ -80,8 +80,8 @@ open class ExpressionWrap<E, G> constructor(
         return value
     }
 
-    fun groupBy(vararg exprs: IExpression<*, *>): ExpressionWrap<E, G> {
-        pc.groupBy(exprs);
+    fun groupBy(vararg expr: IExpression<*, *>): ExpressionWrap<E, G> {
+        pc.groupBy(expr)
         return this
     }
 
@@ -91,7 +91,7 @@ open class ExpressionWrap<E, G> constructor(
     }
 
     fun  count(): ExpressionWrap<Long, G> {
-        return ExpressionWrap(pc,pc.cb.count(value));
+        return ExpressionWrap(pc,pc.cb.count(value))
     }
 
 }
