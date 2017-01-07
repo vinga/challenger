@@ -7,7 +7,7 @@ import com.kameo.challenger.utils.odb.AnyDAONew.PathTripleSelect
 import com.kameo.challenger.utils.odb.newapi.*
 import com.kameo.challenger.utils.odb.newapi.pc.PathContext
 import com.kameo.challenger.utils.odb.newapi.pc.QueryPathContext
-import com.kameo.challenger.utils.odb.newapi.pc.SubqeryPathContext
+import com.kameo.challenger.utils.odb.newapi.pc.SubqueryPathContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -438,7 +438,7 @@ open class PathWrap<E, G> constructor(
 
     fun <E : Any, RESULT> subqueryFrom(clz: KClass<E>, query: RootWrap<E, E>.() -> (ISugarQuerySelect<RESULT>)): SubqueryWrap<RESULT, G> {
         val criteriaQuery = pc.criteria as CriteriaQuery<E>
-        val subqueryPc = SubqeryPathContext(clz.java, pc.em, pc as QueryPathContext<G>, criteriaQuery.subquery(clz.java) as Subquery<G>)
+        val subqueryPc = SubqueryPathContext(clz.java, pc.em, pc as QueryPathContext<G>, criteriaQuery.subquery(clz.java) as Subquery<G>)
         val returnedExpression = subqueryPc.invokeQuery(query)
 
         return returnedExpression as SubqueryWrap<RESULT, G>

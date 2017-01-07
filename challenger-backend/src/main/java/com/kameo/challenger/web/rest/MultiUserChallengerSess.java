@@ -9,6 +9,7 @@ import org.springframework.web.context.annotation.RequestScope;
 import javax.inject.Inject;
 import java.util.Set;
 
+@SuppressWarnings("CanBeFinal")
 @RequestScope
 @Component
 @Lazy

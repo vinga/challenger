@@ -8,10 +8,10 @@ import javax.persistence.EntityManager
 import javax.persistence.criteria.Expression
 import javax.persistence.criteria.Subquery
 
-class SubqeryPathContext<G>(clz: Class<*>,
-                            em: EntityManager,
-                            val parentContext: QueryPathContext<G>,
-                            val subquery: Subquery<G>)
+class SubqueryPathContext<G>(clz: Class<*>,
+                             em: EntityManager,
+                             val parentContext: QueryPathContext<G>,
+                             val subquery: Subquery<G>)
     : PathContext<G>(em, parentContext.criteria) {
 
     var selector: ISugarQuerySelect<*>? = null // set after execution

@@ -14,21 +14,16 @@ import com.kameo.challenger.domain.tasks.db.TaskStatus;
 import com.kameo.challenger.domain.tasks.db.TaskType;
 import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.util.TestHelper;
-import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
-import cucumber.api.java.en.Given;
 import cucumber.api.java8.En;
 import org.junit.Assert;
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.inject.Inject;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -155,7 +150,7 @@ public class TasksTest implements En {
                     .getActiveChallengeBetween(testHelper.myself(), testHelper.myFriend());
 
             List<TaskODB> actions = challengerService
-                    .getWaitingForAcceptanceTasksForConctract(testHelper.myself().getId(), cc.getId());
+                    .getWaitingForAcceptanceTasksForChallenge(testHelper.myself().getId(), cc.getId());
 
             Assert.assertEquals(arg1.longValue(), actions.size());
         });

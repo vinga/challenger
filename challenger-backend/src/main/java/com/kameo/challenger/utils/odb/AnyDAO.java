@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+@SuppressWarnings("CanBeFinal")
 public class AnyDAO {
     // @Autowired
     // Logger logger;

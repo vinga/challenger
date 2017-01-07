@@ -35,7 +35,7 @@ import static org.bouncycastle.asn1.x500.style.RFC4519Style.l;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ChallengeRestService implements IChallengeRestService {
     private final ChallengerSess session;
-    private AccountDAO accountDAO;
+    private final AccountDAO accountDAO;
     private final ChallengeDAO challengeDao;
 
 

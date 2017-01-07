@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("CanBeFinal")
 @Component
 @Transactional
 public class FakeDataLogic implements CommandLineRunner {
@@ -355,17 +356,7 @@ public class FakeDataLogic implements CommandLineRunner {
         ArrayList<UserODB> userODBs = Lists.newArrayList(users);
         contract1.setCreatedBy(userODBs.get(0));
         anyDao.getEm().persist(contract1);
-        int i = 0;
-        for (UserODB u : userODBs) {
-            ChallengeParticipantODB cp = new ChallengeParticipantODB();
-            cp.setChallenge(contract1);
-            cp.setUser(u);
-            cp.setChallengeStatus(status);
-            if (i++ == 0)
-                cp.setChallengeStatus(ChallengeStatus.ACTIVE);
-            contract1.getParticipants().add(cp);
-            anyDao.getEm().persist(cp);
-        }
+        createParticipants(status, contract1, userODBs);
 
         return contract1;
     }
@@ -378,6 +369,11 @@ public class FakeDataLogic implements CommandLineRunner {
         ArrayList<UserODB> userODBs = Lists.newArrayList(users);
         contract1.setCreatedBy(userODBs.get(0));
         anyDao.getEm().persist(contract1);
+        createParticipants(status, contract1, userODBs);
+        return contract1;
+    }
+
+    private void createParticipants(ChallengeStatus status, ChallengeODB contract1, ArrayList<UserODB> userODBs) {
         int i = 0;
         for (UserODB u : userODBs) {
             ChallengeParticipantODB cp = new ChallengeParticipantODB();
@@ -389,9 +385,7 @@ public class FakeDataLogic implements CommandLineRunner {
             contract1.getParticipants().add(cp);
             anyDao.getEm().persist(cp);
         }
-        return contract1;
     }
-
 
     public static class Data {
         UserODB userJack, userKami, userMilena, userKiwi;

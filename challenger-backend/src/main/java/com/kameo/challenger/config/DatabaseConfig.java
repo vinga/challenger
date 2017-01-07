@@ -16,6 +16,7 @@ import javax.inject.Provider;
 import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 
+@SuppressWarnings("CanBeFinal")
 @Configuration
 class DatabaseConfig {
     @Inject

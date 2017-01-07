@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("CanBeFinal")
 @Transactional
 @Component
 public class ChallengerLogic {
@@ -53,14 +54,14 @@ public class ChallengerLogic {
                      .select(ChallengeParticipantODB::getChallenge).collect(Collectors.toList());
     }
 
-    public List<String> findUsersWithLoginsStartingWith(String friend) {
+    public List<String> findUsersWithLoginStartingWith(String friend) {
         //noinspection ConstantConditions
         return anyDao.streamAll(UserODB.class).where(u ->
                 JPQL.like(u.getLogin(), friend + "%")
         ).map(UserODB::getLogin).sorted().collect(Collectors.toList());
     }
 
-    public List<TaskODB> getWaitingForAcceptanceTasksForConctract(long userId, long contractId) {
+    public List<TaskODB> getWaitingForAcceptanceTasksForChallenge(long userId, long contractId) {
         return anyDao.streamAll(TaskODB.class)
                      .where(ca -> ca.getChallenge().getId() == contractId &&
                              ca.getUser().getId() == userId &&

@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 @Primary
 public class CombinedSwaggerResourcesProvider implements SwaggerResourcesProvider {
 
+    @SuppressWarnings("CanBeFinal")
     @Resource
     private InMemorySwaggerResourcesProvider inMemorySwaggerResourcesProvider;
 

@@ -114,8 +114,8 @@ constructor(
         }
     }
 
-    fun groupBy(exprs: Array<out IExpression<*, *>>) {
-        groupByList = exprs.toMutableList()
+    fun groupBy(expressions: Array<out IExpression<*, *>>) {
+        groupByList = expressions.toMutableList()
     }
 
     protected fun getGroupBy(): List<IExpression<*, *>> = groupByList ?: emptyList()

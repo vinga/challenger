@@ -87,7 +87,7 @@ public class InvitationsTest implements En {
         });
         Then("^I get all logins starting with provided texts$", () -> {
             testHelper.createUsers("myFriend", "myFriend1", "myFriend2", "myFriend3");
-            List<String> logins = challengerService.findUsersWithLoginsStartingWith("myFriend");
+            List<String> logins = challengerService.findUsersWithLoginStartingWith("myFriend");
             Assert.assertEquals(4, logins.size());
         });
 

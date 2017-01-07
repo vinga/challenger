@@ -35,13 +35,6 @@ open class RootWrap<E, G> constructor(
 
     }
 
-
-
-    /*  infix fun <F : Any> subquery(sa: KClass<F>): SubqueryWrap<F, G> {
-      val criteriaQuery = pw.criteria as CriteriaQuery<F>
-      val subqueryWrap= SubqueryWrap(pw, root as Root<F>, criteriaQuery.subquery(sa.java))
-      //pw.subqueries.add(subqueryWrap);
-      return subqueryWrap
-  }*/
+    
 
 }
