@@ -36,31 +36,28 @@ interface ColProps {
 
 export const Row = (props: RowProps & {  style?: CSSProperties,   children?: any  }) => {
     const horizontalsToClasses = (shortcut: string): string => {
-        var classNames = shortcut.split("-").map((e, iter)=> {
+        return shortcut.split("-").map((e, iter)=> {
             if (e != "center" && e != "start" && e != "end") {
                 throw new Error("Invalid value: " + e);
             }
             return e + "-" + sizes[iter];
         }).join(" ");
-        return classNames;
     }
     const verticalsToClasses = (shortcut: string): string => {
-        var classNames = shortcut.split("-").map((e, iter)=> {
+        return shortcut.split("-").map((e, iter)=> {
             if (e != "top" && e != "middle" && e != "bottom") {
                 throw new Error("Invalid value: " + e);
             }
             return e + "-" + sizes[iter];
         }).join(" ");
-        return classNames;
     }
     const distributionToClasses = (shortcut: string): string => {
-        var classNames = shortcut.split("-").map((e, iter)=> {
+        return shortcut.split("-").map((e, iter)=> {
             if (e != "around" && e != "between") {
                 throw new Error("Invalid value: " + e);
             }
             return e + "-" + sizes[iter];
         }).join(" ");
-        return classNames;
     }
     const className = (): string => {
         var classes = "row ";
@@ -84,16 +81,14 @@ export const Row = (props: RowProps & {  style?: CSSProperties,   children?: any
 
 export const Col = (props: ColProps & { style?: CSSProperties, children?: any  }) => {
     const colsToClasses = (shortcut: string): string => {
-        var classNames = shortcut.split("-").map((e, iter)=> {
+        return shortcut.split("-").map((e, iter)=> {
             return "col-" + sizes[iter] + "-" + e;
         }).join(" ");
-        return classNames;
     }
     const offsetToClasses = (shortcut: string): string => {
-        var classNames = shortcut.split("-").map((e, iter)=> {
+        return shortcut.split("-").map((e, iter)=> {
             return "col-" + sizes[iter] + "-offset-" + e;
         }).join(" ");
-        return classNames;
     }
 
     const className = (): string => {

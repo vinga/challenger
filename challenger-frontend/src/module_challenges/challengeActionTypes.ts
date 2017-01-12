@@ -1,6 +1,5 @@
 import {ActionType} from "../redux/ReduxTask";
-import {VisibleChallengesDTO, ChallengeParticipantDTO} from "./ChallengeDTO";
-import {ConfirmationLinkResponseDTO} from "../module_accounts/index";
+import {VisibleChallengesDTO} from "./ChallengeDTO";
 
 
 export const CHANGE_CHALLENGE: ActionType<{challengeId: number}> = new ActionType<any>('CHANGE_CHALLENGE');

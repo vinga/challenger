@@ -1,19 +1,17 @@
 import {Selector, createSelector} from "reselect";
 import {ReduxState} from "../redux/ReduxState";
-import {createTaskDTOListKey, TaskDTO, TaskDTOListForDay, TaskStatus, TaskDTOList, TaskProgressForDay, TaskProgressesForDays, TaskProgressDTOListForDay} from "./TaskDTO";
+import {createTaskDTOListKey, TaskDTO, TaskStatus, TaskDTOList, TaskProgressDTOListForDay} from "./TaskDTO";
 import {WebState} from "../logic/domain/Common";
 
 
-
-
-const userDynamicSelector = (state:ReduxState, userId: number):number => {
+const userDynamicSelector = (state: ReduxState, userId: number): number => {
     return userId
 }
 
 export const allTasksSelector: Selector<ReduxState, TaskDTOList> = (state, map): TaskDTOList => state.tasksState.allTasks;
 
 export const currentTaskProgressSelector: Selector<ReduxState, TaskProgressDTOListForDay> = (state, map): TaskProgressDTOListForDay => {
-    var key=createTaskDTOListKey(state.challenges.selectedChallengeId, state.currentSelection.day);
+    var key = createTaskDTOListKey(state.challenges.selectedChallengeId, state.currentSelection.day);
     return state.tasksState.taskProgressesForDays[key];
 }
 
@@ -33,21 +31,20 @@ export const makeGetTasksForUserAndDay = () => {
     return createSelector(
         currentTaskProgressSelector,
         allTasksSelector,
-        userDynamicSelector ,
-        (taskProgressForDay: TaskProgressDTOListForDay, tasks:TaskDTOList,  userId: number): Array<TaskDTO> => {
-return calculateTasksForUserAndDayHelper(taskProgressForDay, tasks, userId);
+        userDynamicSelector,
+        (taskProgressForDay: TaskProgressDTOListForDay, tasks: TaskDTOList, userId: number): Array<TaskDTO> => {
+            return calculateTasksForUserAndDayHelper(taskProgressForDay, tasks, userId);
 
         }
     );
 }
 
 
-
 export const makeBusyTasksSelectorForUserAndDay = () => {
     return createSelector(
         currentTaskProgressSelector,
         (tp: TaskProgressDTOListForDay /*taskDtoForDay: TaskDTOListForDay, tasksLists: TaskDTO[]*/): boolean => {
-            if (tp==null)
+            if (tp == null)
                 return false;
             var busy = tp.webState == WebState.FETCHING_VISIBLE;
             return busy;
@@ -60,17 +57,16 @@ export const makeCalculateAllAndCheckedCount = () => {
     return createSelector(
         currentTaskProgressSelector,
         allTasksSelector,
-        userDynamicSelector ,
-        (taskProgressForDay: TaskProgressDTOListForDay, tasks:TaskDTOList,  userId: number): {checkedPoints:number, allPoints:number} => {
+        userDynamicSelector,
+        (taskProgressForDay: TaskProgressDTOListForDay, tasks: TaskDTOList, userId: number): {checkedPoints: number, allPoints: number} => {
 
 
+            var userDayTasks = calculateTasksForUserAndDayHelper(taskProgressForDay, tasks, userId);
 
-            var userDayTasks= calculateTasksForUserAndDayHelper(taskProgressForDay, tasks, userId);
-
-            var checkedPoints=userDayTasks.filter(t=>t.taskStatus == TaskStatus.accepted && t.done)
+            var checkedPoints = userDayTasks.filter(t=>t.taskStatus == TaskStatus.accepted && t.done)
                 .map(t=>t.difficulty + 1)
                 .reduce((total, num)=>total + num, 0);
-            var allPoints= userDayTasks
+            var allPoints = userDayTasks
                 .map(t=>t.difficulty + 1)
                 .reduce((total, num)=>total + num, 0);
 

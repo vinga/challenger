@@ -6,8 +6,6 @@ import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.challenges.IChallengeRestService.VisibleChallengesDTO.ChallengeDTO;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
-import com.kameo.challenger.domain.events.EventGroupDAO;
-import com.kameo.challenger.domain.events.EventPushDAO;
 import com.kameo.challenger.web.rest.ChallengerSess;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +21,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.l;
 
 @Component
 @Path(ServerConfig.restPath)
@@ -37,8 +32,6 @@ public class ChallengeRestService implements IChallengeRestService {
     private final ChallengerSess session;
     private final AccountDAO accountDAO;
     private final ChallengeDAO challengeDao;
-
-
 
     @Inject
     public ChallengeRestService(ChallengeDAO challengeDao, ChallengerSess session, AccountDAO accountDAO) {
@@ -87,9 +80,6 @@ public class ChallengeRestService implements IChallengeRestService {
     public void acceptChallenge(@PathParam("challengeId") long challengeId, boolean accepted) {
         long callerId = session.getUserId();
         challengeDao.updateChallengeState(callerId, challengeId, (accepted) ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED);
-
-
-
     }
 
     @NotNull
@@ -98,12 +88,11 @@ public class ChallengeRestService implements IChallengeRestService {
     @Path("challenges/{challengeId}")
     public ChallengeDTO updateChallenge(@PathParam("challengeId") long challengeId, @NotNull ChallengeDTO challengeDTO) {
         long calllerId = session.getUserId();
-        if (challengeId!=challengeDTO.getId())
+        if (challengeId != challengeDTO.getId())
             throw new IllegalArgumentException();
         final List<UserODB> users = accountDAO
                 .getUsersForLabels(Lists.newArrayList(challengeDTO.getUserLabels()).stream().map(UserLabelDTO::getLabel).collect(Collectors.toList()));
         val challengeOdb = ChallengeDTO.toODB(challengeDTO, users);
-
         return ChallengeDTO.fromODB(challengeDao.updateChallenge(calllerId, challengeOdb));
     }
 
@@ -112,7 +101,6 @@ public class ChallengeRestService implements IChallengeRestService {
     @Path("challenges/{challengeId}")
     public boolean deleteChallenge(@PathParam("challengeId") long challengeId) {
         long callerId = session.getUserId();
-
         return challengeDao.deleteChallenge(callerId, challengeId);
     }
 }

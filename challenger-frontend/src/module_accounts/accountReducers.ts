@@ -175,8 +175,6 @@ export function confirmationLinkState(state: ConfirmationLinkState = null, actio
             confirmationLinkResponse: action.confirmationLink
         });
     } else if (isAction(action, SET_CURRENT_CONFIRMATION_ID)) {
-        if (state == null)
-            state = {};
         return {uid: action.uid}
     } else if (isAction(action, CLEAR_CONFIRMATION_LINK_STATE)) {
         return null;

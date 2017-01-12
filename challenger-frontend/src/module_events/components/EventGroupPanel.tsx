@@ -11,7 +11,6 @@ import {EventType, DateDiscrimUI, DisplayedEventUI} from "../EventDTO";
 import {TaskDTO} from "../../module_tasks/TaskDTO";
 import Chip from "material-ui/Chip";
 import {getColorSuperlightenForUser} from "../../views/common-components/Colors";
-import {HidableComponent} from "../../views/Constants";
 
 
 interface Props {
@@ -126,9 +125,9 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         } else {//if (ev instanceof DisplayedEventUI) {
             var dd = ev as DisplayedEventUI;
 
-            var taskLabel=null;
-            if (dd.task!=null && this.props.task==null) { // it it's filtered by the task then label will be redundant information
-                taskLabel=" ["+dd.task.label+"]";
+            var taskLabel = null;
+            if (dd.task != null && this.props.task == null) { // it it's filtered by the task then label will be redundant information
+                taskLabel = " [" + dd.task.label + "]";
             }
 
             if (dd.eventType == EventType.POST)
@@ -136,7 +135,6 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
             else return <span><i> {dd.postContent} {dd.isNew && "*"} </i></span>;
         }
     }
-
 
 
     renderTaskName = () => {
@@ -159,7 +157,8 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         return <Paper style={st}>
             <div style={{display: "block", clear: "both"}}>
                 <div style={{position:"absolute",left:"4px",top:"4px", verticalAlign:"center", display:"flex"}}>
-                    {this.props.task != null && <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
+                    {this.props.task != null &&
+                    <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
                         <div style={{display:"block"}}>
                             {this.renderTaskName()}
 
@@ -178,7 +177,8 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                             Actions
 
                             <span style={{float: "right", marginLeft: "10px"}}>
-                                 <FontIcon className={this.props.eventActionsVisible?"fa fa-eye":"fa fa-eye-slash"} style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onToggleActionsVisibilityFunc}/>
+                                 <FontIcon className={this.props.eventActionsVisible?"fa fa-eye":"fa fa-eye-slash"}
+                                           style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onToggleActionsVisibilityFunc}/>
                             </span>
 
                         </div>

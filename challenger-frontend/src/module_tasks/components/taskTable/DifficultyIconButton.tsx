@@ -6,9 +6,8 @@ import {globalPopoverReff} from "../../../views/common-components/GlobalPopover"
 import * as ReactDOM from "react-dom";
 import {Tooltip} from "../../../views/common-components/Tooltip";
 import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
-import ReactInstance = __React.ReactInstance;
 import {getColorLightenForUser} from "../../../views/common-components/Colors";
-import {FontIcon} from "material-ui";
+import ReactInstance = __React.ReactInstance;
 
 //import * as Tooltip from "@cypress/react-tooltip";
 
@@ -45,7 +44,7 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
 
     onCloseTask = () => {
         this.setState({showCloseTask: this.props.task})
-       // if (this.props.onCloseTask != null)
+        // if (this.props.onCloseTask != null)
         //    this.props.onCloseTask(this.props.task);
 
     };
@@ -59,10 +58,9 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
         var style = {lineHeight: '16px', margin: '5px', color: '#444', cursor: "pointer"};
         return <div>
 
-          {/*  <Tooltip tooltip="Filter events" delay="1s">
-                <a onClick={()=>{this.onShowTaskEvents(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className=" fa fa-comment"/>
-            </Tooltip>*/}
-
+            {/*  <Tooltip tooltip="Filter events" delay="1s">
+             <a onClick={()=>{this.onShowTaskEvents(); globalPopoverReff.globalPopover.closePopover(); }} style={style} className=" fa fa-comment"/>
+             </Tooltip>*/}
 
 
             <Tooltip tooltip="Show details" delay="1s">
@@ -80,7 +78,6 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
             }
 
 
-
         </div>;
 
     }
@@ -96,10 +93,9 @@ export default class DifficultyIconButton extends React.Component<Props & PropsF
 
 
     render() {
-        var userColor=getColorLightenForUser(this.props.no)
+        var userColor = getColorLightenForUser(this.props.no)
         var background;
         var styleName = {fill: userColor, width: '40px', height: '40px'}; //cyan-lighten3
-
 
 
         if (this.props.task.difficulty == 0)

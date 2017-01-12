@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Row, Col, RowCol} from "../../views/common-components/Flexboxgrid";
+import {Row, Col} from "../../views/common-components/Flexboxgrid";
 import {Paper, RaisedButton} from "material-ui";
 import {challengeStatusSelector, selectedChallengeSelector} from "../challengeSelectors";
 import {ReduxState} from "../../redux/ReduxState";
@@ -8,7 +8,6 @@ import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 import {CREATE_NEW_CHALLENGE} from "../challengeActionTypes";
 import {ChallengeStatus, ChallengeDTO, NO_CHALLENGES_LOADED_YET} from "../ChallengeDTO";
 import {acceptOrRejectChallenge} from "../challengeActions";
-import {CircularProgress} from "material-ui";
 
 
 interface ReduxProps {
@@ -40,9 +39,9 @@ class NoChallengesPanelInternal extends React.Component<{} & ReduxProps & ReduxF
 
         if (this.props.stillLoading) {
             return null;
-/*            <RowCol horizontal="center">
-                    <CircularProgress />
-            </RowCol>*/
+            /*            <RowCol horizontal="center">
+             <CircularProgress />
+             </RowCol>*/
         }
 
         return <Row style={{marginTop:"100px"}}>
@@ -105,8 +104,8 @@ class NoChallengesPanelInternal extends React.Component<{} & ReduxProps & ReduxF
 
 const mapStateToProps = (state: ReduxState): ReduxProps => {
     return {
-        stillLoading: state.challenges.selectedChallengeId==NO_CHALLENGES_LOADED_YET,
-        hasAnyChallenges:  state.challenges.visibleChallenges.length > 0,
+        stillLoading: state.challenges.selectedChallengeId == NO_CHALLENGES_LOADED_YET,
+        hasAnyChallenges: state.challenges.visibleChallenges.length > 0,
         userId: loggedUserSelector(state).id,
         userLabel: loggedUserSelector(state).login,
         challengeIsActive: challengeStatusSelector(state) == ChallengeStatus.ACTIVE,

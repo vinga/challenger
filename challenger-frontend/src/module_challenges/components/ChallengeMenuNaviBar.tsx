@@ -5,29 +5,30 @@ import MenuItem from "material-ui/MenuItem";
 import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
 import Divider from "material-ui/Divider";
-import {ChallengeStatus, VisibleChallengesDTO, ChallengeDTO, NO_CHALLENGES_LOADED_YET} from "../ChallengeDTO";
+import {ChallengeStatus, ChallengeDTO, NO_CHALLENGES_LOADED_YET} from "../ChallengeDTO";
 import {incrementDayAction} from "../../redux/actions/dayActions";
-import {selectedChallengeSelector} from "../challengeSelectors";
+import {selectedChallengeSelector, waitingForMyAcceptanceChallengeSelector, acceptedByMeChallengeSelector} from "../challengeSelectors";
 import {changeChallengeAction, acceptOrRejectChallenge} from "../challengeActions";
 import {CREATE_NEW_CHALLENGE, EDIT_CHALLENGE} from "../challengeActionTypes";
 import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 import {YesNoConfirmationDialog} from "../../views/common-components/YesNoConfirmationDialog";
 import {UnreadNotificationsList} from "../../module_events/EventDTO";
 import {Badge} from "material-ui";
-const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
+import {SHOW_GLOBAL_NOTIFICATIONS_DIALOG} from "../../module_events/eventActionTypes";
 import IconMenuProps = __MaterialUI.Menus.IconMenuProps;
 import _ = require("lodash");
 
 interface Props {
     selectedChallengeId: number,
     selectedChallengeLabel: string,
-    visibleChallengesDTO: VisibleChallengesDTO,
+    //visibleChallengesDTO: VisibleChallengesDTO,
+    acceptedChallenges: ChallengeDTO[]
     day: Date,
     creatorLabel: string
     loggedUserId: number,
     unreadNotifications: UnreadNotificationsList,
-    totalUnreadNotifications: number
-
+    totalNotifications: number,
+    totalGlobalUnreadNotifications: number
 }
 
 interface PropsFunc {
@@ -35,7 +36,8 @@ interface PropsFunc {
     onChangeChallenge: (challengeId: number)=>void;
     onCreateNewChallenge: (creatorLabel: string) => void;
     onEditChallenge: (challengeId: number, creatorLabel: string) => void;
-    onAcceptRejectChallenge: (challengeId: number, accept: boolean) => void
+    onAcceptRejectChallenge: (challengeId: number, accept: boolean) => void;
+    onShowNotificationPanel: () => void;
 
 }
 
@@ -44,6 +46,8 @@ interface State {
     confirmingChallenge?: ChallengeDTO
 }
 
+const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
+const badgeCssStyle = {padding:"6px 12px 12px 24px"};
 
 class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {  style: IconMenuProps },State> {
     constructor(props) {
@@ -78,6 +82,10 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 
     }
 
+    onShowNotificationPanel = (challengeId: number) => {
+
+    }
+
     calculateChallengeStatusIcon(challengeDTO: ChallengeDTO) {
         var iconText;
         switch (challengeDTO.challengeStatus) {
@@ -106,16 +114,18 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 
     getLabel = (ch: ChallengeDTO) => {
         var un = this.props.unreadNotifications[ch.id];
-        if (un != null && un>0 && ch.id!=this.props.selectedChallengeId && this.props.selectedChallengeId!=-1)
+        if (un != null && un > 0 && ch.id != this.props.selectedChallengeId && this.props.selectedChallengeId != -1)
             return <div>{ch.label}<Badge
                 badgeContent={un}
                 primary={true}
-                badgeStyle={{top: 17, right: 5}}
+                style={badgeCssStyle}
             /></div>;
         return ch.label;
     }
 
     render() {
+
+
 
         return (<div style={{display:"flex"}}>
             <IconButton onClick={()=>this.props.onIncrementDayFunc(-1)}>
@@ -132,7 +142,6 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
             <div style={{paddingTop:"5px"}}>{this.props.selectedChallengeLabel}</div>
 
 
-
             <IconMenu style={this.props.style}
                       iconButtonElement={<IconButton> <FontIcon
                          className="fa fa-reorder white-text"/></IconButton>}
@@ -140,28 +149,52 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                       targetOrigin={{horizontal: 'left', vertical: 'top'}}
             >
                 {
-                    this.props.visibleChallengesDTO.visibleChallenges.map(
+                    this.props.acceptedChallenges.map(
                         ch =>
                             <MenuItem key={ch.id}
                                       rightIcon={this.calculateChallengeStatusIcon(ch)}
                                       onTouchTap={()=>this.onChangeChallengeHanlder(ch)}
                                       primaryText={this.getLabel(ch)}/>)
                 }
-                {this.props.visibleChallengesDTO.visibleChallenges.length > 0 &&
-                <Divider />
-                }
 
-                {this.props.selectedChallengeId != NO_CHALLENGES_LOADED_YET &&
-                [<MenuItem
-                leftIcon={<FontIcon
-                style={menuIconStyle}
-                className={"fa fa-info-circle cyan-text"}/>}
-                primaryText="Challenge details"
-                onTouchTap={()=>this.props.onEditChallenge(this.props.selectedChallengeId, this.props.creatorLabel)}
-                />,
-                <Divider />]
+
+                { (this.props.totalGlobalUnreadNotifications || this.props.acceptedChallenges.length > 0) &&
+                <Divider />
+
+                }
+                {this.props.totalGlobalUnreadNotifications > 0 && [
+                    <MenuItem
+                        key="globalUnreadNotifs"
+                        leftIcon={<FontIcon
+                                    style={menuIconStyle}
+                                    className={"fa fa-envelope cyan-text"}/>}
+                        primaryText={<div>
+                                        Notifications
+                                        <Badge
+                                            badgeContent={this.props.totalGlobalUnreadNotifications}
+                                            primary={true}
+                                            style={badgeCssStyle}
+                                        />
+                                     </div>}
+                        onTouchTap={this.props.onShowNotificationPanel}
+                    />,
+
+                    <Divider key="divider1"/>
+                ]}
+
+                {this.props.selectedChallengeId != NO_CHALLENGES_LOADED_YET && [
+                    <MenuItem
+                        key="challengeDetails"
+                        leftIcon={<FontIcon
+                                style={menuIconStyle}
+                                className={"fa fa-info-circle cyan-text"}/>}
+                        primaryText="Challenge details"
+                        onTouchTap={()=>this.props.onEditChallenge(this.props.selectedChallengeId, this.props.creatorLabel)}
+                    />,
+                    <Divider key="divider2" />]
                 }
                 <MenuItem
+                    key="newChallenge"
                     leftIcon={<FontIcon
                     style={menuIconStyle}
                     className={"fa fa-plus-circle cyan-text"}/>}
@@ -173,10 +206,10 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
             </IconMenu>
 
 
-            {this.props.totalUnreadNotifications > 0 ?
+            {(this.props.totalNotifications > 0) ?
                 <div >
                     <Badge
-                        badgeContent={this.props.totalUnreadNotifications}
+                        badgeContent={this.props.totalNotifications}
                         primary={true}
                         badgeStyle={{top: 7, right: 5}}
                     />
@@ -203,20 +236,27 @@ const mapStateToProps = (state: ReduxState): Props => {
 
 
     var count = 0;
-    _.forOwn(state.eventsState.unreadNotifications, function (value, key) {
 
-        if (value != null  && ""+state.challenges.selectedChallengeId!=key)
+    acceptedByMeChallengeSelector(state).forEach(ch=> {
+        var value=state.eventsState.unreadNotifications[ch.id]
+        if (value != null && state.challenges.selectedChallengeId != ch.id)
             count += value;
-    });
+    })
+
+
     return {
         selectedChallengeId: state.challenges.selectedChallengeId,
         selectedChallengeLabel: selectedChallengeSelector(state) != null ? selectedChallengeSelector(state).label : "<not set>",
-        visibleChallengesDTO: state.challenges,
+        acceptedChallenges: acceptedByMeChallengeSelector(state),
         day: state.currentSelection.day,
         creatorLabel: loggedUserSelector(state).login,
         loggedUserId: loggedUserSelector(state).id,
+
+
+        totalNotifications: count+state.eventsState.globalUnreadEvents.length+waitingForMyAcceptanceChallengeSelector(state).length,
+        totalGlobalUnreadNotifications: state.eventsState.globalUnreadEvents.length+waitingForMyAcceptanceChallengeSelector(state).length,
         unreadNotifications: state.eventsState.unreadNotifications,
-        totalUnreadNotifications: count
+
 
     }
 };
@@ -236,6 +276,9 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         },
         onEditChallenge: (challengeId: number, creatorLabel: string) => {
             dispatch(EDIT_CHALLENGE.new({challengeId: challengeId}))
+        },
+        onShowNotificationPanel: () => {
+            dispatch(SHOW_GLOBAL_NOTIFICATIONS_DIALOG.new({show: true}));
         }
     }
 };

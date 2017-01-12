@@ -7,11 +7,12 @@ import {
     MARK_EVENT_AS_READ_OPTIMISTIC,
     TOGGLE_EVENT_ACTIONS_VISIBILITY,
     ADD_TO_UNREAD_NOTIFICATIONS,
-    CLEAR_UNREAD_NOTIFICATIONS
+    CLEAR_UNREAD_NOTIFICATIONS,
+    SHOW_GLOBAL_NOTIFICATIONS_DIALOG
 } from "./eventActionTypes";
 import {copy, copyAndReplace} from "../redux/ReduxState";
 import {isAction} from "../redux/ReduxTask";
-import {EventState, EventDTO, EventGroupDTO, UnreadNotificationsList} from "./EventDTO";
+import {EventState, EventDTO, EventGroupDTO, UnreadNotificationsList, EventType} from "./EventDTO";
 import _ = require("lodash");
 import path = require("immutable-path");
 
@@ -20,10 +21,13 @@ const getInitialState = (): EventState => {
         eventWindowVisible: true,
         expandedEventWindow: false,
         eventGroups: new Array<EventGroupDTO>(),
+        globalUnreadEvents: [],
         selectedTask: null,
         selectedNo: null,
         eventActionsVisible: false,
-        unreadNotifications: {}
+        unreadNotifications: {},
+        globalEventsVisible: false
+
     }
 }
 
@@ -73,59 +77,110 @@ export function eventsState(state: EventState = getInitialState(), action): Even
 
         var newState = state;
 
-
-        posts.map(p=> {
-            var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == p.challengeId);
-
-            if (eg==null) {
-                eg = {challengeId: p.challengeId, posts: []}
-            }
-            var newPosts = eg.posts.filter(po=>po.id > 0 && po.id != p.id).concat(p); // replace old ones with new
-
-            var maxEventId = state.maxEventId
-            if (newPosts.length > 0) {
-                maxEventId = _.maxBy(newPosts, it => it.id).id;
-
+        // update max event id
+        var maxEventId = state.maxEventId
+        if (posts.length > 0) {
+            var temp = Math.max(_.maxBy(posts, it => it.id).id);
+            if (temp > maxEventId || maxEventId == null) {
+                maxEventId = temp;
             }
 
-            eg = Object.assign({}, eg, {posts: newPosts});
 
 
-            newState = copy(newState).and({
-                maxEventId: maxEventId,
-                eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == p.challengeId)});
-        })
+            //remove events that are global
+            var incomingChallengeEvents = action.events.filter(e=> e.eventType != EventType.REMOVE_CHALLENGE)
+            incomingChallengeEvents.forEach(p=> {
+                var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == p.challengeId);
+                if (eg == null) {
+                    eg = {challengeId: p.challengeId, posts: []}
+                }
+                var newPosts = eg.posts.filter(po=>po.id > 0 && po.id != p.id).concat(p); // replace old ones with new
 
+                eg = Object.assign({}, eg, {posts: newPosts});
+
+
+                newState = copy(newState).and({
+
+                    eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == p.challengeId)
+                });
+            })
+
+
+
+            var incomingGlobalEvents = action.events.filter(e=> e.eventType == EventType.REMOVE_CHALLENGE);
+            if (incomingGlobalEvents.length>0) {
+                var ie=_.differenceBy(newState.globalUnreadEvents, incomingGlobalEvents, 'id').concat(incomingGlobalEvents);
+                newState = Object.assign({}, newState,
+                    {
+                        globalUnreadEvents: ie
+                    }
+                );
+            }
+
+            newState = Object.assign({}, newState,
+                {
+                    maxEventId: maxEventId,
+                }
+            );
+
+
+        }
         return newState
 
     } else if (isAction(action, MARK_EVENT_AS_READ_OPTIMISTIC)) {
 
         var eg: EventGroupDTO = state.eventGroups.find(eg=>eg.challengeId == action.challengeId);
-        eg = Object.assign({}, eg, {
-            posts: eg.posts.map(p=> {
-                    if (p.id == action.eventId) {
-                        return Object.assign({}, p, {readDate: action.readDate})
-                    } else return p;
-                }
-            )
-        });
-        return copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == action.challengeId)});
+        var newState: EventState;
+        if (eg != null) {
+            eg = Object.assign({}, eg, {
+                posts: eg.posts.map(p=> {
+                        if (p.id == action.eventId) {
+                            return Object.assign({}, p, {readDate: action.readDate})
+                        } else return p;
+                    }
+                )
+            });
+            newState = copy(state).and(
+                {
+                    eventGroups: copyAndReplace(state.eventGroups, eg, eg=>eg.challengeId == action.challengeId)
+                });
+        } else
+            newState = state;
+
+
+        var current = state.unreadNotifications[action.challengeId];
+        var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
+        newNotifications[action.challengeId] = current == null ? 0 : Math.max(0,current - 1);
+
+        newState = Object.assign({}, state, {unreadNotifications: newNotifications}) as EventState;
+
+        return copy(newState).and(
+            {
+                globalUnreadEvents: state.globalUnreadEvents.filter(e=>e.id != action.eventId)
+            });
     } else if (isAction(action, TOGGLE_EVENT_ACTIONS_VISIBILITY)) {
+
         return Object.assign({}, state, {eventActionsVisible: !state.eventActionsVisible});
+
     } else if (isAction(action, ADD_TO_UNREAD_NOTIFICATIONS)) {
+
         var current = state.unreadNotifications[action.challengeId];
         var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
         newNotifications[action.challengeId] = current == null ? 1 : current + 1;
-
         var newState = Object.assign({}, state, {unreadNotifications: newNotifications}) as EventState;
-
         //var newState= Object.assign({},state,{unreadNotifs: {...this.state.unreadNotifs, [action.challengeId]: newUnread}} )
-
         return newState;
+
     } else if (isAction(action, CLEAR_UNREAD_NOTIFICATIONS)) {
+
         var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
         newNotifications[action.challengeId] = 0;
         return Object.assign({}, state, {unreadNotifications: newNotifications});
+
+    } else if (isAction(action, SHOW_GLOBAL_NOTIFICATIONS_DIALOG)) {
+
+        return Object.assign({}, state, {globalEventsVisible: action.show});
+
     }
     return state;
 }

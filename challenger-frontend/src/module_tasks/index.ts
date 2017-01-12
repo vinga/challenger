@@ -1,5 +1,5 @@
 
-import {fetchTasks, fetchTasksWhenNeeded}  from './taskActions';
+import {fetchTasksProgresses, fetchTasksProgressesWhenNeeded}  from './taskActions';
 import {allTasksSelector}  from './taskSelectors';
 import {TaskDTOState, TaskDTO}  from './TaskDTO';
 import {TaskTable}  from './components/taskTable/TaskTable';
@@ -16,5 +16,5 @@ export {
 
     allTasksSelector,
 
-    fetchTasks, fetchTasksWhenNeeded, TaskDTOState, TaskDTO
+    fetchTasksProgresses, fetchTasksProgressesWhenNeeded, TaskDTOState, TaskDTO
 }

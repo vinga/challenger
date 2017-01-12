@@ -103,8 +103,7 @@ export interface TaskProgressDTO {
     done: boolean;
     progressTime: number,
     task?: TaskDTO
-};
-
+}
 export interface TaskUserDTO {
     id: number,
     label: string,

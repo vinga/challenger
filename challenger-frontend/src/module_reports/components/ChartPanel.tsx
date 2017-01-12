@@ -1,10 +1,9 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
-import {ReportUserDTO, ReportType, ReportDataDTO, ChallengeReportsDTO} from "../ReportUserDTO";
-import {getColorSuperlightenForUser, getColorLightenForUser} from "../../views/common-components/Colors";
-import Chart = require("chart.js");
+import {ReportUserDTO, ReportDataDTO} from "../ReportUserDTO";
+import {getColorLightenForUser} from "../../views/common-components/Colors";
 import {progressiveReportsSelector} from "../reportSelectors";
-
+import Chart = require("chart.js");
 
 
 interface Props {
@@ -13,30 +12,30 @@ interface Props {
 
 }
 interface ReduxProps {
-   report?: ReportDataDTO
+    report?: ReportDataDTO
 }
 class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
 
-    chart:any;
+    chart: any;
     getChartIdString = () => {
-       return "chartPanelInternal"+this.props.user.ordinal;
+        return "chartPanelInternal" + this.props.user.ordinal;
     }
     componentDidMount = () => {
 
         this.chart = new Chart(this.getChartIdString() as any, {
             type: 'line',
             data: {
-                labels: this.props.report!=null? this.props.report.labels: [],
+                labels: this.props.report != null ? this.props.report.labels : [],
                 datasets: [{
                     label: this.props.user.label,
-                    data: this.props.report!=null? this.props.report.values: [],
+                    data: this.props.report != null ? this.props.report.values : [],
                     backgroundColor: getColorLightenForUser(this.props.user.ordinal, 50),
                     borderWidth: 1
                 }]
             },
             options: {
                 maintainAspectRatio: false,
-                elements: { point: { radius: 0 } },
+                elements: {point: {radius: 0}},
                 legend: {
                     display: false
                 },
@@ -48,7 +47,7 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
                         display: false,
                         ticks: {
                             beginAtZero: true,
-                            max: this.props.report!=null? this.props.report.maxValue: 100
+                            max: this.props.report != null ? this.props.report.maxValue : 100
                         }
                     }]
                 }
@@ -57,10 +56,10 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
     }
 
     componentDidUpdate = () => {
-        if (this.chart!=null && this.props.report!=null) {
-            this.chart.data.datasets[0].data=this.props.report.values;
-            this.chart.data.labels=this.props.report.labels;
-            this.chart.options.scales.yAxes[0].ticks.max=this.props.report.maxValue;
+        if (this.chart != null && this.props.report != null) {
+            this.chart.data.datasets[0].data = this.props.report.values;
+            this.chart.data.labels = this.props.report.labels;
+            this.chart.options.scales.yAxes[0].ticks.max = this.props.report.maxValue;
             this.chart.update();
         }
     }
@@ -69,8 +68,8 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
     render() {
 
 
-        return <div style={{width:"100%",display:"block", float:"right", overflow:"hidden"}} >
-            <canvas id={this.getChartIdString()} height="70px" ></canvas>
+        return <div style={{width:"100%",display:"block", float:"right", overflow:"hidden"}}>
+            <canvas id={this.getChartIdString()} height="70px"></canvas>
         </div>;
 
     }
@@ -78,7 +77,7 @@ class ChartPanelInternal extends React.Component<Props & ReduxProps, void> {
 
 const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
     return {
-        report: progressiveReportsSelector(state).find(rep=>rep.userId==ownProps.user.id)
+        report: progressiveReportsSelector(state).find(rep=>rep.userId == ownProps.user.id)
     }
 };
 

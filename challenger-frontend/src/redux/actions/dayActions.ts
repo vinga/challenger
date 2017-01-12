@@ -1,11 +1,11 @@
 import {INCREMENT_DAY, DISPLAY_LONG_CALL, HIDE_LONG_CALL} from "./actions";
 import {ReduxState, LongCallVisible} from "../ReduxState";
-import {fetchTasksWhenNeeded} from "../../module_tasks/taskActions";
+import {fetchTasksProgressesWhenNeeded} from "../../module_tasks/taskActions";
 export function incrementDayAction(amount: number) {
     return function (dispatch, getState: ()=>ReduxState) {
         dispatch(INCREMENT_DAY.new({amount}));
 
-        dispatch(fetchTasksWhenNeeded(getState().challenges.selectedChallengeId, getState().currentSelection.day));
+        dispatch(fetchTasksProgressesWhenNeeded(getState().challenges.selectedChallengeId, getState().currentSelection.day));
     }
 }
 

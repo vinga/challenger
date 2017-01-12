@@ -1,6 +1,5 @@
 import * as React from "react";
 import Checkbox from "material-ui/Checkbox";
-import {RowCol} from "../../../views/common-components/Flexboxgrid";
 
 interface Props {
     days: string
@@ -20,18 +19,19 @@ export class WeekdaysGroup extends React.Component<Props, State> {
         for (var i = 0; i < 7; i++) {
             weekdays[i] = false;
         }
-        var mm=props.days;
-        if (mm!=null)
-        mm.split(",").filter(d=>d!="").forEach(
-            d =>  weekdays[d-1] = true
-        )
-        if (mm==null || mm=="") {
+        var mm = props.days;
+        if (mm != null)
+            mm.split(",").filter(d=>d != "").forEach(
+                d => weekdays[d - 1] = true
+            )
+        if (mm == null || mm == "") {
             for (var i = 0; i < 7; i++) {
                 weekdays[i] = true;
             }
         }
-        this.state={weekdays}
+        this.state = {weekdays}
     }
+
     private mapNumberToWeekDay(dayIndex): string {
         return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][dayIndex];
     }
@@ -45,7 +45,7 @@ export class WeekdaysGroup extends React.Component<Props, State> {
             this.state.weekdays[index] = true;
         }
         // only one checked, uncheking it
-        else if (isInputChecked == false && this.state.weekdays.filter(e=>e == true).length==1 && this.state.weekdays[index]==true) {
+        else if (isInputChecked == false && this.state.weekdays.filter(e=>e == true).length == 1 && this.state.weekdays[index] == true) {
             for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
                 this.state.weekdays[i] = true;
             }
@@ -56,12 +56,12 @@ export class WeekdaysGroup extends React.Component<Props, State> {
         this.setState(this.state);
 
         var days = this.state.weekdays.map((t, index) => {
-            if(t == true)
-                return index+1;
+            if (t == true)
+                return index + 1;
             else
                 return null;
         }).filter(t => t != null).join(",");
-        if(days != "") {
+        if (days != "") {
             days = "," + days + ",";
         }
         this.props.onDaysChanged(days);

@@ -35,7 +35,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
     open fun createChallengeEventAfterServerAction(userId: Long, challenge: ChallengeODB, eventType: EventType, eventInfo: ChallengeInviteRemoveUserEventInfo? = null) {
-        val user=anyDaoNew.find(UserODB::class, userId)
+        val user = anyDaoNew.find(UserODB::class, userId)
         val e = EventODB()
         e.eventType = eventType
         e.content = when (eventType) {
@@ -43,8 +43,8 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             EventType.REJECT_CHALLENGE -> user.getLoginOrEmail() + " rejected challenge " + challenge.label
             EventType.REMOVE_CHALLENGE -> user.getLoginOrEmail() + " deleted challenge " + challenge.label
             EventType.UPDATE_CHALLENGE -> user.getLoginOrEmail() + " updated challenge " + challenge.label
-            EventType.INVITE_USER_TO_CHALLENGE -> user.getLoginOrEmail() + " invited user "+(eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail()+" to challenge " + challenge.label
-            EventType.REMOVE_USER_FROM_CHALLENGE -> user.getLoginOrEmail() + " invited user "+(eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail()+" from challenge " + challenge.label
+            EventType.INVITE_USER_TO_CHALLENGE -> user.getLoginOrEmail() + " invited user " + (eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail() + " to challenge " + challenge.label
+            EventType.REMOVE_USER_FROM_CHALLENGE -> user.getLoginOrEmail() + " invited user " + (eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail() + " from challenge " + challenge.label
             else -> {
                 throw IllegalArgumentException()
             }
@@ -56,6 +56,8 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
         anyDaoNew.find(ChallengeODB::class, challenge.id).participants.forEach {
             anyDaoNew.persist(EventReadODB(it.user, it.challenge, e))
         }
+
+
         eventPushDao.get().broadcastNewEvent(challenge.id)
     }
 
@@ -75,11 +77,11 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             EventType.CHECKED_TASK -> {
                 val effectiveDay = (eventInfo as TaskCheckUncheckEventInfo).taskCheckUncheckDate
                 val checkDay = eventInfo.checkDate
-                e.forDay=effectiveDay
+                e.forDay = effectiveDay
                 val daystring = if (!effectiveDay.isEqual(checkDay))
                     " for " + DateTimeFormatter.ofPattern("dd MMM").withLocale(Locale.ENGLISH).format(effectiveDay)
                 else ""
-                val actionType=if (eventType==CHECKED_TASK) "checked" else "unchecked"
+                val actionType = if (eventType == CHECKED_TASK) "checked" else "unchecked"
 
 
                 "${user.getLoginOrEmail()} $actionType ${task.label}$daystring"
@@ -152,7 +154,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
         return anyDaoNew.getAll(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
-            if(challengeId != null)
+            if (challengeId != null)
                 it get EventReadODB::challenge eqId challengeId
             it.get(EventReadODB::read).isNull()
             it orderByAsc +EventReadODB::id
@@ -164,7 +166,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun getLaterEventsForChallenge(callerId: Long, challengeId: Long?, lastReadEventId: Long, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
         return anyDaoNew.getAll(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
-            if(challengeId != null)
+            if (challengeId != null)
                 it get EventReadODB::challenge eqId challengeId
             it get +EventReadODB::event get +EventODB::id gt lastReadEventId
             it orderByAsc +EventReadODB::id
@@ -193,7 +195,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 it get EventReadODB::challenge eqId challengeId
                 it orderByDesc EventReadODB::read
                 it limit desiredMaxEvents
-                it.select(it, it get EventReadODB::event )
+                it.select(it, it get EventReadODB::event)
             }
         } else {
             // at least one is unread, getch it and all later
@@ -207,7 +209,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                 val notReadSize = it.size
                 if (it.size < desiredMaxEvents) {
                     it + anyDaoNew.getAll(EventReadODB::class) {
-                        val er=this
+                        val er = this
                         er get EventReadODB::user eqId callerId
                         er get EventReadODB::challenge eqId challengeId
                         er get +EventReadODB::id lt firstNotRead.id

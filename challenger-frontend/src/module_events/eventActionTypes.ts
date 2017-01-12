@@ -13,4 +13,5 @@ export const SHOW_TASK_EVENTS: ActionType<{task?: TaskDTO, no?: number, toggle: 
 export const TOGGLE_EVENT_ACTIONS_VISIBILITY: ActionType<{}> = new ActionType<any>('TOGGLE_EVENT_ACTIONS_VISIBILITY');
 export const ADD_TO_UNREAD_NOTIFICATIONS: ActionType<{challengeId: number}> = new ActionType<any>('ADD_TO_UNREAD_NOTIFICATIONS');
 export const CLEAR_UNREAD_NOTIFICATIONS: ActionType<{challengeId: number}> = new ActionType<any>('CLEAR_UNREAD_NOTIFICATIONS');
+export const SHOW_GLOBAL_NOTIFICATIONS_DIALOG: ActionType<{show: boolean}> = new ActionType<any>('SHOW_GLOBAL_NOTIFICATIONS_DIALOG');
 

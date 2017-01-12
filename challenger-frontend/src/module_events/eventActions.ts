@@ -5,17 +5,18 @@ import {
     WEB_ASYNC_EVENT_RESPONSE,
     MARK_EVENT_AS_READ_OPTIMISTIC,
     ADD_TO_UNREAD_NOTIFICATIONS,
-    CLEAR_UNREAD_NOTIFICATIONS
+    CLEAR_UNREAD_NOTIFICATIONS,
 } from "./eventActionTypes";
 import * as webCall from "./eventWebCalls";
 import {EventDTO, EventType, EventGroupDTO} from "./EventDTO";
 import {WEB_STATUS_NOTHING_RETURNED_YET} from "../logic/domain/Common";
-import {loadTasksNewWay, fetchTasks, fetchTasksWhenNeededAfterDelay} from "../module_tasks/taskActions";
+import {loadTasksNewWay, fetchTasksWhenNeededAfterDelay, fetchTasksProgresses} from "../module_tasks/taskActions";
 import {downloadProgressiveReports} from "../module_reports/reportActions";
 import {MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID, DELETE_TASKS_REMOTE, MARK_TASK_DONE_UNDONE_REMOTE} from "../module_tasks/taskActionTypes";
-import _ = require("lodash");
 import {NO_CHALLENGES_LOADED_YET} from "../module_challenges/ChallengeDTO";
 import {fetchWebChallengesNoReload} from "../module_challenges/challengeActions";
+import _ = require("lodash");
+import {loggedUserSelector} from "../module_accounts/accountSelectors";
 
 
 export function sendEvent(authorId: number, content: string) {
@@ -58,12 +59,12 @@ export function loadEventsAsyncAllTheTime() {
         var challengeId = state.challenges.selectedChallengeId;
 
 
-
         var maxEventId = state.eventsState.maxEventId;// eventGroup != null ? eventGroup.maxEventId : null;
 
-        if (challengeId != null && challengeId != NO_CHALLENGES_LOADED_YET) {
-            console.log("loadEventsAsyncAllTheTime " + maxEventId+", challengeId="+challengeId);
+        if (challengeId != null && challengeId != NO_CHALLENGES_LOADED_YET ) {
+            console.log("loadEventsAsyncAllTheTime " + maxEventId );//+ ", challengeId=" + challengeId+" loggedUser: "+loggedUserSelector(state).label);
 
+            //mozemy robic polling czy jest cos nowego i pobierac wszystkie oczekujace eventy
             webCall.loadEventsForChallengeAsync(dispatch, challengeId, maxEventId).then(
                 (events: EventDTO[])=> {
                     dispatch(WEB_ASYNC_EVENT_RESPONSE.new({events}))
@@ -72,71 +73,50 @@ export function loadEventsAsyncAllTheTime() {
                     // Jak przekalkulowac czy task progress ma sie wyswietlic? prosciej bedzie na nowo wczytywac czy recznie kalkulowac?
 
                     events.map(e=>
-                        console.log("received event " + e.eventType));
+                        console.log("@@@received event " + e.eventType +", "+e.id+" new: "+(e.readDate==null)));
 
 
                     var selectedChallengeEvents = events.filter(e=>e.challengeId == challengeId);
-                    var otherChallengeEvents = events.filter(e=>e.challengeId!=challengeId);
+                    var otherChallengeEvents = events.filter(e=>e.challengeId != challengeId);
                     otherChallengeEvents.forEach(e=> {
-                        // just mark then as new
+                        // just mark them as new
                         dispatch(ADD_TO_UNREAD_NOTIFICATIONS.new({challengeId: e.challengeId}));
                     });
 
-                    selectedChallengeEvents.filter(e=>e.challengeId == challengeId).filter(e=>e.eventType == EventType.CHECKED_TASK || e.eventType == EventType.UNCHECKED_TASK).forEach(
-                        e=> {
-                            var done = e.eventType == EventType.CHECKED_TASK;
-                            var taskId = e.taskId;
-                            var forDay = new Date(e.forDay)
-                            var challengeId = e.challengeId;
-                            dispatch(MARK_TASK_DONE_UNDONE_REMOTE.new({challengeId, taskId, done, forDay}));
-                        }
-                    )
+
 
                     // refresh who accepted & who rejected
-                    events.filter(e=>e.eventType == EventType.REJECT_CHALLENGE || e.eventType == EventType.ACCEPT_CHALLENGE).forEach(
-                        e=>{
+                    events.filter(e=> [
+                        EventType.REJECT_CHALLENGE,
+                        EventType.ACCEPT_CHALLENGE,
+                        EventType.REMOVE_CHALLENGE,
+                        EventType.UPDATE_CHALLENGE,
+                        EventType.INVITE_USER_TO_CHALLENGE,
+                        EventType.REMOVE_USER_FROM_CHALLENGE].contains(e.eventType)).forEach(
+                        e=> {
                             dispatch(fetchWebChallengesNoReload());
                         }
                     );
 
-
-                    var taskIdsToDelete = selectedChallengeEvents.filter(e=>e.eventType == EventType.DELETE_TASK).map(e=>e.taskId);
-                    dispatch(DELETE_TASKS_REMOTE.new({taskIdsToDelete}));
-
-
-                    var taskIdsToUpdate = selectedChallengeEvents.filter(e=>
-                        (e.eventType == EventType.ACCEPT_TASK ||
-                        e.eventType == EventType.REJECT_TASK ||
-                        e.eventType == EventType.CREATE_TASK ||
-                        e.eventType == EventType.UPDATE_TASK ||
-                        e.eventType == EventType.CLOSE_TASK)).map(e=>e.taskId);
-                    dispatch(loadTasksNewWay(challengeId, taskIdsToUpdate));
+                    // dispatch global events, and remove them from automatic read
+                    events.filter(e=>e.eventType == EventType.REMOVE_CHALLENGE).forEach(
+                        e=> {
+                            _.pull(selectedChallengeEvents, e);
+                        }
+                    );
+                    processInvomingSelectedChallengeEvents(selectedChallengeEvents, challengeId, dispatch, getState);
 
 
-                    //TODO we may narrow it for custom users
-                    var actionsThatMayAlteredProgressiveReports = selectedChallengeEvents.some(e=>
-                        (e.eventType == EventType.ACCEPT_TASK ||
-                        e.eventType == EventType.DELETE_TASK ||
-                        e.eventType == EventType.CHECKED_TASK ||
-                        e.eventType == EventType.UNCHECKED_TASK))
-                    if (actionsThatMayAlteredProgressiveReports)
-                        dispatch(downloadProgressiveReports(challengeId));
+                    // no need to display such event for user
+                    // actions where I am creator should be marked as read, maybe even optimistic?
+                   // var deletedEvents=otherChallengeEvents.filter(e=>e.readDate==null && e.eventType==EventType.REMOVE_CHALLENGE && e.authorId==loggedUserSelector(state).id);
 
-
-                    // actions below dosn't have impact on visibility, so no need to mark as invalid
-                    if (!selectedChallengeEvents.every(e=>e.eventType == EventType.POST || e.eventType == EventType.ACCEPT_TASK || e.eventType == EventType.REJECT_TASK || e.eventType == EventType.DELETE_TASK)) {
-                        // TODO daily task will also no affect visibility
-                        dispatch(MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID.new({challengeId: challengeId}));
-                        console.log("FETCH TASKS WHEN NEEDED");
-                        dispatch(fetchTasks(challengeId, getState().currentSelection.day));
-                        dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(1), 50));
-                        dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(1), 500));
-
-                    }
-
-                    var promises = selectedChallengeEvents.filter(e=>e.readDate == null).map(e=>
+                    //loggedUserCreatedThisEvent but could do it on other machine
+                    var loggedUserCreatedThisEvent=events.filter(e=>e.readDate==null && e.authorId==loggedUserSelector(state).id);
+                    var promises = selectedChallengeEvents.concat(loggedUserCreatedThisEvent).filter(e=>e.readDate == null).map(e=>
                         dispatch(markAsRead(e.challengeId, e.id))
                     )
+
                     return Promise.all(promises);
                 }
             ).then(()=> {
@@ -148,7 +128,7 @@ export function loadEventsAsyncAllTheTime() {
                         // this means no message arrived so far, but it is not an error, we need to retry call
                         dispatch(loadEventsAsyncAllTheTime());
                     } else {
-                        console.log("PERHAPS WE WANT TO LOGOUT HERE");
+                        console.log("PERHAPS WE WANT TO LOGOUT HERE",reason);
                         setTimeout(()=> {
                             dispatch(loadEventsAsyncAllTheTime());
                             // other problem, wait 10 seconds and retry
@@ -165,11 +145,83 @@ export function loadEventsAsyncAllTheTime() {
 
 }
 
+
+function processInvomingSelectedChallengeEvents(selectedChallengeEvents: EventDTO[], challengeId: number, dispatch, getState: ()=>ReduxState) {
+    selectedChallengeEvents.filter(e=>e.challengeId == challengeId).filter(e=>e.eventType == EventType.CHECKED_TASK || e.eventType == EventType.UNCHECKED_TASK).forEach(
+        e=> {
+            var done = e.eventType == EventType.CHECKED_TASK;
+            var taskId = e.taskId;
+            var forDay = new Date(e.forDay)
+            var challengeId = e.challengeId;
+            dispatch(MARK_TASK_DONE_UNDONE_REMOTE.new({challengeId, taskId, done, forDay}));
+        }
+    )
+
+    var taskIdsToDelete = selectedChallengeEvents.filter(e=>e.eventType == EventType.DELETE_TASK).map(e=>e.taskId);
+    dispatch(DELETE_TASKS_REMOTE.new({taskIdsToDelete}));
+
+
+
+/*
+    _(selectedChallengeEvents)
+        .keyBy('eventType') // or .indexBy() if using lodash 3.x
+        .at(
+            EventType.ACCEPT_TASK,
+            EventType.REJECT_TASK,
+            EventType.CREATE_TASK,
+            EventType.UPDATE_TASK,
+            EventType.CLOSE_TASK)
+        .value(); */
+
+    var taskIdsToUpdate = selectedChallengeEvents.filter(e=>[
+        EventType.ACCEPT_TASK,
+        EventType.REJECT_TASK,
+        EventType.CREATE_TASK,
+        EventType.UPDATE_TASK,
+        EventType.CLOSE_TASK].contains(e.eventType)).map(e=>e.taskId);
+    dispatch(loadTasksNewWay(challengeId, taskIdsToUpdate));
+
+
+    //TODO we may narrow it for custom users
+    var actionsThatMayAlteredProgressiveReports = selectedChallengeEvents.some(e=>
+        (e.eventType == EventType.ACCEPT_TASK ||
+        e.eventType == EventType.DELETE_TASK ||
+        e.eventType == EventType.CHECKED_TASK ||
+        e.eventType == EventType.UNCHECKED_TASK))
+    if (actionsThatMayAlteredProgressiveReports)
+        dispatch(downloadProgressiveReports(challengeId));
+
+
+    // actions below dosn't have impact on visibility, so no need to mark as invalid
+    if (!selectedChallengeEvents.every(e=>e.eventType == EventType.POST
+        || e.eventType == EventType.ACCEPT_TASK
+        || e.eventType == EventType.REJECT_TASK
+        || e.eventType == EventType.DELETE_TASK
+        )) {
+        // TODO daily task will also no affect visibility
+        dispatch(MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID.new({challengeId: challengeId}));
+        console.log("FETCH TASKS WHEN NEEDED");
+        dispatch(fetchTasksProgresses(challengeId, getState().currentSelection.day));
+        dispatch(loadTasksNewWay(challengeId, selectedChallengeEvents.map(e=>e.taskId)));
+        dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(1), 50));
+        dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(1), 500));
+
+    }
+}
+
+export function markGlobalEventsAsRead(events: EventDTO[]) {
+    return function (dispatch, getState: ()=>ReduxState) {
+        var promises = events.filter(e=>e.readDate == null).map(e=>
+            dispatch(markAsRead(e.challengeId, e.id))
+        )
+        return Promise.all(promises);
+    }
+}
 function markAsRead(challengeId, eventId) {
     return function (dispatch, getState: ()=>ReduxState) {
         var readDate = new Date().getTime();
-        var p = webCall.markEventRead(dispatch, challengeId, eventId, readDate);
         dispatch(MARK_EVENT_AS_READ_OPTIMISTIC.new({challengeId, eventId, readDate}))
+        var p = webCall.markEventRead(dispatch, challengeId, eventId, readDate);
         return p;
     }
 }

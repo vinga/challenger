@@ -9,6 +9,7 @@ import {Col, Row} from "./common-components/Flexboxgrid";
 import NoChallengesPanel from "../module_challenges/components/NoChallengesPanel";
 import {challengeStatusSelector} from "../module_challenges/challengeSelectors";
 import {ChallengeStatus} from "../module_challenges/ChallengeDTO";
+import {GlobalNotificationsPanel} from "../module_events/components/GlobalNotificationsPanel";
 
 
 interface ReduxProps {
@@ -18,6 +19,7 @@ interface ReduxProps {
     challengeAccounts: Array<ChallengeParticipantDTO>,
     editChallenge: boolean,
     editedTask?: TaskDTO,
+    globalEventsVisible: boolean
 
 }
 
@@ -83,6 +85,9 @@ class LoggedView extends React.Component<ReduxProps,void> {
                         }
                     )}
                 />
+                {this.props.globalEventsVisible &&
+                    <GlobalNotificationsPanel/>
+                }
                 {
                     this.props.editChallenge == true &&
                     <EditChallengeDialog/>
@@ -104,6 +109,7 @@ const mapStateToProps = (state: ReduxState): ReduxProps => {
         challengeAccounts: challengeParticipantsSelector(state),
         editChallenge: state.challenges.editedChallenge != null,
         editedTask: state.tasksState.editedTask,
+        globalEventsVisible: state.eventsState.globalEventsVisible
     }
 };
 

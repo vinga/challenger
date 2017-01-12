@@ -55,6 +55,9 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
                 accountDao.createAndSendChallengeConfirmationLink(cb, cp)
             }
         }
+        cb.participants.filter { it.user.id!=userId }.forEach {
+            eventGroupDAO.createChallengeEventAfterServerAction(userId,cb, INVITE_USER_TO_CHALLENGE, ChallengeInviteRemoveUserEventInfo(it.user))
+        }
         return cb
 
     }

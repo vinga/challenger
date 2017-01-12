@@ -1,5 +1,5 @@
 import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
-import {TouchTapEvent, FlatButton} from "material-ui";
+import {TouchTapEvent, FlatButton, FontIcon, IconButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
 import {createChallengeAction, updateChallengeAction, deleteChallengeAction} from "../challengeActions";
 import {CLOSE_EDIT_CHALLENGE, DELETE_CHALLENGE_PARTICIPANT, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION} from "../challengeActionTypes";
@@ -11,10 +11,7 @@ import AutoComplete from "material-ui/AutoComplete";
 import Chip from "material-ui/Chip";
 import {possibleChallengeParticipantsSelector} from "../challengeSelectors";
 import {updateChallengeParticipantsAction} from "../../module_accounts/accountActions";
-import Subheader from "material-ui/Subheader";
-import {validateEmail, default as TextFieldExt} from "../../views/common-components/TextFieldExt";
-import {FontIcon} from "material-ui";
-import {IconButton} from "material-ui";
+import {validateEmail} from "../../views/common-components/TextFieldExt";
 import {YesNoConfirmationDialog} from "../../views/common-components/YesNoConfirmationDialog";
 
 interface Props {
@@ -48,6 +45,7 @@ interface State {
 
 class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
     textField: TextField;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -60,15 +58,15 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     }
 
     handleSubmit = () => {
-        if(this.state.searchText.length > 0) {
-            this.state.showConfirmDialog=true;
+        if (this.state.searchText.length > 0) {
+            this.state.showConfirmDialog = true;
             this.setState(this.state);
             return;
-          /*  if (confirm('Add '+ this.state.searchText +' to users list?')) {
-                console.log(this.state.searchText);
-                this.handleNewRequest(this.state.searchText);
-                return;
-            }*/
+            /*  if (confirm('Add '+ this.state.searchText +' to users list?')) {
+             console.log(this.state.searchText);
+             this.handleNewRequest(this.state.searchText);
+             return;
+             }*/
         }
         this.props.onCreateChallengeFunc(this.state.challenge);
         this.props.onCloseFunc();
@@ -87,7 +85,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     };
 
     resolveTitle = () => {
-        if(this.props.challenge.id <= 0) {
+        if (this.props.challenge.id <= 0) {
             return "Create New Challenge";
         }
         return "Edited Challenge: " + this.props.challenge.label;
@@ -98,17 +96,17 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
     }
 
     handleRequestDelete = (label) => {
-       this.props.deleteChallengeParticipant(label)
+        this.props.deleteChallengeParticipant(label)
     }
 
     handleUpdateInput = (value) => {
         this.props.updateErrorText(null)
-        this.state.searchText=value
+        this.state.searchText = value
         this.setState(this.state);
     }
     handleNewRequest = (value) => {
         this.props.updateChallengeParticipant(value);
-        this.state.searchText=""
+        this.state.searchText = ""
         this.setState(this.state);
 
 
@@ -119,7 +117,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
         setTimeout(()=> {
             this.textField.focus();
-        },200);
+        }, 200);
     }
 
     render() {
@@ -156,7 +154,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
                     />
 
-                    {  this.props.challenge.id > 0 && this.props.challenge.creatorId==this.props.currentUserId &&
+                    {  this.props.challenge.id > 0 && this.props.challenge.creatorId == this.props.currentUserId &&
                     <div style={{float: "right"}}>
                         <IconButton style={{width: 60, height: 60}}
                                     onClick={()=>{this.state.showConfirmDeleteDialog=true; this.setState(this.state); }}>
@@ -167,39 +165,39 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                     }
                 </div>
                 <div>
-                <div style={{fontSize: '10px', marginTop: '10px'}}>
-                    Selected Participants
+                    <div style={{fontSize: '10px', marginTop: '10px'}}>
+                        Selected Participants
+                    </div>
+                    <div style={{display:"flex", flexFlow:"wrap", marginTop: '10px'}}>
+
+
+                        {
+                            this.props.challenge.userLabels.map((ch, index) =>
+                                <Chip
+                                    style={{marginRight:'5px', marginBottom:'5px'}}
+                                    key={ch.label}
+                                    onRequestDelete={index==0? null: () => this.handleRequestDelete(ch.label)}
+                                    onTouchTap={this.handleChipTouchTap}
+                                >
+                                    <i className={validateEmail(ch.label)? "fa fa-envelope-o": "fa fa-user"}></i> {ch.label}
+                                </Chip>
+                            )
+                        }
+                    </div>
+
+
+                    <AutoComplete
+                        errorText={this.props.errorText}
+                        searchText={this.state.searchText}
+                        hintText="Type username or email address"
+                        dataSource={this.props.possibleLabels}
+                        onUpdateInput={this.handleUpdateInput}
+                        onNewRequest={this.handleNewRequest}
+                    />
+                    <IconButton onClick={()=>this.handleNewRequest(this.state.searchText)}> <FontIcon
+                        className="fa fa-plus-circle cyan-text"/></IconButton>
+
                 </div>
-                <div style={{display:"flex", flexFlow:"wrap", marginTop: '10px'}}>
-
-
-                    {
-                        this.props.challenge.userLabels.map((ch,index) =>
-                            <Chip
-                                style={{marginRight:'5px', marginBottom:'5px'}}
-                                key={ch.label}
-                                onRequestDelete={index==0? null: () => this.handleRequestDelete(ch.label)}
-                                onTouchTap={this.handleChipTouchTap}
-                            >
-                                <i className={validateEmail(ch.label)? "fa fa-envelope-o": "fa fa-user"}></i>  {ch.label}
-                            </Chip>
-                        )
-                    }
-                </div>
-
-
-                <AutoComplete
-                    errorText={this.props.errorText}
-                    searchText={this.state.searchText}
-                    hintText="Type username or email address"
-                    dataSource={this.props.possibleLabels}
-                    onUpdateInput={this.handleUpdateInput}
-                    onNewRequest={this.handleNewRequest}
-                />
-                <IconButton onClick={()=>this.handleNewRequest(this.state.searchText)} > <FontIcon
-                    className="fa fa-plus-circle cyan-text"/></IconButton>
-
-            </div>
             </Dialog>
 
             {this.state.showConfirmDialog &&
@@ -213,7 +211,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
             {this.state.showConfirmDeleteDialog &&
             <YesNoConfirmationDialog closeYes={()=>{ this.props.deleteChallengeFunc(this.props.challenge); this.props.onCloseFunc() }}
                                      closeDialog={()=>{this.state.showConfirmDeleteDialog=false; this.setState(this.state); }}>
-               Do you really want to remove the challenge?
+                Do you really want to remove the challenge?
             </YesNoConfirmationDialog> }
 
         </div>);
@@ -226,7 +224,7 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 
     return {
         challenge: state.challenges.editedChallenge,
-        canSubmit: state.challenges.challengeParticipantIsChecked!=true,
+        canSubmit: state.challenges.challengeParticipantIsChecked != true,
         currentUserId: loggedUserSelector(state).id,
         possibleParticipants: possibleChallengeParticipantsSelector(state),
         possibleLabels: possibleChallengeParticipantsSelector(state).map(u=>u.label),
@@ -237,7 +235,7 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
         onCreateChallengeFunc: (challenge: ChallengeDTO)=> {
-            if (challenge.id<=0)
+            if (challenge.id <= 0)
                 dispatch(createChallengeAction(challenge));
             else
                 dispatch(updateChallengeAction(challenge));

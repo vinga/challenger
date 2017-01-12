@@ -5,18 +5,17 @@ import {
     MODIFY_TASK_REQUEST,
     DELETE_TASK_OPTIMISTIC,
     MARK_TASK_DONE_OPTIMISTIC,
-    TASK_PROGRESS_REQUEST,
-    LOAD_TASKS_REQUEST_OLDWAY,
-    LOAD_TASKS_RESPONSE_OLDWAY,
     CLOSE_TASK_OPTIMISTIC,
     LOAD_TASK_PROGRESSES_REQUEST,
-    LOAD_TASK_PROGRESSES_RESPONSE, LOAD_TASKS_REQUEST_NEWWAY, LOAD_TASKS_RESPONSE_NEWWAY
+    LOAD_TASK_PROGRESSES_RESPONSE,
+    LOAD_TASKS_REQUEST_NEWWAY,
+    LOAD_TASKS_RESPONSE_NEWWAY
 } from "./taskActionTypes";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
 import * as webCall from "./taskWebCalls";
 import {jwtTokensOfChallengeParticipants} from "../module_challenges/index";
-import {selectedChallengeParticipantsSelector, challengeParticipantsSelector, jwtTokenOfUserWithId} from "../module_challenges/challengeSelectors";
+import {challengeParticipantsSelector, jwtTokenOfUserWithId} from "../module_challenges/challengeSelectors";
 import _ = require("lodash");
 
 
@@ -49,7 +48,7 @@ export function deleteTask(task: TaskDTO) {
         dispatch(MODIFY_TASK_REQUEST.new(task));
 
         // user can delete only tasks assigned to him
-        var jwtTokenOfTaskUser=challengeParticipantsSelector(getState()).find(chp=>chp.id==task.userId).jwtToken;
+        var jwtTokenOfTaskUser = challengeParticipantsSelector(getState()).find(chp=>chp.id == task.userId).jwtToken;
         webCall.deleteTask(dispatch, task, jwtTokenOfTaskUser).then(()=> {
 
         });
@@ -73,7 +72,7 @@ export function markTaskDoneOrUndone(caller: TaskUserDTO, challengeId: number, t
 
         var task: TaskDTOListForDay = getState().tasksState.tasksForDays[key];
         dispatch(MARK_TASK_DONE_OPTIMISTIC.new({challengeId, taskProgress}));
-       // dispatch(TASK_PROGRESS_REQUEST.new({challengeId, taskProgress}));
+        // dispatch(TASK_PROGRESS_REQUEST.new({challengeId, taskProgress}));
 
         webCall.updateTaskProgress(dispatch, challengeId, taskProgress, caller.jwtToken)
             .then((tpRes: TaskProgressDTO)=> {
@@ -89,12 +88,13 @@ export function markTaskDoneOrUndone(caller: TaskUserDTO, challengeId: number, t
 
 export function fetchTasksProgresses(challengeId: number, day: Date): any {
     return function (dispatch) {
-        console.log("fetch task progresses-start "+day.yyyy_mm_dd());
+        console.log("fetch task progresses-start " + day.yyyy_mm_dd());
         dispatch(LOAD_TASK_PROGRESSES_REQUEST.new({challengeId, day}));
         var key: string = createTaskDTOListKey(challengeId, day);
 
         webCall.loadTaskProgresses(dispatch, challengeId, day, false).then(
             (taskProgresses: Array<TaskProgressDTO>)=> {
+
 
                 var payload = {taskProgresses, challengeId, day, webState: WebState.FETCHED};
                 // console.log(payload);
@@ -105,7 +105,7 @@ export function fetchTasksProgresses(challengeId: number, day: Date): any {
             }
         );
     }
-};
+}
 function checkTasksNeedLoaading(challengeId: number, taskIds: number[]): any {
     return function (dispatch, getState) {
         var state: ReduxState = getState();
@@ -134,22 +134,15 @@ export function loadTasksNewWay(challengeId: number, newTaskIds: number[]): any 
     }
 }
 
-export function fetchTasks(challengeId: number, day: Date): any {
-    return function (dispatch) {
-
-        dispatch(fetchTasksProgresses(challengeId, day));
-    }
-};
 
 export function fetchTasksWhenNeededAfterDelay(challengeId: number, day: Date, delay: number): any {
     return function (dispatch) {
         setTimeout(() => {
-            dispatch(fetchTasksWhenNeeded(challengeId, day));
+            dispatch(fetchTasksProgressesWhenNeeded(challengeId, day));
         }, delay); // 500 - after half sec
     }
-};
-
-export function fetchTasksWhenNeeded(challengeId: number, day: Date): any {
+}
+export function fetchTasksProgressesWhenNeeded(challengeId: number, day: Date): any {
     return function (dispatch, getState: ()=>ReduxState) {
         var key: string = createTaskDTOListKey(challengeId, day);
         /* if (getState().tasksState.taskProgressesForDays[key] != null)
@@ -157,7 +150,7 @@ export function fetchTasksWhenNeeded(challengeId: number, day: Date): any {
          console.log("TASK Is "+day+" "+WebState[getState().tasksState.taskProgressesForDays[key].webState]);
          }*/
         if (getState().tasksState.taskProgressesForDays[key] == null || getState().tasksState.taskProgressesForDays[key].webState == WebState.NEED_REFETCH) {
-            dispatch(fetchTasks(challengeId, day));
+            dispatch(fetchTasksProgresses(challengeId, day));
         }
     }
 }
@@ -169,9 +162,9 @@ export function updateTaskStatus(challengeId: number, taskApproval: TaskApproval
         var jwtTokensOfApprovingUsers = jwtTokensOfChallengeParticipants(state);
 
         //remove jwtToken of task creator, cause it's automatically accepted
-        var taskCreatorId=state.tasksState.allTasks[taskApproval.taskId].createdByUserId;
-        var taskCreator=challengeParticipantsSelector(state).find(chp=>chp.id==taskCreatorId);
-        if (taskCreator!=null && taskCreator.jwtToken!=null) {
+        var taskCreatorId = state.tasksState.allTasks[taskApproval.taskId].createdByUserId;
+        var taskCreator = challengeParticipantsSelector(state).find(chp=>chp.id == taskCreatorId);
+        if (taskCreator != null && taskCreator.jwtToken != null) {
             _.pull(jwtTokensOfApprovingUsers, taskCreator.jwtToken)
         }
 
