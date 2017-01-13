@@ -3,7 +3,7 @@ import IconButton from "material-ui/IconButton";
 import FontIcon from "material-ui/FontIcon";
 
 const icons = [
-    "fa-car",
+    "fa-cutlery",
     "fa-book",
     "fa-signal",
     "fa-puzzle-piece",

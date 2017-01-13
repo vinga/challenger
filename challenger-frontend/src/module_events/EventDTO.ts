@@ -44,11 +44,16 @@ export interface EventState {
     expandedEventWindow: boolean,
     eventGroups: Array<EventGroupDTO>,
     globalUnreadEvents: Array<EventDTO>
+
     maxEventId?: number,
     selectedTask: TaskDTO,
     selectedNo: number,
     eventActionsVisible: boolean,
+
+
     unreadNotifications: UnreadNotificationsList
+    //TODO lista powyzej jest kiepska
+
     globalEventsVisible: boolean
 }
 

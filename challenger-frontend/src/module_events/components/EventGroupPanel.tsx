@@ -121,7 +121,7 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         if (ev.kind == 'DateDiscrimUI') {//ev instanceof DateDiscrim) {
             var ddisc = ev as DateDiscrimUI;
             return <div style={{fontSize:"10px", marginTop:'10px', borderRight:
-             '10px solid transparent',marginRight:'20px',borderBottom: "1px solid #ddd", width:"100%"}}>{ddisc.title}</div>;
+             '10px solid transparent',marginRight:'20px', boxSizing: "border-box", borderBottom: "1px solid #ddd", width:"100%"}}>{ddisc.title}</div>;
         } else {//if (ev instanceof DisplayedEventUI) {
             var dd = ev as DisplayedEventUI;
 
@@ -131,8 +131,8 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
             }
 
             if (dd.eventType == EventType.POST)
-                return <span><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span>{taskLabel} {dd.postContent} {dd.isNew && "*"} </span>;
-            else return <span><i> {dd.postContent} {dd.isNew && "*"} </i></span>;
+                return <div><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span>{taskLabel} {dd.postContent} {dd.isNew && "*"} </div>;
+            else return <div><i> {dd.postContent} {dd.isNew && "*"} </i></div>;
         }
     }
 
@@ -196,7 +196,7 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
             </div>
 
             <div style={{display:"flex", flexDirection:"column", justifyContent: "space-between", height:"100%"}}>
-                <div id="eventGroupChatContent" style={{overflowY:"auto", marginTop:'40px'}}>
+                <div id="eventGroupChatContent" style={{  overflowY:"auto", marginTop:'40px'}}>
                     {
 
                         this.props.displayedEvents.map(p =>

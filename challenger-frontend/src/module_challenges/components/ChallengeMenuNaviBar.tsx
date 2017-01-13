@@ -21,7 +21,6 @@ import _ = require("lodash");
 interface Props {
     selectedChallengeId: number,
     selectedChallengeLabel: string,
-    //visibleChallengesDTO: VisibleChallengesDTO,
     acceptedChallenges: ChallengeDTO[]
     day: Date,
     creatorLabel: string
@@ -49,6 +48,7 @@ interface State {
 const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px', height: '24px'};
 const badgeCssStyle = {padding:"6px 12px 12px 24px"};
 
+
 class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {  style: IconMenuProps },State> {
     constructor(props) {
         super(props);
@@ -58,12 +58,6 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
     }
 
     onChangeChallengeHanlder = (challenge: ChallengeDTO) => {
-        /*      if (challenge.userLabels.some(ul=> ul.id == this.props.loggedUserId && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)) {
-         this.setState({
-         showConfirmDialog: true,
-         confirmingChallenge: challenge
-         });
-         } else*/
         this.props.onChangeChallenge(challenge.id);
     }
     handleConfirmChallenge = () => {
@@ -79,10 +73,6 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
         this.setState({
             showConfirmDialog: false
         });
-
-    }
-
-    onShowNotificationPanel = (challengeId: number) => {
 
     }
 
@@ -123,12 +113,14 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
         return ch.label;
     }
 
+
+
     render() {
 
 
 
         return (<div style={{display:"flex"}}>
-            <IconButton onClick={()=>this.props.onIncrementDayFunc(-1)}>
+            <IconButton onClick={()=>this.props.onIncrementDayFunc(-1)} >
                 <FontIcon className="fa fa-caret-left white-text"/>
             </IconButton>
 
@@ -142,8 +134,8 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
             <div style={{paddingTop:"5px"}}>{this.props.selectedChallengeLabel}</div>
 
 
-            <IconMenu style={this.props.style}
-                      iconButtonElement={<IconButton> <FontIcon
+            <IconMenu
+                      iconButtonElement={<IconButton > <FontIcon
                          className="fa fa-reorder white-text"/></IconButton>}
                       anchorOrigin={{horizontal: 'left', vertical: 'top'}}
                       targetOrigin={{horizontal: 'left', vertical: 'top'}}
@@ -211,7 +203,8 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                     <Badge
                         badgeContent={this.props.totalNotifications}
                         primary={true}
-                        badgeStyle={{top: 7, right: 5}}
+                        style={badgeCssStyle}
+
                     />
                 </div>
                 :  <div style={{minWidth:"36px"}}/>}

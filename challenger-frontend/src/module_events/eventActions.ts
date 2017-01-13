@@ -204,7 +204,7 @@ function processInvomingSelectedChallengeEvents(selectedChallengeEvents: EventDT
         dispatch(fetchTasksProgresses(challengeId, getState().currentSelection.day));
         dispatch(loadTasksNewWay(challengeId, selectedChallengeEvents.map(e=>e.taskId)));
         dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(1), 50));
-        dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(1), 500));
+        dispatch(fetchTasksWhenNeededAfterDelay(challengeId, getState().currentSelection.day.addDays(-1), 500));
 
     }
 }
