@@ -6,6 +6,7 @@ import com.kameo.challenger.domain.challenges.IChallengeRestService.VisibleChall
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REMOVED
 import lombok.Data
 import java.time.LocalDateTime
 
@@ -51,6 +52,7 @@ interface IChallengeRestService {
                             challengeStatus = c.challengeStatus.name,
                             creatorId = c.createdBy.id,
                             userLabels = c.participants
+                                    .filter{it.challengeStatus!=REMOVED}
                                     .map({ cp -> UserLabelDTO(cp.user.id, cp.user.getLoginOrEmail(), cp.user.login, cp.challengeStatus.name) })
                                     .toTypedArray())
                     return co

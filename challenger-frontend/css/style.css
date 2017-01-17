@@ -339,3 +339,12 @@ body {
     /*    width:100%;*/
         line-height: 20px;
     }
+
+h5 {
+    font-size: 1.64rem;
+    line-height: 110%;
+    margin: 0.82rem 0 0.656rem 0;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 400;
+}

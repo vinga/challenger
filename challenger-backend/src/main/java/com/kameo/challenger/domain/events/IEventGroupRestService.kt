@@ -8,7 +8,6 @@ import java.time.ZoneOffset
 
 interface IEventGroupRestService {
 
-    fun getEventsForTask(challengeId: Long, taskId: Long): EventGroupDTO
 
     fun getEventsForChallenge(challengeId: Long): EventGroupDTO
 

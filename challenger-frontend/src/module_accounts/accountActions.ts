@@ -132,7 +132,8 @@ export function getConfirmationLinkResponse(uid: string, confirmationRequest: Co
                     dispatch(CLEAR_CONFIRMATION_LINK_STATE.new({}));
                     var primary=true;
                     onLoginWithJWTToken(dispatch, response.login, response.jwtToken, primary);
-                    dispatch(SHOW_CUSTOM_NOTIFICATION.new({textClosable: "Welcome to Challenger!"}));
+                    if (response.displayLoginWelcomeInfo)
+                        dispatch(SHOW_CUSTOM_NOTIFICATION.new({textClosable: "Welcome to Challenger!"}));
                 }
             }
         );

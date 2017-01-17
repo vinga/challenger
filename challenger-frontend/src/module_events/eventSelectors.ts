@@ -36,6 +36,11 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
                 else return a.id - b.id;
 
             }).map(p=> {
+
+                var cp=challengeParticipants.find(cp=>cp.id == p.authorId);
+
+
+
                 return {
                     kind: 'DisplayedEventUI',
                     id: p.id,
@@ -44,8 +49,8 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
                     // maybe should be taken with explicitely spcified challengeId
 
                     // mode that to selector
-                    authorOrdinal: challengeParticipants.find(cp=>cp.id == p.authorId).ordinal,
-                    authorLabel: challengeParticipants.find(cp=>cp.id == p.authorId).label,
+                    authorOrdinal: cp!=null? cp.ordinal : -1,
+                    authorLabel: cp!=null? cp.label : "<user deleted>",
                     postContent: p.content,
                     isNew: p.readDate == null,
                     sentDate: new Date(p.sentDate),

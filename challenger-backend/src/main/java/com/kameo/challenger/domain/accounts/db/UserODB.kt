@@ -24,6 +24,8 @@ data class UserODB(@Id
     lateinit var passwordHash: String
     lateinit var userStatus: UserStatus
 
+    var oauth2GoogleId: String? = null
+    var oauth2FacebookId: String? = null
 
     var suspendedDueDate: LocalDateTime?=null
     var userRegistrationType = UserRegistrationType.NORMAL

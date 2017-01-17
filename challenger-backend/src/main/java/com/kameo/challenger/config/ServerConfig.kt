@@ -19,7 +19,7 @@ open class ServerConfig {
 
 
     fun getConfirmEmailInvitationPattern(uid: String): String {
-        return "$serverUrl#confirmation={hash}".replace("{hash}", uid)
+        return "$serverUrl#action={hash}".replace("{hash}", uid)
     }
 
     fun getLoginLink(): String {

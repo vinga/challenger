@@ -8,7 +8,7 @@ import com.kameo.challenger.domain.accounts.db.UserStatus
 import com.kameo.challenger.domain.accounts.db.UserStatus.*
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
-import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter
+import com.kameo.challenger.utils.auth.jwt.JWTService.AuthException
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.joda.time.DateTime
@@ -24,16 +24,16 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                       @Inject val confirmationLinkDAO: ConfirmationLinkDAO) {
 
 
-    @Throws(AbstractAuthFilter.AuthException::class)
+    @Throws(AuthException::class)
     open fun login(login: String, pass: String): Long {
         if (Strings.isNullOrEmpty(pass)) {
-            throw AbstractAuthFilter.AuthException("No password")
+            throw AuthException("No password")
         }
 
         val u = anyDaoNew.getFirst(UserODB::class, { it get UserODB::login eq login })
         if (u != null) {
             if (u.userStatus == UserStatus.WAITING_FOR_EMAIL_CONFIRMATION)
-                throw AbstractAuthFilter.AuthException("Please confirm your email first")
+                throw AuthException("Please confirm your email first")
             if (u.passwordHash == PasswordUtil.getPasswordHash(pass, u.salt)) {
                 if (u.userStatus == UserStatus.SUSPENDED && DateTime(u.suspendedDueDate).isBeforeNow) {
                     // lest unblock it, but how we can know which status was previous?
@@ -41,9 +41,9 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                     anyDaoNew.em.merge(u)
                 }
                 if (u.userStatus == UserStatus.SUSPENDED) {
-                    throw AbstractAuthFilter.AuthException("There have been several failed attempts to sign in from this account or IP address. Please wait a while and try again later.")
+                    throw AuthException("There have been several failed attempts to sign in from this account or IP address. Please wait a while and try again later.")
                 } else if (u.userStatus != UserStatus.ACTIVE) {
-                    throw AbstractAuthFilter.AuthException("Your account is not active")
+                    throw AuthException("Your account is not active")
                 } else {
                     u.failedLoginsNumber = 0
                     anyDaoNew.em.merge(u)
@@ -57,10 +57,10 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
                     u.suspendedDueDate = LocalDateTime.now().plusMinutes(20)
                 }
                 anyDaoNew.em.merge(u)
-                throw AbstractAuthFilter.AuthException("Wrong credentials")
+                throw AuthException("Wrong credentials")
             }
         } else {
-            throw AbstractAuthFilter.AuthException("User with login '$login' doesn't exist")
+            throw AuthException("User with login '$login' doesn't exist")
         }
     }
 
@@ -72,8 +72,36 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         return u ?: createPendingUserWithEmailOnly(email)
     }
 
+    open fun getOrCreateOauth2GoogleUser(oauth2GoogleId: String, email: String, emailIsVerified: Boolean): UserODB {
+        val u = anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::oauth2GoogleId, oauth2GoogleId) }
+                ?: anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, email) }
+                ?: createPendingUserWithEmailOnly(email)
+        if (u.oauth2GoogleId!=oauth2GoogleId) {
+            u.oauth2GoogleId = oauth2GoogleId
+            anyDaoNew.merge(u)
+        }
+        if (u.userStatus == WAITING_FOR_EMAIL_CONFIRMATION && emailIsVerified && email == u.email) {
+            u.userStatus = ACTIVE
+            anyDaoNew.merge(u)
+        }
+        return u;
+    }
+    open fun getOrCreateOauth2FacebookUser(oauth2FacebookId: String, email: String, emailIsVerified: Boolean): UserODB {
+        val u = anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::oauth2FacebookId, oauth2FacebookId) }
+                ?: anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, email) }
+                ?: createPendingUserWithEmailOnly(email)
+        if (u.oauth2FacebookId!=oauth2FacebookId) {
+            u.oauth2FacebookId = oauth2FacebookId
+            anyDaoNew.merge(u)
+        }
+        if (u.userStatus == WAITING_FOR_EMAIL_CONFIRMATION && emailIsVerified && email == u.email) {
+            u.userStatus = ACTIVE
+            anyDaoNew.merge(u)
+        }
+        return u;
+    }
 
-    protected open fun createPendingUserWithEmailOnly(email: String): UserODB {
+    protected open fun createPendingUserWithEmailOnly(email: String, emailIsVerified: Boolean? = false): UserODB {
         val user = UserODB()
         user.email = email
         user.userStatus = UserStatus.WAITING_FOR_EMAIL_CONFIRMATION

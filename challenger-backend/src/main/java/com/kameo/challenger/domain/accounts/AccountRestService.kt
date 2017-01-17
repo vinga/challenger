@@ -56,7 +56,7 @@ open class AccountRestService : IAccountRestService {
     }
 
     @POST
-    @Path("/accounts/confirmationLinks/confirmation={uid}")
+    @Path("/accounts/confirmationLinks/action={uid}")
     override fun confirmOrGetInfoIfNeeded(@PathParam("uid") uid: String, confirmParams: ConfirmationLinkRequestDTO): ConfirmationLinkResponseDTO {
         return confirmationLinkDAO.confirmLink(uid, confirmParams, accountDao, challengeDao)
     }

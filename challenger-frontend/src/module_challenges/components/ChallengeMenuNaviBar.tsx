@@ -102,11 +102,11 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 
     }
 
-    getLabel = (ch: ChallengeDTO) => {
+    getLabel = (ch: ChallengeDTO):any => {
         var un = this.props.unreadNotifications[ch.id];
-        if (un != null && un > 0 && ch.id != this.props.selectedChallengeId && this.props.selectedChallengeId != -1)
+        if (un != null && un.length > 0 && ch.id != this.props.selectedChallengeId && this.props.selectedChallengeId != -1)
             return <div>{ch.label}<Badge
-                badgeContent={un}
+                badgeContent={un.length}
                 primary={true}
                 style={badgeCssStyle}
             /></div>;
@@ -174,7 +174,7 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
                     <Divider key="divider1"/>
                 ]}
 
-                {this.props.selectedChallengeId != NO_CHALLENGES_LOADED_YET && [
+                {this.props.selectedChallengeId != NO_CHALLENGES_LOADED_YET && this.props.selectedChallengeId != null && [
                     <MenuItem
                         key="challengeDetails"
                         leftIcon={<FontIcon
@@ -227,19 +227,17 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 
 const mapStateToProps = (state: ReduxState): Props => {
 
-
     var count = 0;
-
     acceptedByMeChallengeSelector(state).forEach(ch=> {
         var value=state.eventsState.unreadNotifications[ch.id]
         if (value != null && state.challenges.selectedChallengeId != ch.id)
-            count += value;
+            count += value.length;
     })
 
 
     return {
         selectedChallengeId: state.challenges.selectedChallengeId,
-        selectedChallengeLabel: selectedChallengeSelector(state) != null ? selectedChallengeSelector(state).label : "<not set>",
+        selectedChallengeLabel: selectedChallengeSelector(state) != null ? selectedChallengeSelector(state).label : "",
         acceptedChallenges: acceptedByMeChallengeSelector(state),
         day: state.currentSelection.day,
         creatorLabel: loggedUserSelector(state).login,

@@ -4,7 +4,9 @@ import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.ReflectionUtils;
-import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
+import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;;
+import com.kameo.challenger.utils.auth.jwt.JWTService;
+import com.kameo.challenger.utils.auth.jwt.JWTService.AuthException;
 import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
@@ -31,12 +33,21 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     private final AccountDAO accountDao;
     private ServerConfig serverConfig;
 
+    private JWTService<ChallengerSess> jwtService;
+
+
+    @Override
+    protected JWTService<ChallengerSess> createJWTService(FilterConfig arg0) {
+        return jwtService;
+    }
+
     @Inject
-    public AuthFilter(ChallengerSess myTokenInfo, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao, ServerConfig serverConfig) {
+    public AuthFilter(ChallengerSess myTokenInfo, JWTService<ChallengerSess> jwtService, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao, ServerConfig serverConfig) {
         this.myTokenInfo = myTokenInfo;
         this.multiTokenInfos = multiTokenInfos;
         this.accountDao = accountDao;
         this.serverConfig = serverConfig;
+        this.jwtService=jwtService;
     }
 
     @Override
@@ -70,15 +81,13 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         System.out.println(req.getMethod()+" "+req.getPathInfo());
         return
                 !(
+                        req.getPathInfo().startsWith("/signin") ||
+
                         req.getPathInfo().startsWith("/accounts/passwordReset") ||
                         req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().startsWith("/accounts/confirmationLinks/") || req.getPathInfo().contains("swagger"));
     }
 
-    @Override
-    protected JWTServiceConfig getJWTServiceConfig(FilterConfig fc) {
-        return new JWTServiceConfig<>("signingkeytemporaryherebutwillbemovedtoouterfile"
-                .getBytes(), "Kameo", "ChallengerUsers", ChallengerSess.class);
-    }
+
 
     @Override
     protected ChallengerSess renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
@@ -108,13 +117,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         return td;
     }
 
-    @NotNull
-    public ChallengerSess createNewTokenFromUserId(long userId) throws AuthException {
-        ChallengerSess td = new ChallengerSess();
-        td.setUserId(userId);
-        td.setExpires(new DateTime(DateUtil.addMinutes(new Date(), 15)));
-        return td;
-    }
+
 
 
     @Override

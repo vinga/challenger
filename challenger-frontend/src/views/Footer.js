@@ -1,7 +1,7 @@
 import * as React from "react";
 
 export const Footer = ()=> {
-    return (<div>
+    return (<div >
             <div className="footer-container">
                 <div className="row" style={{display: "none"}}>
                     <div className="col l6 s12">

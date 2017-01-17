@@ -12,19 +12,19 @@ const getChallenges: Selector<ReduxState,Array<ChallengeDTO>> = (state: any): Ar
 export const selectedChallengeSelector: Selector<ReduxState,ChallengeDTO> = createSelector(
     getChallenges, selectedChallengeIdSelector,
     (challenges: Array<ChallengeDTO>, selectedChallengeId: number) =>
-        challenges.find(ch=>ch.id == selectedChallengeId)
+        challenges.find(ch => ch.id == selectedChallengeId)
 );
 
 
 export const waitingForMyAcceptanceChallengeSelector: Selector<ReduxState,ChallengeDTO[]> = createSelector(
     getChallenges, loggedUserSelector,
     (challenges: Array<ChallengeDTO>, mainLoggedUser: AccountDTO) =>
-        challenges.filter(challengeDTO=>challengeDTO.userLabels.some(ul=> ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE))
+        challenges.filter(challengeDTO => challengeDTO.userLabels.some(ul => ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE))
 );
 export const acceptedByMeChallengeSelector: Selector<ReduxState,ChallengeDTO[]> = createSelector(
     getChallenges, loggedUserSelector,
     (challenges: Array<ChallengeDTO>, mainLoggedUser: AccountDTO) =>
-        challenges.filter(challengeDTO=>!challengeDTO.userLabels.some(ul=> (ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)))
+        challenges.filter(challengeDTO => !challengeDTO.userLabels.some(ul => (ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)))
 );
 
 export const challengeStatusSelector: Selector<ReduxState,string> = createSelector(
@@ -33,17 +33,17 @@ export const challengeStatusSelector: Selector<ReduxState,string> = createSelect
     (challenge: ChallengeDTO, mainLoggedUser: AccountDTO): string => {
         if (challenge == null)
             return null;
-        var up = challenge.userLabels.find(ul=> ul.id == mainLoggedUser.id);
+        var up = challenge.userLabels.find(ul => ul.id == mainLoggedUser.id);
         return up.challengeStatus;
     }
 );
 
 
 export const customChallengeStatusSelector: Selector<ReduxState,string> = (state: ReduxState, challenge: ChallengeDTO) => {
-    var mainLoggedUser=loggedUserSelector(state);
+    var mainLoggedUser = loggedUserSelector(state);
     if (challenge == null)
         return null;
-    var up = challenge.userLabels.find(ul=> ul.id == mainLoggedUser.id);
+    var up = challenge.userLabels.find(ul => ul.id == mainLoggedUser.id);
     return up.challengeStatus;
 }
 
@@ -53,7 +53,7 @@ createSelector(
     (challenge: ChallengeDTO, mainLoggedUser: AccountDTO): string => {
         if (challenge == null)
             return null;
-        var up = challenge.userLabels.find(ul=> ul.id == mainLoggedUser.id);
+        var up = challenge.userLabels.find(ul => ul.id == mainLoggedUser.id);
         return up.challengeStatus;
     }
 );
@@ -70,8 +70,8 @@ export const challengeParticipantsSelector: Selector<ReduxState,Array<ChallengeP
     selectedChallengeParticipantsSelector,
     getAccountsSelector,
     (selectedChallengeUsers: Array<ChallengeParticipantDTO>, accounts: Array<AccountDTO>): Array<ChallengeParticipantDTO> => {
-        return selectedChallengeUsers.map(us=> {
-            var account: AccountDTO = accounts.find(u=>u.id == us.id);
+        return selectedChallengeUsers.map(us => {
+            var account: AccountDTO = accounts.find(u => u.id == us.id);
             if (account != null) {
                 return Object.assign({}, account, {label: us.label, ordinal: us.ordinal, challengeStatus: us.challengeStatus})
             } else {
@@ -80,6 +80,23 @@ export const challengeParticipantsSelector: Selector<ReduxState,Array<ChallengeP
         });
     }
 );
+export const challengeParticipantsAsAccountsSelector: Selector<ReduxState,Array<AccountDTO>> = createSelector(
+    challengeParticipantsSelector,
+    (challengeParticipants: Array<ChallengeParticipantDTO>): Array<AccountDTO> => {
+        return challengeParticipants.map(e => {
+            return {
+                id: e.id,
+                login: e.login,
+                label: e.label,
+                jwtToken: e.jwtToken,
+                inProgress: null,
+                primary: false
+            }
+        });
+    }
+);
+
+
 
 const editedChallenge: Selector<ReduxState,ChallengeDTO> = (state: any): ChallengeDTO => state.challenges.editedChallenge
 
@@ -91,10 +108,10 @@ export const possibleChallengeParticipantsSelector: Selector<ReduxState,Array<Ch
         (visibleChallenges: Array<ChallengeDTO>, editedChallenge: ChallengeDTO) => {
             var uniqueParticipants: Array<ChallengeParticipantDTO> = [];
             var uniqueEmails = [];
-            visibleChallenges.map(vc=> {
-                vc.userLabels.map(ul=> {
+            visibleChallenges.map(vc => {
+                vc.userLabels.map(ul => {
                     if ($.inArray(ul.label, uniqueEmails) == -1) {
-                        if (editedChallenge.userLabels.find(chp=>chp.label == ul.label) == null) {
+                        if (editedChallenge.userLabels.find(chp => chp.label == ul.label) == null) {
                             uniqueEmails.push(ul.label);
                             uniqueParticipants.push(ul);
                         }
@@ -107,14 +124,14 @@ export const possibleChallengeParticipantsSelector: Selector<ReduxState,Array<Ch
 export const jwtTokensOfChallengeParticipants: Selector<ReduxState,Array<string>> = createSelector(
     challengeParticipantsSelector,
     (challengeAccounts: Array<ChallengeParticipantDTO>): Array<string> => {
-        var jwtTokensOfApprovingUsers: Array<string> = challengeAccounts.filter(a=>a.jwtToken != null)
-            .map(a=>a.jwtToken);
+        var jwtTokensOfApprovingUsers: Array<string> = challengeAccounts.filter(a => a.jwtToken != null)
+            .map(a => a.jwtToken);
         return jwtTokensOfApprovingUsers;
     }
 );
 
 export const jwtTokenOfUserWithId = (state: ReduxState, userId: number): string => {
-    return challengeParticipantsSelector(state).find(a=>a.id == userId).jwtToken
+    return challengeParticipantsSelector(state).find(a => a.id == userId).jwtToken
 }
 
 

@@ -1,8 +1,8 @@
 package com.kameo.challenger.domain.accounts
 
 import com.kameo.challenger.config.ServerConfig
-import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkRequestDTO
-import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkResponseDTO
+import com.kameo.challenger.domain.accounts.IAccountRestService.*
+import com.kameo.challenger.domain.accounts.IAccountRestService.NextActionType.*
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkODB
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkType
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkType.*
@@ -16,7 +16,6 @@ import com.kameo.challenger.domain.challenges.db.ChallengeStatus
 import com.kameo.challenger.utils.mail.MailService
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
-import com.kameo.challenger.web.rest.AuthFilter
 import org.joda.time.DateTimeConstants
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -24,28 +23,35 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
-import javax.inject.Provider
 
 @Component
 @Transactional
 open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                                @Inject val mailService: MailService,
                                @Inject val serverConfig: ServerConfig,
-                               @Inject val authFilter: Provider<AuthFilter>
+                               @Inject val jwtJWTokenDAO: JWTokenDAO
+
 ) {
 
 
     @Scheduled(fixedRate = DateTimeConstants.MILLIS_PER_DAY.toLong())
     open fun scheduler() {
         anyDaoNew.remove(ConfirmationLinkODB::class) {
+            it get ConfirmationLinkODB::confirmationLinkType notEq ConfirmationLinkType.CHALLENGE_CONFIRMATION_ACCEPT
+            it get ConfirmationLinkODB::confirmationLinkType notEq ConfirmationLinkType.CHALLENGE_CONFIRMATION_REJECT
             it get +ConfirmationLinkODB::sysCreationDate before LocalDateTime.now().minusHours(24)
+        }
+
+        anyDaoNew.remove(ConfirmationLinkODB::class) {
+            it get ConfirmationLinkODB::confirmationLinkType isIn listOf(ConfirmationLinkType.CHALLENGE_CONFIRMATION_ACCEPT, ConfirmationLinkType.CHALLENGE_CONFIRMATION_REJECT)
+            it get +ConfirmationLinkODB::sysCreationDate before LocalDateTime.now().minusYears(1)
         }
     }
 
     open fun confirmLink(uid: String, confirmParams: ConfirmationLinkRequestDTO, accountDAO: AccountDAO, challengeDAO: ChallengeDAO): ConfirmationLinkResponseDTO {
         val clODB = anyDaoNew.getFirst(ConfirmationLinkODB::class, {
             it get ConfirmationLinkODB::uid eq uid
-        }) ?: return ConfirmationLinkResponseDTO("This link is no longer valid", done = true)
+        }) ?: return ConfirmationLinkResponseDTO("This link is no longer valid", done = true,  nextActions = listOf(MAIN_PAGE, LOGIN_BUTTON, REGISTER_BUTTON))
         val user = clODB.user
 
         if (user.userStatus == SUSPENDED)
@@ -54,6 +60,36 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
         return when (clODB.confirmationLinkType) {
+            OAUTH2_LOGIN -> {
+                val jwtToken = jwtJWTokenDAO.createNewTokenFromUserId(user.id)
+                if (user.login.isNullOrEmpty()) {
+                    if (confirmParams.newLogin!=null) {
+                        //TODO verify new login
+                        if (accountDAO.checkIfLoginExists(confirmParams.newLogin)) {
+                            return ConfirmationLinkResponseDTO("This login is already taken. Please specify another login. ",
+                                    newLoginRequired = true,
+                                    displayLoginButton = true,
+                                    nextActions = listOf(NEXT))
+                        }
+                        user.login=confirmParams.newLogin
+                        anyDaoNew.merge(user)
+                    }
+                    else
+                        return ConfirmationLinkResponseDTO("Please specify your login. ",
+                            newLoginRequired = true,
+                            displayLoginButton = true,
+                            nextActions = listOf(NEXT))
+
+                }
+                anyDaoNew.remove(clODB)
+
+
+                ConfirmationLinkResponseDTO("You've been logged now. ",
+                        displayLoginButton = true,
+                        login = clODB.user.login,
+                        jwtToken = jwtToken,
+                        nextActions = listOf(AUTO_LOGIN))
+            }
             PASSWORD_RESET -> {
                 if (confirmParams.newPassword != null) {
                     if (user.login.isNullOrEmpty())
@@ -62,15 +98,23 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                     accountDAO.resetPassword(user, confirmParams.newPassword)
                     anyDaoNew.remove(clODB)
 
-                    ConfirmationLinkResponseDTO("Your password has been changed. You can login now.", displayLoginButton = true)
-                } else ConfirmationLinkResponseDTO("You have chosen to reset your password. To proceed please provide new password.", newPasswordRequired = true, done = false)
+                    ConfirmationLinkResponseDTO("Your password has been changed. You can login now.",
+                            displayLoginButton = true,
+                            nextActions = listOf(LOGIN_BUTTON))
+                } else ConfirmationLinkResponseDTO("You have chosen to reset your password. To proceed please provide new password.",
+                        newPasswordRequired = true,
+                        done = false,
+                        nextActions = listOf(NEXT)
+                        )
             }
             EMAIL_CONFIRMATION -> {
 
                 val loginIsTaken = anyDaoNew.exists(UserODB::class) { it get +UserODB::login like clODB.fieldLogin!! }
                 if (loginIsTaken) {
                     anyDaoNew.remove(clODB)
-                    return ConfirmationLinkResponseDTO("This login is already taken, please try to register again.", displayRegisterButton = true)
+                    return ConfirmationLinkResponseDTO("This login is already taken, please try to register again.",
+                            displayRegisterButton = true,
+                            nextActions = listOf(REGISTER_BUTTON, LOGIN_BUTTON))
                 }
                 user.login = clODB.fieldLogin
                 user.passwordHash = clODB.fieldPasswordHash!!
@@ -78,10 +122,14 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                 user.userStatus = ACTIVE
                 anyDaoNew.merge(user)
                 anyDaoNew.remove(clODB)
-                val au = authFilter.get()
-                val jwtToken = au.tokenToString(au.createNewTokenFromUserId(user.id))
+                val jwtToken = jwtJWTokenDAO.createNewTokenFromUserId(user.id)
                 // user automatically be logged because jwtToken is set
-                ConfirmationLinkResponseDTO("Your email is confirmed. You can login now. ", displayLoginButton = true, login = clODB.user.login, jwtToken = jwtToken)
+                ConfirmationLinkResponseDTO("Your email is confirmed. You can login now. ",
+                        displayLoginButton = true,
+                        login = clODB.user.login,
+                        jwtToken = jwtToken,
+                        displayLoginWelcomeInfo = true,
+                        nextActions = listOf(AUTO_LOGIN))
             }
             CHALLENGE_CONFIRMATION_ACCEPT -> {
                 challengeDAO.updateChallengeState(user.id, clODB.challengeId!!, ChallengeStatus.ACTIVE)
@@ -90,8 +138,6 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                     it get ConfirmationLinkODB::confirmationLinkType eq ConfirmationLinkType.CHALLENGE_CONFIRMATION_REJECT
                 }
                 anyDaoNew.remove(clODB)
-
-
 
 
                 var description = "You've accepted challenge " + anyDaoNew.getOne(ChallengeODB::class) { it eqId clODB.challengeId!! }.label + "."
@@ -105,21 +151,18 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                     anyDaoNew.persist(confirmationEmailLink)
 
                     return ConfirmationLinkResponseDTO(
-                            emailRequiredForRegistration=user.email,
-                            loginProposedForRegistration = user.email,
-                            emailIsConfirmedByConfirmationLink=confirmationEmailLink.uid,
+                            registerInternalData = RegisterInternalDataDTO(user.email, user.email,confirmationEmailLink.uid),
                             description = description,
                             displayRegisterButton = true,
-                            done=true)
+                            done = true,
+                            nextActions = listOf(MANAGED_REGISTER_BUTTON))
                 } else { //active user
-
-
-
                     ConfirmationLinkResponseDTO(
                             description = description,
                             displayLoginButton = true,
                             login = clODB.user.login,
-                            jwtToken = authFilter.get().let{ it.tokenToString(it.createNewTokenFromUserId(user.id)) }
+                            jwtToken = jwtJWTokenDAO.createNewTokenFromUserId(user.id),
+                            nextActions = listOf(AUTO_LOGIN)
                     )
                 }
 
@@ -135,13 +178,23 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
 
                 ConfirmationLinkResponseDTO(
                         description = "You've rejected challenge " + anyDaoNew.getOne(ChallengeODB::class) { it eqId clODB.challengeId!! }.label + ".",
-                        displayLoginButton = true
+                        displayLoginButton = true,
+                        nextActions = listOf(LOGIN_BUTTON, REGISTER_BUTTON)
                 )
             }
 
 
         }
 
+    }
+
+    open fun createOauth2LoginLink(userId: Long): String {
+        val ccl = ConfirmationLinkODB()
+        ccl.user = UserODB(userId)
+        ccl.confirmationLinkType = ConfirmationLinkType.OAUTH2_LOGIN
+        ccl.uid = UUID.randomUUID().toString()
+        anyDaoNew.persist(ccl)
+        return ccl.uid
     }
 
     open fun createAndSendPasswordResetLink(u: UserODB) {

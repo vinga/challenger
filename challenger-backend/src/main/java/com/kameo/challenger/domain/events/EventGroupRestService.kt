@@ -34,7 +34,7 @@ class EventGroupRestService : IEventGroupRestService {
     @Inject
     private lateinit var eventPushDAO: EventPushDAO
 
-
+/*
     @Deprecated("use getEventsForChallenge instead")
     @GET
     @Path("/challenges/{challengeId}/tasks/{taskId}/events")
@@ -47,14 +47,14 @@ class EventGroupRestService : IEventGroupRestService {
                 .toTypedArray()
 
         return EventGroupDTO(challengeId, taskId, postsForTask)
-    }
+    }*/
 
 
     @POST
-    @Path("/async/challenges/{challengeId}/events")
+    @Path("/async/events")
     @WebResponseStatus(WebResponseStatus.ACCEPTED)
-    fun listenTo(@Suspended asyncResponse: AsyncResponse, @PathParam("challengeId") challengeId: Long, @QueryParam("lastEventId") lastEventId: Long?) {
-        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, challengeId, lastEventId)
+    fun listenTo(@Suspended asyncResponse: AsyncResponse, @QueryParam("lastEventId") lastEventId: Long?) {
+        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, lastEventId)
     }
 
     @POST
@@ -62,6 +62,7 @@ class EventGroupRestService : IEventGroupRestService {
     fun markEventRead(@PathParam("challengeId") challengeId: Long, @PathParam("eventId") eventId: Long, readDate: Long) {
         eventGroupDAO.markEventAsRead(session.userId, challengeId, eventId, Date(readDate))
     }
+
 
 
     @GET

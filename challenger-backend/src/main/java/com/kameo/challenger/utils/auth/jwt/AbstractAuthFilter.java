@@ -3,26 +3,30 @@ package com.kameo.challenger.utils.auth.jwt;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.kameo.challenger.utils.auth.jwt.JWTService.AuthException;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
-
 public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter {
-    private JWTSigner signer;
-    private JWTVerifier<E> verifier;
+    private JWTService<E> jwtService;
 
     @Override
     public void init(FilterConfig arg0) throws ServletException {
-
-        JWTServiceConfig sc = getJWTServiceConfig(arg0);
-        this.signer = new JWTSigner(sc);
-        this.verifier = new JWTVerifier<>(sc, sc.getTokenInfoClass());
-
+        jwtService = createJWTService(arg0);
     }
+
+
+    protected abstract JWTService<E> createJWTService(FilterConfig arg0);
+
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
@@ -33,17 +37,12 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
             chain.doFilter(req,res);
             return;
         }*/
-
-
         HttpServletRequest httpReq = (HttpServletRequest) req;
         HttpServletResponse httpRes = (HttpServletResponse) res;
         if (isResourceANewTokenGenerator(httpReq)) {
             try {
                 E tokenInfo = createNewToken(httpReq, httpRes);
-
                 printTokenToResponse(httpRes, tokenInfo);
-
-
             } catch (AuthException ex) {
                 onAuthException(ex, httpReq, httpRes, chain);
             }
@@ -53,34 +52,23 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 if (Strings.isNullOrEmpty(auth)) {
                     throw new IllegalAccessException("Unauthorized");
                 }
-                String tokens = auth.substring("Bearer ".length());
-
-
-                List<String> tokensStringList=Lists.newArrayList(Splitter.on(" ").omitEmptyStrings().trimResults().split(tokens));
-                List<E> tokensList=Lists.newArrayList();
-                for (String token: tokensStringList) {
-                    E tokenInfo = verifier.verifyToken(token);
+                String tokens = auth.substring("Bearer " .length());
+                List<String> tokensStringList = Lists.newArrayList(Splitter.on(" ").omitEmptyStrings().trimResults().split(tokens));
+                List<E> tokensList = Lists.newArrayList();
+                for (String token : tokensStringList) {
+                    E tokenInfo = jwtService.verifyToken(token);
                     if (tokenInfo.getExpires().isBeforeNow()) {
                         onTokenExpired(httpReq, httpRes, chain);
-                    }
-                    else tokensList.add(tokenInfo);
+                    } else tokensList.add(tokenInfo);
                 }
-
                 if (isResourceARenewTokenGenerator(httpReq)) {
                     setRequestScopeVariable(tokensList);
                     E tokenInfo = renewToken(httpReq, httpRes);
-
                     printTokenToResponse(httpRes, tokenInfo);
                     return;
                 }
-
                 //Authorization:Bearer eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q
-
-
-
                 onTokenValidated(tokensList, httpReq, httpRes, chain);
-
-
             } catch (Exception ex) {
                 ex.printStackTrace();
                 unauthorized(httpRes);
@@ -98,8 +86,7 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     }
 
     public String tokenToString(E tokenInfo) {
-        return signer
-                    .createJsonWebToken(tokenInfo, tokenInfo.getExpires().toDate());
+        return jwtService.tokenToString(tokenInfo);
     }
 
     /**
@@ -129,7 +116,6 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
      */
     protected abstract E createNewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException;
 
-
     /**
      * User is authorized, do
      *
@@ -137,13 +123,10 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
      */
     protected abstract void setRequestScopeVariable(List<E> ti);
 
-
     protected void onTokenValidated(List<E> ti, HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws IOException, ServletException {
         setRequestScopeVariable(ti);
         chain.doFilter(req, res);
     }
-
-
 
     protected void onTokenExpired(HttpServletRequest req, HttpServletResponse response, FilterChain chain) throws IOException {
         response.setHeader("jwt-status", "expired");
@@ -170,20 +153,8 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     public void destroy() {
     }
 
-    protected abstract JWTServiceConfig getJWTServiceConfig(FilterConfig fc);
-
-    public static class AuthException extends Exception {
-
-
-        public AuthException(String message) {
-            super(message);
-        }
-
-    }
 
 
     protected abstract E renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException;
-
-
 }
 

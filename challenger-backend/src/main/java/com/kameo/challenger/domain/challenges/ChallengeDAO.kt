@@ -174,7 +174,7 @@ open class ChallengeDAO(@Inject val anyDaoNew: AnyDAONew,
 
         // adding new participants
         challenge.participants.filter {
-            challengeODB.participants.map { it.user.id }.contains(it.user.id)
+            !challengeODB.participants.filter {it.challengeStatus!=REMOVED }. map { it.user.id }.contains(it.user.id)
         }.forEach {
             //TODO email verification?>
             if (it.user.isNew()) {

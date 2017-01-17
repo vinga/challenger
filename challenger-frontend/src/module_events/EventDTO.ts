@@ -43,7 +43,6 @@ export interface EventState {
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
     eventGroups: Array<EventGroupDTO>,
-    globalUnreadEvents: Array<EventDTO>
 
     maxEventId?: number,
     selectedTask: TaskDTO,
@@ -51,8 +50,8 @@ export interface EventState {
     eventActionsVisible: boolean,
 
 
+    globalUnreadEvents: Array<EventDTO>
     unreadNotifications: UnreadNotificationsList
-    //TODO lista powyzej jest kiepska
 
     globalEventsVisible: boolean
 }
@@ -61,7 +60,7 @@ export interface EventState {
 
 
 export interface UnreadNotificationsList {
-    [challengeId: number]: number
+    [challengeId: number]: Array<Number> // array of event Ids
 }
 
 

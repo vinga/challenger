@@ -1,9 +1,14 @@
 package com.kameo.challenger.config;
 
 //import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import com.kameo.challenger.utils.auth.jwt.JWTService;
+import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
+import com.kameo.challenger.utils.auth.jwt.TokenInfo;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import com.kameo.challenger.utils.odb.AnyDAONew;
+import com.kameo.challenger.web.rest.ChallengerSess;
 import org.jinq.jpa.JinqJPAStreamProvider;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -29,6 +34,13 @@ class DatabaseConfig {
     }
 
 
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public JWTService<ChallengerSess> jwtService() {
+        JWTServiceConfig<ChallengerSess> conf= new JWTServiceConfig<>("signingkeytemporaryherebutwillbemovedtoouterfile"
+                .getBytes(), "Kameo", "ChallengerUsers", ChallengerSess.class);
+        return new JWTService<>(conf);
+    }
 
 
     @Bean

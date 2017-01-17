@@ -58,6 +58,9 @@ dependencies {
    // compile group: 'org.hibernate', name: 'hibernate-jpamodelgen', version:'5.2.3.Final'
     compile group: 'org.hibernate', name: 'hibernate-java8', version:'5.0.9.Final'  //5.1.0 or later doesn't use FieldInterceptionHelper
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version:'1.0.4'
+
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+
     runtime group: 'org.hsqldb', name: 'hsqldb', version:'2.3.3'
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version:'1.4.0.RELEASE') {
         exclude(module: 'commons-logging')
@@ -72,3 +75,9 @@ dependencies {
     //compile group: 'org.springframework.boot', name: 'spring-boot-starter-websocket', version: '1.4.1.RELEASE'
 
 }
+
+//task buildFrontend(type: Copy) << {
+//    from 'resources'
+//    into 'build/resources'
+//    include '**/*.xml', '**/*.txt', '**/*.properties'
+//}

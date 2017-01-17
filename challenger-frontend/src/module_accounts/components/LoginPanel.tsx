@@ -1,13 +1,14 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import RaisedButton from "material-ui/RaisedButton";
-import TextFieldExt from "../../views/common-components/TextFieldExt.tsx";
+import TextFieldExt from "../../views/common-components/TextFieldExt";
 import LinearProgress from "material-ui/LinearProgress";
 import FlatButton from "material-ui/FlatButton";
 import {loginUserAction, sendResetPasswordLinkAction} from "../accountActions";
 import {REGISTER_SHOW_REGISTRATION_PANEL, START_FORGOT_PASSWORD_MODE, REGISTER_EXIT_TO_LOGIN_PANEL, FINISH_FORGOT_PASSWORD_MODE} from "../accountActionTypes";
 import {Col, Row, RowCol} from "../../views/common-components/Flexboxgrid";
 import {ForgotPasswordPanel} from "./ForgotPasswordPanel";
+import {FontIcon} from "material-ui";
 
 
 interface ReduxProps {
@@ -49,6 +50,13 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
         var pass = this.passwordField.state.fieldValue;
         this.props.onLoginFunc(login, pass);
     };
+
+    onLoginGoogle = () => {
+        location.href = "/oauth2/googleSignIn";
+    }
+    onLoginFacebook = () => {
+        location.href = "/oauth2/facebookSignIn";
+    }
 
 
     render() {
@@ -117,6 +125,43 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                         <RowCol horizontal="end">
                             <FlatButton labelStyle={{textTransform:"none", color:"#888888"}} label="Forgot password?" onClick={this.props.onForgotPassword}/>
                         </RowCol>
+                        <RowCol colStyle={{paddingTop: '30px', paddingBottom: '30px'}}>
+                            <div style={{display:"block"}}>
+                                <RaisedButton
+                                    fullWidth={true}
+                                    label="Login with Google"
+                                    className="right"
+                                    labelColor="white"
+                                    backgroundColor="#D34836"
+                                    onClick={this.onLoginGoogle}
+                                    icon={<FontIcon
+
+                                className={"fa fa-google"}/>}
+                                />
+                                {this.props.inProgress && <LinearProgress mode="indeterminate"/> }
+                            </div>
+                        </RowCol>
+
+                        <RowCol colStyle={{paddingTop: '30px', paddingBottom: '30px'}}>
+                            <div style={{display:"block"}}>
+                                <RaisedButton
+                                    fullWidth={true}
+                                    label="Login with Facebook"
+
+                                    className="right"
+                                    labelColor="white"
+                                    backgroundColor="#3b5998"
+                                    onClick={this.onLoginFacebook}
+                                    icon={<FontIcon
+
+                                className={"fa fa-facebook"}/>}
+                                />
+                                {this.props.inProgress && <LinearProgress mode="indeterminate"/> }
+                            </div>
+                        </RowCol>
+
+
+
                     </Col>
 
                 </Row>

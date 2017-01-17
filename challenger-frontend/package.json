@@ -39,7 +39,6 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
-    "npm": "^3.10.8",
     "@cypress/react-tooltip": "^0.1.1",
     "dot-prop-immutable": "^1.1.2",
     "immutability-helper": "^2.0.0",
@@ -47,6 +46,7 @@
     "jbox": "^0.4.5",
     "jwt-decode": "^2.1.0",
     "material-ui": "^0.15.4",
+    "npm": "^3.10.8",
     "react": "^15.3.0",
     "react-dom": "^15.3.0",
     "react-redux": "^4.4.5",

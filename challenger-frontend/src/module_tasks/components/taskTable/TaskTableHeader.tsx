@@ -12,7 +12,7 @@ interface Props {
     user: TaskUserDTO,
     challengeId: number,
     no: number
-    onOpenDialogForLoginSecondUser: (event: EventTarget)=>void;
+    onOpenDialogForLoginSecondUser: (event: EventTarget) => void;
 }
 
 interface ReduxProps {
@@ -21,13 +21,17 @@ interface ReduxProps {
 
 }
 interface ReduxPropsFunc {
-    onAddNewTaskFunc: (creatorId: number, forUserId: number, challengeId: number)=>void;
+    onAddNewTaskFunc: (creatorId: number, forUserId: number, challengeId: number) => void;
 
 }
 
 class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & ReduxPropsFunc ,void> {
     constructor(props) {
         super(props);
+    }
+
+    onAddNewTaskFunc = () => {
+        this.props.onAddNewTaskFunc(this.props.user.id, this.props.user.id, this.props.challengeId);
     }
 
 
@@ -41,15 +45,16 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
                 userId={this.props.user.id}
                 userLabel={this.props.user.label}
                 userLogin={this.props.user.login}
-                challengeStatus={this.props.user.challengeStatus}
-            >{this.props.children}</TaskTableHeaderAccountPanel>
+                challengeStatus={this.props.user.challengeStatus}>
+                {this.props.children}
+            </TaskTableHeaderAccountPanel>
 
             <div style={{display: "flex",flexFlow: "row nowrap", justifyContent:"space-between"}}>
                 <span className="left" style={{margin: '3px'}}>Points: {this.props.checkedPoints}</span>
 
                 <div className="right" style={{display: "inline-block"}}>
                     <FlatButton
-                        onClick={()=>this.props.onAddNewTaskFunc(this.props.user.id, this.props.user.id, this.props.challengeId)}
+                        onClick={this.onAddNewTaskFunc}
                         label="Add task"
                         labelPosition="before"
                         primary={true}
@@ -59,8 +64,6 @@ class TaskTableHeaderInternal extends React.Component<Props & ReduxProps & Redux
             </div>
         </div>);
     }
-
-
 }
 
 

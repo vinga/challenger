@@ -21,7 +21,8 @@ export const ChallengeStatus = {
     INACTIVE: "INACTIVE",
     ACTIVE: "ACTIVE",
     WAITING_FOR_ACCEPTANCE: "WAITING_FOR_ACCEPTANCE",
-    REFUSED: "REFUSED"
+    REFUSED: "REFUSED",
+    REMOVED: "REMOVED"
 };
 
 

@@ -36,7 +36,6 @@ class GlobalNotificationsPanelInternal extends React.Component<Props & PropsFunc
 
     render() {
 
-
         return <div>
             <Dialog
                 actions={<FlatButton

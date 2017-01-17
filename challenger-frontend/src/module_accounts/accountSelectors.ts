@@ -10,6 +10,8 @@ export const loggedUserSelector: Selector<ReduxState,AccountDTO> = (state: Redux
 export const getAccountsSelector: Selector<ReduxState,Array<AccountDTO>> = (state: ReduxState): Array<AccountDTO> => state.accounts
 
 
+
+
 export const loggedAccountByIdSelector = (state: ReduxState, userId: number): AccountDTO => {
     return state.accounts.find(a=>a.id == userId && a.jwtToken != null);
 }

@@ -1,4 +1,4 @@
-import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
+import {ChallengeDTO, ChallengeParticipantDTO, ChallengeStatus} from "../ChallengeDTO";
 import {TouchTapEvent, FlatButton, FontIcon, IconButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
 import {createChallengeAction, updateChallengeAction, deleteChallengeAction} from "../challengeActions";

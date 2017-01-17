@@ -7,16 +7,18 @@ import {EventGroupPanel} from "../module_events/index";
 import {TaskDTO, EditTaskDialog} from "../module_tasks/index";
 import {Col, Row} from "./common-components/Flexboxgrid";
 import NoChallengesPanel from "../module_challenges/components/NoChallengesPanel";
-import {challengeStatusSelector} from "../module_challenges/challengeSelectors";
+import {challengeStatusSelector, challengeParticipantsAsAccountsSelector} from "../module_challenges/challengeSelectors";
 import {ChallengeStatus} from "../module_challenges/ChallengeDTO";
 import {GlobalNotificationsPanel} from "../module_events/components/GlobalNotificationsPanel";
+import {AccountDTO} from "../module_accounts/AccountDTO";
 
 
 interface ReduxProps {
     challengeId?: number,
     challengeIsActive: boolean,
     userId: number,
-    challengeAccounts: Array<ChallengeParticipantDTO>,
+    challengeParticipants: Array<ChallengeParticipantDTO>,
+    challengePAccounts: Array<AccountDTO>,
     editChallenge: boolean,
     editedTask?: TaskDTO,
     globalEventsVisible: boolean
@@ -32,12 +34,14 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return this.secondUserAuthorizePopover.getWrappedInstance().showAuthorizeFuncIfNeeded(eventTarget, userId)
     }
 
+    bindRefSecondUserAuthorizePopover = (c: any) => {
+        this.secondUserAuthorizePopover = c
+    }
+
     render() {
-
-
         var rows = [];
         if (this.props.challengeIsActive) {
-            var comps = this.props.challengeAccounts.map((u, iter)=>
+            var comps = this.props.challengeParticipants.map((u, iter) =>
                 <Col col="12-5">
                     <UserSlot user={u}
                               challengeId={this.props.challengeId}
@@ -53,49 +57,23 @@ class LoggedView extends React.Component<ReduxProps,void> {
             }
         }
 
-
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-                Odswiezanie info o niepotwierdzonych challengach.<br/>
-                Jak sie na onetime zmienia, to close date sie niauaktualnia a powinno<br/>
-                Konfirmacja challenga - accept/reject bez potrzeby logowania<br/>
-                Przetestować jeśli ktoś jest rejestruje normalkniue a był zaproszony - wtedy konfirmacja maila jest wymagana
+                Challenge details (inna nazwa?) nie powinien być widoczny jeśli ktoś nie jest creatorem<br/>
+                Usunięcie osoby z challenga -> eventy u tej osoby spowodują Exception<br/>
                 <NoChallengesPanel/>
                 <div>{rows}</div>
 
 
-                {
-                    this.props.challengeIsActive &&
-                    <EventGroupPanel authorId={this.props.userId}/>
-                }
-
+                { this.props.challengeIsActive &&  <EventGroupPanel authorId={this.props.userId}/>  }
+                { this.props.globalEventsVisible &&  <GlobalNotificationsPanel/>    }
+                { this.props.editChallenge == true &&  <EditChallengeDialog/>  }
+                { this.props.editedTask != null &&  <EditTaskDialog task={this.props.editedTask}/> }
 
                 <SecondUserAuthorizePopover
-                    ref={ (c) =>this.secondUserAuthorizePopover=c}
-                    challengeAccounts={this.props.challengeAccounts.map(
-                        e=>{
-                            return {
-                                id: e.id,
-                                login: e.login,
-                                label: e.label,
-                                jwtToken: e.jwtToken,
-                                inProgress: null,
-                                primary: false
-                            }
-                        }
-                    )}
+                    ref={ this.bindRefSecondUserAuthorizePopover}
+                    challengeAccounts={this.props.challengePAccounts}
                 />
-                {this.props.globalEventsVisible &&
-                    <GlobalNotificationsPanel/>
-                }
-                {
-                    this.props.editChallenge == true &&
-                    <EditChallengeDialog/>
-                }
-                {
-                    this.props.editedTask != null &&
-                    <EditTaskDialog task={this.props.editedTask}/>
-                }
 
             </div>);
     }
@@ -106,7 +84,8 @@ const mapStateToProps = (state: ReduxState): ReduxProps => {
         userId: loggedUserSelector(state).id,
         challengeId: selectedChallengeIdSelector(state),
         challengeIsActive: challengeStatusSelector(state) == ChallengeStatus.ACTIVE,
-        challengeAccounts: challengeParticipantsSelector(state),
+        challengeParticipants: challengeParticipantsSelector(state),
+        challengePAccounts: challengeParticipantsAsAccountsSelector(state),
         editChallenge: state.challenges.editedChallenge != null,
         editedTask: state.tasksState.editedTask,
         globalEventsVisible: state.eventsState.globalEventsVisible

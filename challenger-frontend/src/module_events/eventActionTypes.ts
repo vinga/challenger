@@ -11,7 +11,11 @@ export const MARK_EVENT_AS_READ_OPTIMISTIC: ActionType<{challengeId: number, eve
 export const EXPAND_EVENTS_WINDOW: ActionType<{expanded: boolean}> = new ActionType<any>('EXPAND_EVENTS_WINDOW');
 export const SHOW_TASK_EVENTS: ActionType<{task?: TaskDTO, no?: number, toggle: boolean}> = new ActionType<any>('SHOW_TASK_EVENTS');
 export const TOGGLE_EVENT_ACTIONS_VISIBILITY: ActionType<{}> = new ActionType<any>('TOGGLE_EVENT_ACTIONS_VISIBILITY');
-export const ADD_TO_UNREAD_NOTIFICATIONS: ActionType<{challengeId: number}> = new ActionType<any>('ADD_TO_UNREAD_NOTIFICATIONS');
+
+export const ADD_TO_UNREAD_NOTIFICATIONS: ActionType<{events: EventDTO[]}> = new ActionType<any>('ADD_TO_UNREAD_NOTIFICATIONS');
 export const CLEAR_UNREAD_NOTIFICATIONS: ActionType<{challengeId: number}> = new ActionType<any>('CLEAR_UNREAD_NOTIFICATIONS');
+
+
+
 export const SHOW_GLOBAL_NOTIFICATIONS_DIALOG: ActionType<{show: boolean}> = new ActionType<any>('SHOW_GLOBAL_NOTIFICATIONS_DIALOG');
 

@@ -170,7 +170,6 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
             />
         );
 
-
         return (
             <div>
                 <Dialog

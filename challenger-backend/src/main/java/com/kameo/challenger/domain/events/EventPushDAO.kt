@@ -35,9 +35,7 @@ open class EventPushDAO {
      * if yes, return that immediately
      * otherwise add asyncResponse to list
      */
-    open fun listenToNewEvents(uniqueClientIdentifier: String, callerId: Long, asyncResponse: AsyncResponse, challengeId: Long, lastReadEventId: Long?) {
-        permissionDAO.checkHasPermissionToChallenge(callerId, challengeId)
-
+    open fun listenToNewEvents(uniqueClientIdentifier: String, callerId: Long, asyncResponse: AsyncResponse, lastReadEventId: Long?) {
 
         val userClient = UserClient(callerId, lastReadEventId, asyncResponse)
         if (broadcastEventsToCustomClient(userClient))

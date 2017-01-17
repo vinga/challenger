@@ -6,7 +6,7 @@ import org.joda.time.DateTime;
 @Data
 public class TokenInfo {
     private DateTime issued;
-    private DateTime expires;
+    public DateTime expires;
 
 
     private String jwtToken;

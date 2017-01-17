@@ -54,7 +54,7 @@ const App = (props: Props & PropsFunc)=> {
 
 
 const mapStateToProps = (state: ReduxState): Props => {
-    var c = "confirmation=";
+    var c = "action=";
     var cl = window.location.hash;
     return {
         confirmationLink: (window.location.hash.substr(1) || "").startsWith(c) || (state.confirmationLinkState != null && state.confirmationLinkState.uid != null),

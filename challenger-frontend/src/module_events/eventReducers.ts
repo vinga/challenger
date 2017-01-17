@@ -150,7 +150,7 @@ export function eventsState(state: EventState = getInitialState(), action): Even
 
         var current = state.unreadNotifications[action.challengeId];
         var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
-        newNotifications[action.challengeId] = current == null ? 0 : Math.max(0,current - 1);
+        newNotifications[action.challengeId] = current == null ? [] : _.without(current, action.eventId);
 
         newState = Object.assign({}, state, {unreadNotifications: newNotifications}) as EventState;
 
@@ -164,17 +164,22 @@ export function eventsState(state: EventState = getInitialState(), action): Even
 
     } else if (isAction(action, ADD_TO_UNREAD_NOTIFICATIONS)) {
 
-        var current = state.unreadNotifications[action.challengeId];
-        var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
-        newNotifications[action.challengeId] = current == null ? 1 : current + 1;
-        var newState = Object.assign({}, state, {unreadNotifications: newNotifications}) as EventState;
+        var newState=state;
+        action.events.forEach((e:EventDTO)=> {
+            var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
+            var currentChallengeNotifications = state.unreadNotifications[e.challengeId];
+            if (currentChallengeNotifications==null)
+                currentChallengeNotifications=[];
+            newNotifications[e.challengeId] = _.union(currentChallengeNotifications, [e.id]);
+            newState = Object.assign({}, state, {unreadNotifications: newNotifications}) as EventState;
+        })
         //var newState= Object.assign({},state,{unreadNotifs: {...this.state.unreadNotifs, [action.challengeId]: newUnread}} )
         return newState;
 
     } else if (isAction(action, CLEAR_UNREAD_NOTIFICATIONS)) {
 
         var newNotifications: UnreadNotificationsList = Object.assign({}, state.unreadNotifications);
-        newNotifications[action.challengeId] = 0;
+        newNotifications[action.challengeId] = [];
         return Object.assign({}, state, {unreadNotifications: newNotifications});
 
     } else if (isAction(action, SHOW_GLOBAL_NOTIFICATIONS_DIALOG)) {

@@ -20,15 +20,34 @@ export interface ConfirmationLinkRequestDTO {
 export interface ConfirmationLinkResponseDTO {
     description: string,
     newPasswordRequired: boolean,
-    emailRequiredForRegistration? : string,
-    loginProposedForRegistration? : string,
-    emailIsConfirmedByConfirmationLink? : string,
+    newLoginRequired: boolean,
+
+    registerInternalData? : RegisterInternalDataDTO
+
     displayRegisterButton: boolean,
     displayLoginButton: boolean
     validationError?: string
     done: boolean
     proposedLogin?: string
     jwtToken?: string,
-    login?: string
+    login?: string,
+    displayLoginWelcomeInfo? :boolean,
+    nextActions: string[]
 }
+export interface RegisterInternalDataDTO { // used in ConfirmationLinkResponseDTO
+    emailRequiredForRegistration: string,
+    loginProposedForRegistration: string,
+    emailIsConfirmedByConfirmationLink: string,
+}
+
+
+export const NextActionType = {
+    AUTO_LOGIN: "AUTO_LOGIN",
+    MANAGED_REGISTER_BUTTON: "MANAGED_REGISTER_BUTTON",
+    NEXT: "NEXT",
+    MAIN_PAGE: "MAIN_PAGE",
+    LOGIN_BUTTON: "LOGIN_BUTTON",
+    REGISTER_BUTTON: "REGISTER_BUTTON"
+}
+
 
