@@ -1,15 +1,19 @@
 package com.kameo.challenger.web.rest;
 
+import com.google.common.collect.Lists;
 import com.kameo.challenger.config.ServerConfig;
 import com.kameo.challenger.domain.accounts.AccountDAO;
 import com.kameo.challenger.utils.DateUtil;
 import com.kameo.challenger.utils.ReflectionUtils;
-import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;;
+import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
 import com.kameo.challenger.utils.auth.jwt.JWTService;
 import com.kameo.challenger.utils.auth.jwt.JWTService.AuthException;
-import com.kameo.challenger.utils.auth.jwt.JWTServiceConfig;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -26,15 +30,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Component
 public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     private final ChallengerSess myTokenInfo;
     private final Provider<MultiUserChallengerSess> multiTokenInfos;
     private final AccountDAO accountDao;
     private ServerConfig serverConfig;
-
     private JWTService<ChallengerSess> jwtService;
-
 
     @Override
     protected JWTService<ChallengerSess> createJWTService(FilterConfig arg0) {
@@ -42,12 +45,13 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     }
 
     @Inject
-    public AuthFilter(ChallengerSess myTokenInfo, JWTService<ChallengerSess> jwtService, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao, ServerConfig serverConfig) {
+    public AuthFilter(ChallengerSess myTokenInfo, JWTService<ChallengerSess> jwtService, Provider<MultiUserChallengerSess> multiTokenInfos, AccountDAO accountDao, ServerConfig
+            serverConfig) {
         this.myTokenInfo = myTokenInfo;
         this.multiTokenInfos = multiTokenInfos;
         this.accountDao = accountDao;
         this.serverConfig = serverConfig;
-        this.jwtService=jwtService;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -67,16 +71,17 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
 
     @Override
     protected boolean isResourceANewTokenGenerator(HttpServletRequest req) {
-        return "/accounts/newToken".equals(req.getPathInfo());
+        return "/accounts/newToken" .equals(req.getPathInfo());
     }
 
     protected boolean isResourceARenewTokenGenerator(HttpServletRequest req) {
-        return "/accounts/renewToken".equals(req.getPathInfo());
+        return "/accounts/renewToken" .equals(req.getPathInfo());
     }
 
     @Override
     protected boolean isResourceAuthorizationRequired(HttpServletRequest req) {
-        if (req.getPathInfo() == null)
+        return true;
+      /*  if (req.getPathInfo() == null)
             return false;
         System.out.println(req.getMethod()+" "+req.getPathInfo());
         return
@@ -84,10 +89,10 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
                         req.getPathInfo().startsWith("/signin") ||
 
                         req.getPathInfo().startsWith("/accounts/passwordReset") ||
-                        req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().startsWith("/accounts/confirmationLinks/") || req.getPathInfo().contains("swagger"));
+                        req.getPathInfo().startsWith("/accounts/register") || req.getPathInfo().startsWith("/accounts/confirmationLinks/") || req.getPathInfo().contains
+                        ("swagger"));
+  */
     }
-
-
 
     @Override
     protected ChallengerSess renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException {
@@ -117,11 +122,15 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         return td;
     }
 
-
-
-
     @Override
     protected void setRequestScopeVariable(List<ChallengerSess> ti) {
+        // spring security
+        final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null && !ti.isEmpty()) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    ti.get(0), null, Lists.newArrayList(new SimpleGrantedAuthority("ROLE_USER")));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
         if (ti.size() == 1)
             ReflectionUtils.copy(ti.get(0), this.myTokenInfo);
         else {

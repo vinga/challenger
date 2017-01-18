@@ -4,6 +4,10 @@
 buildscript {
     ext.kotlin_version = '1.0.4'
 
+    configurations {
+     //   compile.exclude module: "spring-boot-starter-tomcat"
+    }
+
     repositories {
         mavenCentral()
     }
@@ -12,6 +16,10 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
+
+
+
+
 
 
 apply plugin: 'java'
@@ -36,6 +44,11 @@ repositories {
      maven { url "http://repo.maven.apache.org/maven2" }
 }
 dependencies {
+
+
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '1.4.0.RELEASE'
+
+  //  compile("org.springframework.boot:spring-boot-starter-undertow:1.2.0.RELEASE")
     // caused problem, kotlin classes were not unmarshalled from rest response despite all default fields set constructor compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
    // compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-hystrix', version:'1.1.5.RELEASE'
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version:'1.4.0.RELEASE'

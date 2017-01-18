@@ -33,7 +33,7 @@ export const Footer = ()=> {
             </div>
             <div className="footer-copyright">
                 <div className="footer-container">
-                    <img src="img/shield.svg"
+                    <img src="images/shield.svg"
                          style={{height: '20px', fill: '#ffffff', marginRight: '10px'}}/>
                     Made by <a className="orange-text text-lighten-3" href="http://materializecss.com">Kameo & Iterion</a>
                 </div>

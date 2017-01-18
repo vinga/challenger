@@ -87,7 +87,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
 
 
                 <Row horizontal="center">
-                    <Col col="8-5-3">
+                    <Col col="8-6-3" style={{minWidth:"250px",padding:"20px"}}>
                         <RowCol>
                             <TextFieldExt
                                 autoFocus={true}
@@ -125,7 +125,14 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                         <RowCol horizontal="end">
                             <FlatButton labelStyle={{textTransform:"none", color:"#888888"}} label="Forgot password?" onClick={this.props.onForgotPassword}/>
                         </RowCol>
-                        <RowCol colStyle={{paddingTop: '30px', paddingBottom: '30px'}}>
+
+
+
+
+                    </Col>
+
+                    <Col col="8-6-3" style={{minWidth:"250px",padding:'20px',paddingTop:'50px'}}>
+                        <RowCol colStyle={{ paddingTop: '30px', paddingBottom: '0px'}}>
                             <div style={{display:"block"}}>
                                 <RaisedButton
                                     fullWidth={true}
@@ -159,11 +166,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                                 {this.props.inProgress && <LinearProgress mode="indeterminate"/> }
                             </div>
                         </RowCol>
-
-
-
                     </Col>
-
                 </Row>
 
             </div>);

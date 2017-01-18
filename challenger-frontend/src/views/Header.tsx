@@ -22,7 +22,7 @@ export const Header = (props: Props)=> {
             </div>
             <Toolbar className="cyan lighten-1">
                 <ToolbarGroup firstChild={true}>
-                    <img src="img/shield.svg"
+                    <img src="images/shield.svg"
                          style={{
                                  marginLeft: '30px',
                                  marginTop: '10px',

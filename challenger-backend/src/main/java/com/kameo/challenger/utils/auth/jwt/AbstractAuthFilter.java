@@ -50,7 +50,9 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
             try {
                 String auth = httpReq.getHeader("Authorization");
                 if (Strings.isNullOrEmpty(auth)) {
-                    throw new IllegalAccessException("Unauthorized");
+                    chain.doFilter(req,res);
+                    return;
+                    //throw new IllegalAccessException("Unauthorized"); ignore, rely on spring security instead
                 }
                 String tokens = auth.substring("Bearer " .length());
                 List<String> tokensStringList = Lists.newArrayList(Splitter.on(" ").omitEmptyStrings().trimResults().split(tokens));
