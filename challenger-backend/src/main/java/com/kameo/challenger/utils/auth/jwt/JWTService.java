@@ -1,6 +1,5 @@
 package com.kameo.challenger.utils.auth.jwt;
 
-
 public class JWTService<E extends TokenInfo> {
     private JWTSigner signer;
     private JWTVerifier<E> verifier;
@@ -23,6 +22,20 @@ public class JWTService<E extends TokenInfo> {
     public static class AuthException extends Exception {
         public AuthException(String message) {
             super(message);
+        }
+
+        public AuthException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    public static class TokenExpiredException extends AuthException {
+        public TokenExpiredException(String message) {
+            super(message);
+        }
+
+        public TokenExpiredException(Throwable cause) {
+            super(cause);
         }
     }
 }

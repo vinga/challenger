@@ -3,6 +3,8 @@ import {VisibleChallengesDTO} from "./ChallengeDTO";
 
 
 export const CHANGE_CHALLENGE: ActionType<{challengeId: number}> = new ActionType<any>('CHANGE_CHALLENGE');
+export const ACCEPT_REJECT_CHALLENGE_OPTIMISTIC: ActionType<{challengeId: number, accept: boolean, loggedUserId: number}> = new ActionType<any>('ACCEPT_REJECT_CHALLENGE_OPTIMISTIC');
+export const SET_NO_CHALLENGES_LOADED_YET: ActionType<{}> = new ActionType<any>('SET_NO_CHALLENGES_LOADED_YET');
 export const WEB_CHALLENGES_REQUEST: ActionType<{}> = new ActionType<any>('WEB_CHALLENGES_REQUEST');
 export const WEB_CHALLENGES_RESPONSE: ActionType<VisibleChallengesDTO> = new ActionType<any>('WEB_CHALLENGES_RESPONSE');
 export const CLOSE_EDIT_CHALLENGE: ActionType<{}> = new ActionType<any>('CLOSE_EDIT_CHALLENGE');

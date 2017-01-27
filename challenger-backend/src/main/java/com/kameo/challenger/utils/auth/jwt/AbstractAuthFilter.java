@@ -4,6 +4,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.kameo.challenger.utils.auth.jwt.JWTService.AuthException;
+import com.kameo.challenger.utils.auth.jwt.JWTService.TokenExpiredException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -24,9 +25,7 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
         jwtService = createJWTService(arg0);
     }
 
-
     protected abstract JWTService<E> createJWTService(FilterConfig arg0);
-
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
@@ -50,7 +49,7 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
             try {
                 String auth = httpReq.getHeader("Authorization");
                 if (Strings.isNullOrEmpty(auth)) {
-                    chain.doFilter(req,res);
+                    chain.doFilter(req, res);
                     return;
                     //throw new IllegalAccessException("Unauthorized"); ignore, rely on spring security instead
                 }
@@ -71,9 +70,13 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 }
                 //Authorization:Bearer eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q
                 onTokenValidated(tokensList, httpReq, httpRes, chain);
+            } catch (TokenExpiredException ex) {
+                System.out.println("TOKEN expired....");
+                ex.printStackTrace();
+                unauthorized(httpRes, true);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                unauthorized(httpRes);
+                unauthorized(httpRes, false);
             }
         } else {
             chain.doFilter(req, res);
@@ -131,12 +134,13 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     }
 
     protected void onTokenExpired(HttpServletRequest req, HttpServletResponse response, FilterChain chain) throws IOException {
+        System.out.println("ON TOKEN EXPIRED -HERE");
         response.setHeader("jwt-status", "expired");
-        unauthorized(response);
+        unauthorized(response, true);
     }
 
     protected void onNotAuthorized(HttpServletRequest req, HttpServletResponse response, FilterChain chain) throws IOException {
-        unauthorized(response);
+        unauthorized(response, false);
     }
 
     protected void onAuthException(AuthException ex, HttpServletRequest req, HttpServletResponse response, FilterChain chain) throws IOException {
@@ -145,17 +149,18 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
         response.getWriter().flush();
     }
 
-    private void unauthorized(HttpServletResponse response) throws IOException {
+    private void unauthorized(HttpServletResponse response, boolean tokenExpired) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().print("Unauthorized");
+        if (tokenExpired)
+            response.getWriter().print("Unauthorized-tokenExpired");
+        else
+            response.getWriter().print("Unauthorized");
         response.getWriter().flush();
     }
 
     @Override
     public void destroy() {
     }
-
-
 
     protected abstract E renewToken(HttpServletRequest req, HttpServletResponse resp) throws AuthException;
 }

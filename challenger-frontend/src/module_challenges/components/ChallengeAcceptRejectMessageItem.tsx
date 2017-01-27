@@ -52,21 +52,28 @@ class ChallengeAcceptRejectMessageItemInternal extends React.Component<Props & R
                             }
                         </div>
                     </Col>
-                    <Col style={{padding:"10px"}}>
-                        <RaisedButton
-                            fullWidth={true}
-                            label="Accept"
-                            primary={true}
-                            className="right" onClick={this.handleConfirmChallenge}/>
-                    </Col>
-                    <Col style={{padding:"10px"}}>
-                        <RaisedButton
+                    <Col>
 
-                            fullWidth={true}
-                            label="Reject"
-                            secondary={true}
-                            className="right" onClick={this.handleRejectChallenge}/>
+                        <Row>
+                            <Col  style={{padding:"10px"}}>
+                                <RaisedButton
+                                    fullWidth={true}
+                                    label="Accept"
+                                    primary={true}
+                                    className="right" onClick={this.handleConfirmChallenge}/>
+                            </Col>
+                            <Col  style={{padding:"10px"}}>
+                                <RaisedButton
+
+                                    fullWidth={true}
+                                    label="Reject"
+                                    secondary={true}
+                                    className="right" onClick={this.handleRejectChallenge}/>
+                            </Col>
+                        </Row>
+
                     </Col>
+
 
                 </Row>
             </Col>

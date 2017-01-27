@@ -60,11 +60,16 @@ public class GoogleSigninPageController {
     }
 
     @RequestMapping("/oauth2/googleCallback")
-    public RedirectView callback(@RequestParam("code") String code) {
+    public RedirectView callback(@RequestParam("code") String code, @RequestParam(value = "error", required = false) String error) {
         /*if (req.getParameter("error") != null) {
             resp.getWriter().println(req.getParameter("error"));
             return;
         }*/
+        if (error != null) {
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl(serverUrl);
+            return redirectView;
+        }
         try {
             String accessToken = exchangeCodeForAccessToken(code);
             String json = HttpUtil.get(new StringBuilder("https://www.googleapis.com/oauth2/v1/userinfo?access_token=").append(accessToken).toString());

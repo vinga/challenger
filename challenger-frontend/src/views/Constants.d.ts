@@ -1,5 +1,5 @@
 import * as React from "react";
-import HTMLAttributes = __React.HTMLAttributes;
+import HTMLAttributes = React.HTMLAttributes;
 
 
 
@@ -7,15 +7,15 @@ export var ResizeAware:any;
 export var HidableComponent:any;
 
 
-import ReactElement = __React.ReactElement;
-import Component = __React.Component;
+import ReactElement = React.ReactElement;
+import Component = React.Component;
 
 
-export class DiffHardIcon extends __React.Component<HTMLAttributes,void> {
+export class DiffHardIcon extends React.Component<HTMLAttributes<any>,void> {
 }
-export class DiffSimpleIcon extends __React.Component<HTMLAttributes,void> {
+export class DiffSimpleIcon extends React.Component<HTMLAttributes<any>,void> {
 }
-export class DiffMediumIcon extends __React.Component<HTMLAttributes,void> {
+export class DiffMediumIcon extends React.Component<HTMLAttributes<any>,void> {
 }
 declare global {
     interface Date {

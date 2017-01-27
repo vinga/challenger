@@ -1,5 +1,4 @@
 import * as React from "react";
-import CSSProperties = __React.CSSProperties;
 
 const sizes = ["xs", "sm", "md", "lg"];
 
@@ -34,7 +33,7 @@ interface ColProps {
 }
 
 
-export const Row = (props: RowProps & {  style?: CSSProperties,   children?: any  }) => {
+export const Row = (props: RowProps & {  style?: React.CSSProperties,   children?: any  }) => {
     const horizontalsToClasses = (shortcut: string): string => {
         return shortcut.split("-").map((e, iter)=> {
             if (e != "center" && e != "start" && e != "end") {
@@ -79,7 +78,7 @@ export const Row = (props: RowProps & {  style?: CSSProperties,   children?: any
 }
 
 
-export const Col = (props: ColProps & { style?: CSSProperties, children?: any  }) => {
+export const Col = (props: ColProps & { style?: React.CSSProperties, children?: any  }) => {
     const colsToClasses = (shortcut: string): string => {
         return shortcut.split("-").map((e, iter)=> {
             return "col-" + sizes[iter] + "-" + e;
@@ -110,7 +109,7 @@ export const Col = (props: ColProps & { style?: CSSProperties, children?: any  }
 
 }
 
-export const RowCol = (props: RowProps & ColProps & { rowStyle?: CSSProperties,colStyle?: CSSProperties, children?: any  }) => {
+export const RowCol = (props: RowProps & ColProps & { rowStyle?: React.CSSProperties,colStyle?: React.CSSProperties, children?: any  }) => {
     return <Row {...props} style={props.rowStyle}><Col {...props} style={props.colStyle}>{props.children}</Col></Row>;
 }
 

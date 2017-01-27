@@ -10,9 +10,9 @@ import javax.persistence.TemporalType.TIMESTAMP
 
 @Entity
 data class EventReadODB(@Id
-                        @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+                        /*@GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)*/
                         override val id: Long = 0) : IIdentity {
-    constructor (userODB: UserODB, challengeODB: ChallengeODB, eventODB: EventODB) : this(){
+    constructor (id: Long, userODB: UserODB, challengeODB: ChallengeODB, eventODB: EventODB) : this(id){
         this.challenge = challengeODB
         this.user = userODB
         this.event = eventODB

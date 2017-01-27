@@ -1,35 +1,37 @@
 import * as React from "react";
 import {Row, Col} from "../../views/common-components/Flexboxgrid";
-import {Paper, RaisedButton} from "material-ui";
-import {challengeStatusSelector, selectedChallengeSelector} from "../challengeSelectors";
+import {Paper, RaisedButton, Divider} from "material-ui";
+import {challengeStatusSelector, selectedChallengeSelector, acceptedByMeChallengeSelector, waitingForMyAcceptanceChallengeSelector} from "../challengeSelectors";
 import {ReduxState} from "../../redux/ReduxState";
 import {connect} from "react-redux";
 import {loggedUserSelector} from "../../module_accounts/accountSelectors";
 import {CREATE_NEW_CHALLENGE} from "../challengeActionTypes";
 import {ChallengeStatus, ChallengeDTO, NO_CHALLENGES_LOADED_YET} from "../ChallengeDTO";
 import {acceptOrRejectChallenge} from "../challengeActions";
+import ChallengeAcceptRejectMessageItem from "./ChallengeAcceptRejectMessageItem";
 
 
 interface ReduxProps {
     userId: number,
     userLabel: string,
-    challengeIsActive: boolean,
+
     hasAnyChallenges: boolean
-    challengeState?: string,
-    selectedChallenge: ChallengeDTO,
-    stillLoading: boolean
+challengeIsActive: boolean
+
+    stillLoading: boolean,
+    waitingForMyAcceptance: ChallengeDTO[]
 }
 interface  ReduxFunc {
-    onCreateNewChallenge: (creatorLabel: string)=>void;
+    onCreateNewChallenge: (creatorLabel: string) => void;
     onAcceptRejectChallenge: (challengeId: number, accept: boolean) => void
 }
 class NoChallengesPanelInternal extends React.Component<{} & ReduxProps & ReduxFunc, void> {
 
-    handleConfirmChallenge = () => {
-        this.props.onAcceptRejectChallenge(this.props.selectedChallenge.id, true);
+    handleConfirmChallenge = (ch: ChallengeDTO) => {
+        this.props.onAcceptRejectChallenge(ch.id, true);
     }
-    handleRejectChallenge = () => {
-        this.props.onAcceptRejectChallenge(this.props.selectedChallenge.id, false);
+    handleRejectChallenge = (ch: ChallengeDTO) => {
+        this.props.onAcceptRejectChallenge(ch.id, false);
     }
 
     render() {
@@ -44,56 +46,37 @@ class NoChallengesPanelInternal extends React.Component<{} & ReduxProps & ReduxF
              </RowCol>*/
         }
 
-        return <Row style={{marginTop:"100px"}}>
-            <Col col="6-4" offset="3-4">
+        return <Row style={{marginTop:"50px"}}>
+            <Col col="10-6" offset="1-3">
                 <Paper style={{padding:"30px"}}>
-
                     {!this.props.hasAnyChallenges &&
-                    <div>
-                        You haven't created any challenge yet.
-                        <div>
-                            <RaisedButton
-                                style={{marginBottom:"20px", marginTop: "40px"}}
-                                fullWidth={true}
-                                label="Create new Challenge"
-                                primary={true}
-                                className="right" onClick={()=>this.props.onCreateNewChallenge(this.props.userLabel)}/>
-                            &nbsp;
-                        </div>
-                    </div>}
 
-
-                    {this.props.challengeState == ChallengeStatus.WAITING_FOR_ACCEPTANCE &&
-                    <div>
-                        Please decide if do you want accept or reject challenge <b>{this.props.selectedChallenge.label}</b>?<br/><br/>
-                        Challenge participants:<br/>
-                        {
-                            this.props.selectedChallenge.userLabels.filter(ul=>ul.id != this.props.userId).map(ul=>
-                                <div key={ul.id}>- {ul.label}
-                                    {this.props.selectedChallenge.creatorId == ul.id && " (Creator)" }
-                                </div>)
-                        }
-                        <br/>
-                        <Row style={{padding:"10px"}}>
-                            <Col style={{padding:"10px"}}>
-                                <RaisedButton
-
-                                    fullWidth={true}
-                                    label="Accept"
-                                    primary={true}
-                                    className="right" onClick={this.handleConfirmChallenge}/>
+                        <Row style={{marginBottom:"20px"}}>
+                            <Col    style={{marginTop:"10px",marginRight:"10px",}}>
+                                - You don't have any active challenges
                             </Col>
-                            <Col style={{padding:"10px"}}>
+                            <Col>
                                 <RaisedButton
+                                    style={{ minWidth:'200px'}}
+                                    label="Create new Challenge"
+                                    primary={true}
+                                    className="right" onClick={()=>this.props.onCreateNewChallenge(this.props.userLabel)}/>
 
-                                    fullWidth={true}
-                                    label="Reject"
-                                    secondary={true}
-                                    className="right" onClick={this.handleRejectChallenge}/>
                             </Col>
                         </Row>
-                    </div>
                     }
+                    {this.props.waitingForMyAcceptance.length > 0 &&
+                    <div style={{marginBottom:"20px", marginTop:"40px"}}>
+                        - You have {this.props.waitingForMyAcceptance.length} challenge(s) waiting for your acceptance:
+                    </div>
+
+                    }
+
+
+                    {this.props.waitingForMyAcceptance.map(challenge =>
+                        [<ChallengeAcceptRejectMessageItem key={challenge.id} challenge={challenge}/>,
+                            <Divider key={"d"+challenge.id} style={{margin:"20px"}}/>]
+                    )}
 
 
                 </Paper>
@@ -105,13 +88,11 @@ class NoChallengesPanelInternal extends React.Component<{} & ReduxProps & ReduxF
 const mapStateToProps = (state: ReduxState): ReduxProps => {
     return {
         stillLoading: state.challenges.selectedChallengeId == NO_CHALLENGES_LOADED_YET,
-        hasAnyChallenges: state.challenges.visibleChallenges.length > 0,
+        hasAnyChallenges: acceptedByMeChallengeSelector(state).length > 0,//state.challenges.visibleChallenges.length > 0,
+        waitingForMyAcceptance: waitingForMyAcceptanceChallengeSelector(state),
         userId: loggedUserSelector(state).id,
         userLabel: loggedUserSelector(state).login,
         challengeIsActive: challengeStatusSelector(state) == ChallengeStatus.ACTIVE,
-        challengeState: challengeStatusSelector(state),
-        selectedChallenge: selectedChallengeSelector(state),
-
     }
 };
 const mapDispatchToProps = (dispatch): ReduxFunc => {

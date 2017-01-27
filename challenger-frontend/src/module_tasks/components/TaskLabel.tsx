@@ -1,7 +1,7 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import Chip from "material-ui/Chip";
-import {getColorSuperlightenForUser, getColorLightenForUser} from "../../views/common-components/Colors.ts";
+import {getColorSuperlightenForUser, getColorLightenForUser} from "../../views/common-components/Colors";
 import {TaskStatus, TaskDTO, TaskApprovalDTO, TaskUserDTO} from "../TaskDTO";
 import TextInputDialog from "../../views/common-components/TextInputDialog";
 import {updateTaskStatus, deleteTask} from "../taskActions";
@@ -47,7 +47,7 @@ interface Props {
 
 }
 interface State {
-    showTaskRejectPopup: boolean
+    showTaskRejectPopup: boolean,
 }
 const chipWaiting = {
     marginRight: '5px',
@@ -59,7 +59,7 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
     constructor(props) {
         super(props);
         this.state = {
-            showTaskRejectPopup: false
+            showTaskRejectPopup: false,
         }
     }
 
@@ -122,20 +122,22 @@ class TaskLabelInternal extends React.Component<ReduxProps & Props & PropsFunc,S
                 <div style={{flexBasis:'fit-content',  display:'flex'}}>
                     <Chip className="clickableChip" style={chipStyle}
                           labelStyle={{ fontSize:'12px'}}
-                          onTouchTap={()=>this.props.onTaskAccept(this.props.taskDTO)}>
+                          onTouchTap={ ()=>{ this.props.onTaskAccept(this.props.taskDTO)}}>
                         <i className="fa fa-check"></i> Accept
                     </Chip>
+
                     <Chip className="clickableChip" style={chipStyle}
                           labelStyle={{ fontSize:'12px'}}
-                          onTouchTap={()=>{this.state.showTaskRejectPopup=true; this.setState(this.state);}}>
+                          onTouchTap={()=>{this.state.showTaskRejectPopup=true;  this.setState(this.state);}}>
                         <i className="fa fa-close"></i> Reject
                     </Chip>
+
                 </div>
 
                 { this.state.showTaskRejectPopup &&
                 <TextInputDialog
                     floatingLabelText="Reject reason"
-                    closeYes={(str)=>this.props.onTaskReject(this.props.taskDTO, str)}
+                    closeYes={(str)=>{ this.props.onTaskReject(this.props.taskDTO, str)}}
                     closeDialog={()=>{this.state.showTaskRejectPopup=false; this.setState(this.state);}}
                 />
                 }
@@ -197,7 +199,7 @@ const mapStateToProps = (state: ReduxState, ownprops: Props): ReduxProps => {
         userThatCanAcceptIsLogged: userThatCanAcceptIsLogged,
         waitingForAcceptanceLabels: waitingForAcceptanceLabels,
         userThatCanAcceptOrdinal: userThatCanAcceptOrdinal,
-        firstLettersOfRejectors: firstLettersOfRejectors
+        firstLettersOfRejectors: firstLettersOfRejectors,
     }
 };
 

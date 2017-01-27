@@ -64,7 +64,21 @@ public class FacebookSigninPageController {
     @RequestMapping("/oauth2/facebookCallback")
     public
     @ResponseBody
-    RedirectView callback(@RequestParam("code") String code) {
+    RedirectView callback(@RequestParam("code") String code,
+                          @RequestParam(value = "error", required = false) String error) {
+
+        /*YOUR_REDIRECT_URI?
+                error_reason=user_denied
+                        &error=access_denied
+                        &error_description=The+user+denied+your+request.*/
+        //error_reason=user_denied
+         //       &error=access_denied
+
+        if (error != null) {
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl(serverUrl);
+            return redirectView;
+        }
         /*if (req.getParameter("error") != null) {
             resp.getWriter().println(req.getParameter("error"));
             return;

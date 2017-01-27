@@ -123,10 +123,7 @@ export function getConfirmationLinkResponse(uid: string, confirmationRequest: Co
         dispatch(SET_CURRENT_CONFIRMATION_ID.new({uid: uid}));
         webCall.getConfirmationLinkResponse(dispatch, uid, confirmationRequest).then(
             (response: ConfirmationLinkResponseDTO) => {
-                console.log("cwir cwir ", response);
-
                 dispatch(CONFIRMATION_LINK_RESPONSE.new({confirmationLink: response}))
-
                 if (response.jwtToken != null) {
                     dispatch(LOGIN_USER_REQUEST.new({login: response.login, primary: true}));
                     dispatch(CLEAR_CONFIRMATION_LINK_STATE.new({}));

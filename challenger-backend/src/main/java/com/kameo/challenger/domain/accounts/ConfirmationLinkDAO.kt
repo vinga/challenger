@@ -13,6 +13,8 @@ import com.kameo.challenger.domain.challenges.ChallengeDAO
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REMOVED
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.WAITING_FOR_ACCEPTANCE
 import com.kameo.challenger.utils.mail.MailService
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
@@ -132,6 +134,13 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                         nextActions = listOf(AUTO_LOGIN))
             }
             CHALLENGE_CONFIRMATION_ACCEPT -> {
+                val ch=anyDaoNew.find(ChallengeODB::class, clODB.challengeId!!)
+                if (ch.challengeStatus==REMOVED && ch.participants.none {it.user.id == user.id && it.challengeStatus==WAITING_FOR_ACCEPTANCE}) {
+                    return ConfirmationLinkResponseDTO("The challenge is not accessible anymore.",
+                            newLoginRequired = true,
+                            displayLoginButton = true,
+                            nextActions = listOf(LOGIN_BUTTON, REGISTER_BUTTON))
+                }
                 challengeDAO.updateChallengeState(user.id, clODB.challengeId!!, ChallengeStatus.ACTIVE)
                 anyDaoNew.remove(ConfirmationLinkODB::class) {
                     it get ConfirmationLinkODB::challengeId eq clODB.challengeId
@@ -169,6 +178,13 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
 
             }
             CHALLENGE_CONFIRMATION_REJECT -> {
+                val ch=anyDaoNew.find(ChallengeODB::class, clODB.challengeId!!)
+                if (ch.challengeStatus==REMOVED && ch.participants.none {it.user.id == user.id && it.challengeStatus==WAITING_FOR_ACCEPTANCE}) {
+                    return ConfirmationLinkResponseDTO("The challenge is not accessible anymore.",
+                            newLoginRequired = true,
+                            displayLoginButton = true,
+                            nextActions = listOf(LOGIN_BUTTON, REGISTER_BUTTON))
+                }
                 challengeDAO.updateChallengeState(user.id, clODB.challengeId!!, ChallengeStatus.REFUSED)
                 anyDaoNew.remove(ConfirmationLinkODB::class) {
                     it get ConfirmationLinkODB::challengeId eq clODB.challengeId
@@ -187,6 +203,8 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
         }
 
     }
+
+    private fun challengeODB(clODB: ConfirmationLinkODB) = anyDaoNew.find(ChallengeODB::class, clODB.challengeId!!)
 
     open fun createOauth2LoginLink(userId: Long): String {
         val ccl = ConfirmationLinkODB()
@@ -296,4 +314,17 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
 
     }
 
+
+    open fun deleteConfirmationLinkForChallenge(challenge: ChallengeODB) {
+        anyDaoNew.remove(ConfirmationLinkODB::class) {
+            it get ConfirmationLinkODB::challengeId eq challenge.id
+        }
+    }
+
+    open fun deleteConfirmationLinkForChallengeAndUser(challenge: ChallengeODB, user: UserODB) {
+        anyDaoNew.remove(ConfirmationLinkODB::class) {
+            it get ConfirmationLinkODB::challengeId eq challenge.id
+            it get ConfirmationLinkODB::uid eqId user.id
+        }
+    }
 }

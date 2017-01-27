@@ -11,7 +11,7 @@ import {EventType, DateDiscrimUI, DisplayedEventUI} from "../EventDTO";
 import {TaskDTO} from "../../module_tasks/TaskDTO";
 import Chip from "material-ui/Chip";
 import {getColorSuperlightenForUser} from "../../views/common-components/Colors";
-
+import * as CSSTransitionGroup from 'react-addons-css-transition-group'
 
 interface Props {
     authorId: number
@@ -118,9 +118,22 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
     }
 
     renderPost = (ev: DisplayedEventUI | DateDiscrimUI) => {
+
+        var p=this.renderPostInternal(ev);
+
+        return  <CSSTransitionGroup
+            transitionName="universal"
+            transitionAppear={true}
+            transitionAppearTimeout={1000}
+            transitionEnter={false}
+            transitionLeave={false}>
+            {p}
+        </CSSTransitionGroup>
+    }
+    renderPostInternal = (ev: DisplayedEventUI | DateDiscrimUI) => {
         if (ev.kind == 'DateDiscrimUI') {//ev instanceof DateDiscrim) {
             var ddisc = ev as DateDiscrimUI;
-            return <div style={{fontSize:"10px", marginTop:'10px', borderRight:
+            return <div key={ddisc.title}  style={{fontSize:"10px", marginTop:'10px', borderRight:
              '10px solid transparent',marginRight:'20px', boxSizing: "border-box", borderBottom: "1px solid #ddd", width:"100%"}}>{ddisc.title}</div>;
         } else {//if (ev instanceof DisplayedEventUI) {
             var dd = ev as DisplayedEventUI;
@@ -131,8 +144,8 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
             }
 
             if (dd.eventType == EventType.POST)
-                return <div><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span>{taskLabel} {dd.postContent} {dd.isNew && "*"} </div>;
-            else return <div><i> {dd.postContent} {dd.isNew && "*"} </i></div>;
+                return <div  key={dd.id}><span style={{marginRight:"5px"}}>{dd.authorLabel}:</span>{taskLabel} {dd.postContent} {dd.isNew && "*"} </div>;
+            else return <div key={dd.id}><i> {dd.postContent} {dd.isNew && "*"} </i></div>;
         }
     }
 

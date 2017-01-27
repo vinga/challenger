@@ -3,7 +3,6 @@ import {ReduxState, connect} from "../../redux/ReduxState";
 import {AccountDTO} from "../AccountDTO";
 import {SecondUserAuthorizePopoverDialog} from "./SecondUserAuthorizePopoverDialog";
 import {loginUserAction} from "../accountActions";
-import ComponentDecorator = ReactRedux.ComponentDecorator;
 
 interface PropsFunc {
     showAuthorizeFuncIfNeeded: (eventTarget: EventTarget, userId: number)=>Promise<boolean>

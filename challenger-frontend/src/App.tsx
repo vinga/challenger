@@ -2,9 +2,9 @@ import * as React from "react";
 import {ReduxState} from "./redux/ReduxState";
 import {Provider, connect} from "react-redux";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
-import {Header} from "./views/Header.tsx";
-import LoggedView from "./views/LoggedView.tsx";
-import store from "./redux/store.ts";
+import {Header} from "./views/Header";
+import LoggedView from "./views/LoggedView";
+import store from "./redux/store";
 import {LOGOUT, LoginPanel, RegisterPanel, loggedUserSelector} from "./module_accounts/index";
 import {GlobalPopover} from "./views/common-components/GlobalPopover";
 import {ConfirmationPanel} from "./module_accounts/components/ConfirmationPanel";
@@ -33,13 +33,13 @@ const App = (props: Props & PropsFunc)=> {
             <Header logged={props.logged} onLogout={props.onLogout}/>
             <CustomNotificationPanel/>
             {
-            props.registering ?
-                <RegisterPanel/>:
-                (props.logged ?
-                    <LoggedView/>  :
-                    (props.confirmationLink ? <ConfirmationPanel/>
-                        :
-                        <LoginPanel/> )) }
+                props.registering ?
+                    <RegisterPanel/>:
+                    (props.logged ?
+                        <LoggedView/>  :
+                        (props.confirmationLink ? <ConfirmationPanel/>
+                            :
+                            <LoginPanel/> )) }
             <GlobalPopover/>
 
             {/* <Snackbar

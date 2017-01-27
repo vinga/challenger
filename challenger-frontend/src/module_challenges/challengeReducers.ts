@@ -9,7 +9,8 @@ import {
     UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION,
     CHECK_CHALLENGE_PARTICIPANTS_REQUEST,
     CHECK_CHALLENGE_PARTICIPANTS_RESPONSE,
-    EDIT_CHALLENGE
+    EDIT_CHALLENGE,
+    SET_NO_CHALLENGES_LOADED_YET, ACCEPT_REJECT_CHALLENGE_OPTIMISTIC
 } from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {VisibleChallengesDTO, ChallengeStatus, NO_CHALLENGES_LOADED_YET} from "./ChallengeDTO";
@@ -29,20 +30,45 @@ const initial = (): VisibleChallengesDTO => {
 export function challenges(state: VisibleChallengesDTO = initial(), action): VisibleChallengesDTO {
     if (isAction(action, 'LOGOUT')) {
         return initial();
+    } else if (isAction(action, ACCEPT_REJECT_CHALLENGE_OPTIMISTIC)) {
+        const challenge = state.visibleChallenges.find(ch => ch.id == action.challengeId );
+
+        const newUserLabels = challenge.userLabels.map(ul=>{
+            if(ul.id == action.loggedUserId) {
+                return { ... ul, challengeStatus: action.accept ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED}
+            } else {
+                return ul;
+            }
+        });
+
+        const visibleChallenges = state.visibleChallenges.map(
+            ch => {
+                if(ch.id == challenge.id) {
+                    return {... ch, userLabels: newUserLabels}
+                } else {
+                    return ch;
+                }
+            }
+        );
+        return {... state, visibleChallenges}
+
     } else if (isAction(action, WEB_CHALLENGES_REQUEST)) {
         return state;
     } else if (isAction(action, CHANGE_CHALLENGE)) {
         console.log("change challenge to " + action.challengeId);
         return copy(state).and({selectedChallengeId: action.challengeId});
-    } else if (isAction(action, WEB_CHALLENGES_RESPONSE)) {
+    } else if (isAction(action, SET_NO_CHALLENGES_LOADED_YET)) {
+        return copy(state).and({selectedChallengeId: NO_CHALLENGES_LOADED_YET});
+    }
+    else if (isAction(action, WEB_CHALLENGES_RESPONSE)) {
 
         var newState: VisibleChallengesDTO = action;
-        if (state.selectedChallengeId != null && state.selectedChallengeId != NO_CHALLENGES_LOADED_YET && newState.visibleChallenges.some(vc=>vc.id == state.selectedChallengeId)) {
+        if (state.selectedChallengeId != null && state.selectedChallengeId != NO_CHALLENGES_LOADED_YET && newState.visibleChallenges.some(vc => vc.id == state.selectedChallengeId)) {
             newState.selectedChallengeId = state.selectedChallengeId;
         }
-        newState.visibleChallenges.map(vc=> {
+        newState.visibleChallenges.map(vc => {
             var ord = 0;
-            vc.userLabels.forEach(ul=> {
+            vc.userLabels.forEach(ul => {
                 ul.ordinal = ord++;
             })
         });
@@ -63,7 +89,7 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
             }
         })
     } else if (isAction(action, UPDATE_CHALLENGE_PARTICIPANTS)) {
-        if (state.editedChallenge.userLabels.some(chp=>chp.label == action.loginOrEmail))
+        if (state.editedChallenge.userLabels.some(chp => chp.label == action.loginOrEmail))
             return state;
 
         var participant = {

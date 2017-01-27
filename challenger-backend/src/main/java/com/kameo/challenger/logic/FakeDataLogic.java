@@ -187,12 +187,13 @@ public class FakeDataLogic implements CommandLineRunner {
         p1.setEventType(EventType.POST);
         em.persist(p1);
 
-        EventReadODB er=new EventReadODB();
+        EventReadODB er=new EventReadODB(1);
+
         er.setChallenge(contract1);
         er.setEvent(p1);
         er.setUser(data.userJack);
         em.persist(er);
-        er=new EventReadODB();
+        er=new EventReadODB(2);
         er.setChallenge(contract1);
         er.setEvent(p1);
         er.setUser(data.userKami);
@@ -207,13 +208,13 @@ public class FakeDataLogic implements CommandLineRunner {
         p2.setEventType(EventType.POST);
         em.persist(p2);
 
-        er=new EventReadODB();
+        er=new EventReadODB(3);
         er.setChallenge(contract1);
         er.setEvent(p2);
         er.setUser(data.userJack);
         er.setRead(new Date());
         em.persist(er);
-        er=new EventReadODB();
+        er=new EventReadODB(4);
         er.setChallenge(contract1);
         er.setEvent(p2);
         er.setUser(data.userKami);
@@ -281,7 +282,7 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setEmail("kami@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
         u.setSalt(PasswordUtil.INSTANCE.createSalt());
-        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("kamipass", u.getSalt()));
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("passpass", u.getSalt()));
         data.userKami = u;
         anyDao.getEm().persist(u);
 
@@ -290,7 +291,7 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setEmail("jack@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
         u.setSalt(PasswordUtil.INSTANCE.createSalt());
-        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("jackpass", u.getSalt()));
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("passpass", u.getSalt()));
         anyDao.getEm().persist(u);
         data.userJack = u;
 
@@ -300,7 +301,7 @@ public class FakeDataLogic implements CommandLineRunner {
         u.setEmail("milena@email.em");
         u.setUserStatus(UserStatus.ACTIVE);
         u.setSalt(PasswordUtil.INSTANCE.createSalt());
-        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("milenapass", u.getSalt()));
+        u.setPasswordHash(PasswordUtil.INSTANCE.getPasswordHash("passpass", u.getSalt()));
         anyDao.getEm().persist(u);
         data.userMilena = u;
 

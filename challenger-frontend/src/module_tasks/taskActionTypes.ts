@@ -2,9 +2,10 @@ import {ActionType} from "../redux/ReduxTask";
 import {TaskDTOListForDay, TaskDTO, TaskProgressDTO, TaskProgressDTOListForDay} from "./TaskDTO";
 
 
-export const LOAD_TASKS_REQUEST_OLDWAY: ActionType<{challengeId: number, day: Date}> = new ActionType<any>('LOAD_TASKS_REQUEST_OLDWAY');
 export const LOAD_TASKS_RESPONSE_OLDWAY: ActionType<TaskDTOListForDay> = new ActionType<any>('LOAD_TASKS_RESPONSE_OLDWAY');
 
+
+export const UPDATE_TASK_ACCEPTANCE_OPTIMISTIC: ActionType<{challengeId: number, taskId: number, taskStatus: string}> = new ActionType<any>('UPDATE_TASK_ACCEPTANCE_OPTIMISTIC');
 
 export const LOAD_TASKS_REQUEST_NEWWAY: ActionType<{challengeId: number}> = new ActionType<any>('LOAD_TASKS_REQUEST_NEWWAY');
 export const LOAD_TASKS_RESPONSE_NEWWAY: ActionType<{tasks: TaskDTO[]}> = new ActionType<any>('LOAD_TASKS_RESPONSE_NEWWAY');

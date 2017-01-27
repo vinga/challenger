@@ -1,14 +1,13 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
-import {EventDTO} from "../EventDTO";
-import {Dialog, FlatButton} from "material-ui";
+import {EventDTO, EventType} from "../EventDTO";
+import {Dialog, FlatButton, Divider, IconButton, FontIcon} from "material-ui";
 import {Row, Col} from "../../views/common-components/Flexboxgrid";
 import {SHOW_GLOBAL_NOTIFICATIONS_DIALOG} from "../eventActionTypes";
 import {markGlobalEventsAsRead} from "../eventActions";
 import {waitingForMyAcceptanceChallengeSelector} from "../../module_challenges/challengeSelectors";
 import {ChallengeDTO} from "../../module_challenges/ChallengeDTO";
 import ChallengeAcceptRejectMessageItem from "../../module_challenges/components/ChallengeAcceptRejectMessageItem";
-import {Divider} from "material-ui";
 
 
 interface Props {
@@ -18,7 +17,8 @@ interface Props {
 
 
 interface PropsFunc {
-    onCloseFunc: (globalNotifications: EventDTO[])=>void
+    onCloseFunc: (globalNotifications: EventDTO[]) => void
+    markAsRead: (ev: EventDTO) => void
 
 }
 
@@ -29,7 +29,6 @@ class GlobalNotificationsPanelInternal extends React.Component<Props & PropsFunc
     }
 
 
-
     handleClose = () => {
         this.props.onCloseFunc(this.props.globalNotifications);
     }
@@ -38,26 +37,51 @@ class GlobalNotificationsPanelInternal extends React.Component<Props & PropsFunc
 
         return <div>
             <Dialog
-                actions={<FlatButton
+                actions={[<FlatButton
                             label="Close"
                             primary={false}
                             onTouchTap={this.handleClose}
-                         />}
+                         />]}
                 modal={true}
                 open={true}
                 style={{height: "600px", display: "block"}}
                 title="Messages"
             >
                 <div style={{height:"300px",overflowY: "auto"}}>
-                {this.props.challengesWaitingForMyAcceptance.map(challenge =>
-                        [<ChallengeAcceptRejectMessageItem challenge={challenge}/>,
-                            <Divider style={{margin:"20px"}}/>]
-                )}
+                    {this.props.challengesWaitingForMyAcceptance.map(challenge =>
+                        [
+                            <ChallengeAcceptRejectMessageItem
+                            key={challenge.id}
+                            challenge={challenge}/>
+                            ,
+                            <Divider style={{margin:"10px"}}/>
+                        ]
+                    )}
 
-                {this.props.globalNotifications.map((e: EventDTO)=>
-                    [<Row key={e.id}><Col>{e.content} </Col></Row>,
-                    <Divider style={{margin:"20px"}}/>]
-                )}
+                    {this.props.globalNotifications.map((e: EventDTO) =>
+                        [<Row key={e.id}>
+                            <Col col="11" style={{ marginTop:"15px", marginBottom: "10px"}}>
+
+                                <div style={{ fontSize:"10px",  borderRight:
+                        '10px solid transparent',marginRight:'20px', boxSizing: "border-box"}}>{new Date(e.sentDate).yy_mm_dd()}</div>
+                                <div>
+                                {e.content}
+                                </div>
+                                </Col>
+                            <Col style={{textAlign:"right", marginRight:"10px"}}>
+                                <IconButton
+                                    style={{margin:0}}
+                                    size={5}
+                                    iconStyle={{fontSize:"12px", margin:0, }}
+                                    onClick={()=>{this.props.markAsRead(e)}}>
+                                    <FontIcon
+                                        color="grey"
+                                        className={"fa fa-times"}/>
+                                </IconButton>
+                            </Col>
+                        </Row>,
+                            <Divider key={"d"+e.id} />]
+                    )}
                 </div>
 
             </Dialog></div>;
@@ -65,17 +89,25 @@ class GlobalNotificationsPanelInternal extends React.Component<Props & PropsFunc
 }
 
 const mapStateToProps = (state: ReduxState): Props => {
+
+/*    var arr: EventDTO[]=[]
+    for (let i=0; i<10; i++) {
+        arr.push({id:i, challengeId: 0, content: "test",authorId:1, sentDate: new Date().getTime(), forDay:new Date().getTime(), taskId: null, eventType: EventType.REMOVE_CHALLENGE})
+    }*/
     return {
-        globalNotifications: state.eventsState.globalUnreadEvents,
+        globalNotifications: state.eventsState.globalUnreadEvents,//.concat(arr),
         challengesWaitingForMyAcceptance: waitingForMyAcceptanceChallengeSelector(state)
 
     }
 };
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
-        onCloseFunc: (globalNotifications: EventDTO[])=> {
+        onCloseFunc: (globalNotifications: EventDTO[]) => {
             dispatch(SHOW_GLOBAL_NOTIFICATIONS_DIALOG.new({show: false}))
             //dispatch(markGlobalEventsAsRead(globalNotifications));
+        },
+        markAsRead: (ev: EventDTO) => {
+            dispatch(markGlobalEventsAsRead([ev]));
         }
     }
 };

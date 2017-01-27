@@ -5,7 +5,7 @@ import FlatButton from "material-ui/FlatButton";
 import TextField from "material-ui/TextField";
 import {RadioButton, RadioButtonGroup} from "material-ui/RadioButton";
 import DatePicker from "material-ui/DatePicker";
-import IconChooserButton from "./IconChooserButton.tsx";
+import IconChooserButton from "./IconChooserButton";
 import {TouchTapEvent, IconButton, Subheader} from "material-ui";
 import {TaskDTO, TaskType} from "../../TaskDTO";
 import {updateTask, deleteTask} from "../../taskActions";
@@ -199,9 +199,9 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         />
                         {  this.props.task.id > 0 && this.props.isTaskUserLogged &&
                         <div style={{float: "right"}}>
-                            <IconButton style={{width: 60, height: 60}}
+                            <IconButton  style={{fontSize: 20}}
                                         onClick={this.handleTaskDelete}>
-                                &nbsp;<i className={'fa fa-trash' }
+                                <i className={'fa fa-trash' }
                                          style={{fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
                             </IconButton>
                         </div>

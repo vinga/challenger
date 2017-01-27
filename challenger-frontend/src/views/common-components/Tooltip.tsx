@@ -1,5 +1,5 @@
 import * as React from "react";
-import CSSProperties = __React.CSSProperties;
+import CSSProperties = React.CSSProperties;
 
 interface Props {
     tooltip: JSX.Element | string,

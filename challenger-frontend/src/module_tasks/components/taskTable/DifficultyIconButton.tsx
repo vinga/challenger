@@ -7,7 +7,7 @@ import * as ReactDOM from "react-dom";
 import {Tooltip} from "../../../views/common-components/Tooltip";
 import {YesNoConfirmationDialog} from "../../../views/common-components/YesNoConfirmationDialog";
 import {getColorLightenForUser} from "../../../views/common-components/Colors";
-import ReactInstance = __React.ReactInstance;
+
 
 //import * as Tooltip from "@cypress/react-tooltip";
 

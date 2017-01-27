@@ -42,7 +42,7 @@ function configureStore(initialState) {
 
 
     );
-    hotReloadIfNeeded(store, "../reducers/reducers" );
+    hotReloadIfNeeded(store);
 
 /*    const finalCreateStore = compose(
         applyMiddleware(thunkMiddleware),

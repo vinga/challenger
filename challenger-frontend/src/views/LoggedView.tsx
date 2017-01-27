@@ -59,8 +59,10 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-                Challenge details (inna nazwa?) nie powinien być widoczny jeśli ktoś nie jest creatorem<br/>
-                Usunięcie osoby z challenga -> eventy u tej osoby spowodują Exception<br/>
+
+                Ladować tylko ostatnie N taskow. Jesli sa wczesniejsze, to dodac przycisk doladowania wczesniejszych N taskow.<br/>
+                Jak brak polaczenia z internetem, to wyswietlic info i za pare sekund wymusic przeladowanie calego challenga<br/>
+
                 <NoChallengesPanel/>
                 <div>{rows}</div>
 

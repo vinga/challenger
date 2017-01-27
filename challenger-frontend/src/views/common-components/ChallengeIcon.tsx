@@ -1,5 +1,5 @@
 import * as React from 'react';
-import HTMLAttributes = __React.HTMLAttributes;
+
 
 
 /*interface Props extends HTMLAttributes {

@@ -13,32 +13,32 @@ interface IEventGroupRestService {
 
     fun createEvent(challengeId: Long, eventDTO: EventDTO): EventDTO
 
-    data class EventGroupDTO(val challengeId: Long, val taskId: Long? = null, val posts: Array<EventDTO> = emptyArray())
+    data class EventGroupDTO(val challengeId: Long?=null, val taskId: Long? = null, val events: Array<EventDTO> = emptyArray(), val maxTotalEventReadId: Long?=null)
 
 
-    data class EventDTO(val id: Long=0,
+    data class EventDTO(val id: Long = 0,
                         var authorId: Long = 0,
                         var content: String = "",
                         var sentDate: Long = 0,
                         var forDay: Long = 0,
                         var taskId: Long? = null,
-                        var challengeId: Long =0,
+                        var challengeId: Long = 0,
                         var eventType: EventType = EventType.POST,
-                        var readDate: Long?=null,
-                        var eventReadId: Long=0 // used for sorting if readDate is null
-                        ) {
+                        var readDate: Long? = null,
+                        var eventReadId: Long = 0, // used for sorting if readDate is null,
+                        var affectedUserId: Long? = null
 
-
-
+    ) {
 
 
         companion object {
-            fun fromODB(pair : Pair<EventReadODB, EventODB>): EventDTO {
+            fun fromODB(pair: Pair<EventReadODB, EventODB>): EventDTO {
                 val co = fromODB(pair.second)
-                co.readDate=pair.first.read?.time
-                co.eventReadId=pair.first.id
+                co.readDate = pair.first.read?.time
+                co.eventReadId = pair.first.id
                 return co
             }
+
             fun fromODB(c: EventODB): EventDTO {
                 val co = EventDTO(id = c.id,
                         authorId = c.author.id,
@@ -47,10 +47,13 @@ interface IEventGroupRestService {
                         forDay = c.forDay.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli(),
                         taskId = c.taskId,
                         challengeId = c.challenge.id,
-                        eventType = c.eventType
+                        eventType = c.eventType,
+                        affectedUserId = c.affectedUser?.id
                 )
                 return co
             }
         }
+
+
     }
 }

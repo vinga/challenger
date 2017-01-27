@@ -1,5 +1,7 @@
 import * as React from "react";
 
+
+
 export const Footer = ()=> {
     return (<div >
             <div className="footer-container">
@@ -35,7 +37,7 @@ export const Footer = ()=> {
                 <div className="footer-container">
                     <img src="images/shield.svg"
                          style={{height: '20px', fill: '#ffffff', marginRight: '10px'}}/>
-                    Made by <a className="orange-text text-lighten-3" href="http://materializecss.com">Kameo & Iterion</a>
+                    Made by <a className="orange-text text-lighten-3" href="" >Kameo & Iterion</a>
                 </div>
             </div>
         </div>

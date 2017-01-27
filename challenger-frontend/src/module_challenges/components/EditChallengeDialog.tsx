@@ -1,4 +1,4 @@
-import {ChallengeDTO, ChallengeParticipantDTO, ChallengeStatus} from "../ChallengeDTO";
+import {ChallengeDTO, ChallengeParticipantDTO} from "../ChallengeDTO";
 import {TouchTapEvent, FlatButton, FontIcon, IconButton} from "material-ui";
 import Dialog from "material-ui/Dialog";
 import {createChallengeAction, updateChallengeAction, deleteChallengeAction} from "../challengeActions";
@@ -29,11 +29,11 @@ interface ReduxProps {
 
 interface PropsFunc {
     onCloseFunc?: (event?: TouchTapEvent) => void,
-    onCreateChallengeFunc: (challenge: ChallengeDTO)=>void;
+    onCreateChallengeFunc: (challenge: ChallengeDTO) => void;
     updateChallengeParticipant: (loginOrEmail: string) => void,
     deleteChallengeParticipant: (label: string) => void,
     updateErrorText: (errorText: string) => void
-    deleteChallengeFunc: (challenge: ChallengeDTO)=>void;
+    deleteChallengeFunc: (challenge: ChallengeDTO) => void;
 }
 interface State {
     challenge: ChallengeDTO,
@@ -88,7 +88,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
         if (this.props.challenge.id <= 0) {
             return "Create New Challenge";
         }
-        return "Edited Challenge: " + this.props.challenge.label;
+        return "Challenge: " + this.props.challenge.label;
     };
 
     handleChipTouchTap = (event) => {
@@ -115,15 +115,16 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
     componentDidMount = () => {
 
-        setTimeout(()=> {
-            this.textField.focus();
+        setTimeout(() => {
+            if (this.textField != null)
+                this.textField.focus();
         }, 200);
     }
 
     render() {
         const actions = [
             <FlatButton
-                label="Submit"
+                label={this.props.challenge.id <= 0? "Create":"Update"}
                 primary={true}
                 disabled={this.state.submitDisabled || !this.props.canSubmit}
                 onTouchTap={this.handleSubmit}
@@ -135,6 +136,35 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
             />
         ];
 
+        // if you are not owner, just see detaisl
+        if (this.props.challenge.id > 0 && this.props.challenge.creatorId != this.props.currentUserId) {
+            var creatorLabel = this.props.challenge.userLabels.find(u=>u.id == this.props.challenge.creatorId).label
+            var otherParticipantsThanCreator = this.props.challenge.userLabels.filter(u=>u.id != this.props.challenge.creatorId);
+
+            return (<div>
+                <Dialog
+                    actions={[<FlatButton
+                                label="Cancel"
+                                primary={false}
+                                onTouchTap={this.props.onCloseFunc}
+                                />]}
+                    modal={true}
+                    open={true}
+                    style={{height: "600px", overflow: "none", display: "block"}}
+                    title={"Challenge: "+this.props.challenge.label}
+                >
+                    Participants:<br/>
+                    <div >- {creatorLabel} (Creator)</div>
+                    {
+                        otherParticipantsThanCreator.map(ul=>
+                            <div key={ul.id}>- {ul.label}
+                                {this.props.challenge.creatorId == ul.id && " (Creator)" }
+                            </div>)
+                    }
+                </Dialog>
+            </div>);
+        }
+
         return (<div>
             <Dialog
                 actions={actions}
@@ -144,9 +174,11 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                 title={this.resolveTitle()}
             >
                 <div>
+                  {/*  autoFocus={true}*/}
+
                     <TextField
                         ref={(c)=>this.textField=c}
-                        autoFocus={true}
+
                         floatingLabelText="Challenge Name"
                         hintText="Challenge name"
                         defaultValue={this.props.challenge.label}
@@ -157,6 +189,7 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
                     {  this.props.challenge.id > 0 && this.props.challenge.creatorId == this.props.currentUserId &&
                     <div style={{float: "right"}}>
                         <IconButton style={{width: 60, height: 60}}
+                                    tooltip="Delete"
                                     onClick={()=>{this.state.showConfirmDeleteDialog=true; this.setState(this.state); }}>
                             &nbsp;<i className={'fa fa-trash' }
                                      style={{fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
@@ -227,23 +260,23 @@ const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
         canSubmit: state.challenges.challengeParticipantIsChecked != true,
         currentUserId: loggedUserSelector(state).id,
         possibleParticipants: possibleChallengeParticipantsSelector(state),
-        possibleLabels: possibleChallengeParticipantsSelector(state).map(u=>u.label),
+        possibleLabels: possibleChallengeParticipantsSelector(state).map(u => u.label),
         errorText: state.challenges.errorText,
 
     }
 };
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
-        onCreateChallengeFunc: (challenge: ChallengeDTO)=> {
+        onCreateChallengeFunc: (challenge: ChallengeDTO) => {
             if (challenge.id <= 0)
                 dispatch(createChallengeAction(challenge));
             else
                 dispatch(updateChallengeAction(challenge));
         },
-        deleteChallengeFunc: (challenge: ChallengeDTO)=> {
+        deleteChallengeFunc: (challenge: ChallengeDTO) => {
             dispatch(deleteChallengeAction(challenge.id));
         },
-        onCloseFunc: (event: TouchTapEvent)=> {
+        onCloseFunc: (event: TouchTapEvent) => {
             dispatch(CLOSE_EDIT_CHALLENGE.new({}));
         },
         updateChallengeParticipant: (loginOrEmail: string) => {

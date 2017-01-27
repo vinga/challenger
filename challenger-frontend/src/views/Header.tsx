@@ -7,12 +7,16 @@ import FontIcon from "material-ui/FontIcon";
 
 interface Props {
     logged: boolean;
-    onLogout: ()=>void;
+    onLogout: () => void;
 }
 
-export const Header = (props: Props)=> {
+const reloadPage = () => {
+    location.reload(true)
+}
+
+export const Header = (props: Props) => {
     return (
-        <nav className="cyan lighten-1 " role="navigation">
+        <nav className="cyan lighten-1 " role="navigation" >
             <div style={{position: 'absolute', left: '0px', top: '0px', fill: '#00e5ff'}}> {/*'#b2ebf2'*/}
                 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900.00001 300">
                     <path
@@ -20,16 +24,24 @@ export const Header = (props: Props)=> {
                         fillOpacity=".235"/>
                 </svg>
             </div>
-            <Toolbar className="cyan lighten-1">
+            <Toolbar style={{height:"48px", lineHeight:"48px"}} className="cyan lighten-1">
                 <ToolbarGroup firstChild={true}>
                     <img src="images/shield.svg"
+                         onClick={reloadPage}
                          style={{
                                  marginLeft: '30px',
-                                 marginTop: '10px',
+                                 marginTop: '0px',
                                  height: '40px',
-                                 fill: '#ffffff'
+                                 fill: '#ffffff',
+                                 cursor: "pointer"
                              }}/>
-                    <span style={{fontSize: '30px', marginLeft: '10px'}}>Challenger</span>
+                    <span
+                        onClick={reloadPage}
+                        style={{fontSize: '30px',
+                                cursor: "pointer",
+                                marginLeft: '10px'}}>
+                        Challenger
+                    </span>
                 </ToolbarGroup>
 
 

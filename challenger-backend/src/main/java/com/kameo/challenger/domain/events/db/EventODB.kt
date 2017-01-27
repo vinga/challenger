@@ -23,6 +23,11 @@ data class EventODB(@Id
     @JoinColumn(updatable = false)
     lateinit var author: UserODB
 
+
+    @ManyToOne
+    @JoinColumn(updatable = false)
+    var affectedUser: UserODB?=null
+
     @ManyToOne
     @JoinColumn(updatable = false)
     var recipient: UserODB? = null

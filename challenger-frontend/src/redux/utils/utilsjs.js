@@ -33,7 +33,7 @@ Array.prototype.contains = function(obj) {
     return this.indexOf(obj) > -1;
 };
 
-export function hotReloadIfNeeded (store, reducerPath) {
+export function hotReloadIfNeeded (store) {
     if (module.hot) {
         module.hot.accept("../reducers", () => {
             const nextRootReducer = require("../reducers");

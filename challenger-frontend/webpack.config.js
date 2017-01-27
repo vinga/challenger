@@ -51,3 +51,7 @@ module.exports = {
 
 //npm install --save-dev html-loader
 //npm install material-ui
+//npm install @types/react-addons-css-transition-group --save-dev
+
+//react-hot-uploader stays 1.X.X because for 3.0.0-beta.6 there was problem
+// with reloading that I couldn't resolved (The following modules couldn't be hot updated: (They would need a full reload!))

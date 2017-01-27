@@ -1,8 +1,10 @@
 import {Selector, createSelector} from "reselect";
 import {ReduxState} from "../redux/ReduxState";
-import {EventGroupDTO, DateDiscrimUI, DisplayedEventUI, EventType} from "./EventDTO";
+import {EventGroupDTO, DateDiscrimUI, DisplayedEventUI, EventType, EventDTO} from "./EventDTO";
 import {selectedChallengeParticipantsSelector, ChallengeParticipantDTO} from "../module_challenges/index";
 import {TaskDTO, allTasksSelector} from "../module_tasks/index";
+import {loggedUserSelector} from "../module_accounts/accountSelectors";
+import {AccountDTO} from "../module_accounts/AccountDTO";
 
 const displaySeletectedEventGroupSelector: Selector<ReduxState,EventGroupDTO> = (state: ReduxState): EventGroupDTO =>
     state.eventsState.eventGroups.find(eg=>eg.challengeId == state.challenges.selectedChallengeId)
@@ -13,19 +15,22 @@ const displayTaskSelector: Selector<ReduxState,TaskDTO> = (state: ReduxState): T
 const eventActionsVisibleSelector: Selector<ReduxState,boolean> = (state: ReduxState): boolean => state.eventsState.eventActionsVisible
 
 
+
 export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDiscrimUI>> = createSelector(
+    loggedUserSelector,
     selectedChallengeParticipantsSelector,
     displaySeletectedEventGroupSelector,
     eventActionsVisibleSelector,
     allTasksSelector,
     displayTaskSelector,
 
-    (challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupDTO, eventActionsVisible: boolean, allTasks: Array<TaskDTO>, filteredTask?: TaskDTO) => {
+    (account: AccountDTO, challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupDTO, eventActionsVisible: boolean, allTasks: Array<TaskDTO>, filteredTask?: TaskDTO) => {
 
-        if (eventGroups == null || eventGroups.posts == null)
+        if (eventGroups == null || eventGroups.events == null)
             return [];
 
-        var events: Array<DisplayedEventUI> = eventGroups.posts
+        var accountId=account!=null? account.id: null;
+        var events: Array<DisplayedEventUI> = eventGroups.events
             .filter(p=> (filteredTask == null || p.taskId == filteredTask.id) && (eventActionsVisible || (p.eventType != EventType.UNCHECKED_TASK && p.eventType!=EventType.CHECKED_TASK)))
             .sort((a, b)=> {
                 if (a.readDate != null && b.readDate != null) return a.readDate - b.readDate;
@@ -52,7 +57,7 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
                     authorOrdinal: cp!=null? cp.ordinal : -1,
                     authorLabel: cp!=null? cp.label : "<user deleted>",
                     postContent: p.content,
-                    isNew: p.readDate == null,
+                    isNew: p.readDate == null && p.authorId!=accountId,
                     sentDate: new Date(p.sentDate),
                     readDate: p.readDate != null ? new Date(p.readDate) : null,
                     task: p.taskId != null ? allTasks[p.taskId] : null

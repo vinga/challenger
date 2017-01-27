@@ -13,7 +13,6 @@ import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.sql.Timestamp
 import java.time.LocalDate
 import java.util.*
 import javax.inject.Inject
@@ -179,13 +178,12 @@ open class TaskDAO {
             }
         }
 
-
-        tasks.forEach {
+/*        tasks.forEach {
             println("visible task: " + it.dueDate + " " + dayMidnight + " " + dayMidnight.atStartOfDay() + ", close date: " + it.closeDate + ", day midnight:" + dayMidnight)
             if (it.dueDate != null) {
                 println("" + Timestamp.valueOf(it.dueDate) + " " + Timestamp.valueOf(dayMidnight.atStartOfDay()))
             }
-        }
+        }*/
 
         getTaskProgress(tasks, dayMidnight).forEach {
             it.task.done = it.done

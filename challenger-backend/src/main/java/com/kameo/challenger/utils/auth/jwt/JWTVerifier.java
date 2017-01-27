@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.kameo.challenger.utils.auth.jwt.JWTService.TokenExpiredException;
 import net.oauth.jsontoken.Clock;
 import net.oauth.jsontoken.JsonToken;
 import net.oauth.jsontoken.JsonTokenParser;
@@ -118,7 +119,7 @@ public class JWTVerifier<E extends TokenInfo> {
      * @throws InvalidKeyException
      */
 
-    public E verifyToken(String token) {
+    public E verifyToken(String token) throws TokenExpiredException {
         try {
             Verifier hmacVerifier = new HmacSHA256Verifier(sc.getSigningKey());
             VerifierProvider hmacLocator = (id, key) -> Lists.newArrayList(hmacVerifier);
@@ -140,6 +141,9 @@ public class JWTVerifier<E extends TokenInfo> {
                 jt = parser.verifyAndDeserialize(token);
 
             } catch (SignatureException e) {
+                if (e.getMessage().startsWith("token expired")) {
+                    throw new TokenExpiredException(e);
+                }
                 throw new RuntimeException(e);
             }
             JsonObject payload = jt.getPayloadAsJsonObject();
@@ -162,5 +166,7 @@ public class JWTVerifier<E extends TokenInfo> {
             throw new RuntimeException(ex);
         }
     }
+
+
 
 }

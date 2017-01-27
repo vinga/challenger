@@ -34,27 +34,13 @@ class EventGroupRestService : IEventGroupRestService {
     @Inject
     private lateinit var eventPushDAO: EventPushDAO
 
-/*
-    @Deprecated("use getEventsForChallenge instead")
-    @GET
-    @Path("/challenges/{challengeId}/tasks/{taskId}/events")
-    @ApiOperation("Gets events for task")
-    override fun getEventsForTask(@PathParam("challengeId") challengeId: Long, @PathParam("taskId") taskId: Long): EventGroupDTO {
-        val callerId = session.userId
-
-        val postsForTask = eventGroupDAO.getEventsForTask(callerId, challengeId, taskId).map(
-                { EventDTO.fromODB(it) })
-                .toTypedArray()
-
-        return EventGroupDTO(challengeId, taskId, postsForTask)
-    }*/
 
 
     @POST
     @Path("/async/events")
     @WebResponseStatus(WebResponseStatus.ACCEPTED)
-    fun listenTo(@Suspended asyncResponse: AsyncResponse, @QueryParam("lastEventId") lastEventId: Long?) {
-        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, lastEventId)
+    fun listenTo(@Suspended asyncResponse: AsyncResponse, @QueryParam("lastEventReadId") lastEventReadId: Long?) {
+        eventPushDAO.listenToNewEvents(session.jwtToken, session.userId, asyncResponse, lastEventReadId)
     }
 
     @POST

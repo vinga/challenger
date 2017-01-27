@@ -3,29 +3,43 @@ package com.kameo.challenger.domain.events
 import com.kameo.challenger.config.ServerConfig
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
+import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REFUSED
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REMOVED
 import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.domain.events.db.EventReadODB
 import com.kameo.challenger.domain.events.db.EventType
-import com.kameo.challenger.domain.events.db.EventType.CHECKED_TASK
-import com.kameo.challenger.domain.events.db.EventType.POST
+import com.kameo.challenger.domain.events.db.EventType.*
 import com.kameo.challenger.domain.tasks.db.TaskODB
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
 import com.kameo.challenger.utils.odb.newapi.unaryPlus
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import org.springframework.transaction.PlatformTransactionManager
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT
+import org.springframework.transaction.event.TransactionalEventListener
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Provider
+import org.springframework.transaction.support.TransactionCallback
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.TransactionStatus
+import org.springframework.transaction.support.TransactionTemplate
+
+
 
 @Component
 @Transactional
 open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                          @Inject val serverConfig: ServerConfig,
                          @Inject val eventPushDao: Provider<EventPushDAO>,
-                         @Inject val permissionDao: PermissionDAO) {
+                         @Inject val permissionDao: PermissionDAO,
+                         @Inject val appEventPublisher: ApplicationEventPublisher) {
 
     interface IEventInfo
 
@@ -43,8 +57,14 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
             EventType.REJECT_CHALLENGE -> user.getLoginOrEmail() + " rejected challenge " + challenge.label
             EventType.REMOVE_CHALLENGE -> user.getLoginOrEmail() + " deleted challenge " + challenge.label
             EventType.UPDATE_CHALLENGE -> user.getLoginOrEmail() + " updated challenge " + challenge.label
-            EventType.INVITE_USER_TO_CHALLENGE -> user.getLoginOrEmail() + " invited user " + (eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail() + " to challenge " + challenge.label
-            EventType.REMOVE_USER_FROM_CHALLENGE -> user.getLoginOrEmail() + " invited user " + (eventInfo as ChallengeInviteRemoveUserEventInfo).user.getLoginOrEmail() + " from challenge " + challenge.label
+            EventType.INVITE_USER_TO_CHALLENGE -> {
+                e.affectedUser = (eventInfo as ChallengeInviteRemoveUserEventInfo).user
+                user.getLoginOrEmail() + " invited user " + e.affectedUser!!.getLoginOrEmail() + " to challenge " + challenge.label
+            }
+            EventType.REMOVE_USER_FROM_CHALLENGE -> {
+                e.affectedUser = (eventInfo as ChallengeInviteRemoveUserEventInfo).user
+                user.getLoginOrEmail() + " removed user " + e.affectedUser!!.getLoginOrEmail() + " from challenge " + challenge.label
+            }
             else -> {
                 throw IllegalArgumentException()
             }
@@ -53,14 +73,107 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
         e.author = user
         anyDaoNew.em.persist(e)
 
-        anyDaoNew.find(ChallengeODB::class, challenge.id).participants.forEach {
-            anyDaoNew.persist(EventReadODB(it.user, it.challenge, e))
-        }
 
 
-        eventPushDao.get().broadcastNewEvent(challenge.id)
+        publish(MetaEventDTO(e, challengeParticipantsThatReveiveEvents(challenge).map{it.user}))
+
+
+
     }
 
+    open fun publish(metaEvent: EventGroupDAO.MetaEventDTO) {
+        /*     metaEvent.users.forEach {
+                  it.saveParticipant(metaEvent.event, metaEvent.event.challenge)
+              }
+
+              eventPushDao.get().broadcastNewEvent(metaEvent.event.challenge.id)*/
+
+
+        appEventPublisher.publishEvent(metaEvent)
+    }
+
+    class MetaEventDTO(val event: EventODB, val users: List<UserODB>);
+
+    @Inject
+     lateinit var txManager: PlatformTransactionManager;
+
+    @TransactionalEventListener(phase = AFTER_COMMIT)
+    open fun handleOrderCreatedEvent(metaEvent: MetaEventDTO) {
+        println("handleOrderCreatedEvent-start")
+
+
+        val txTemplate = TransactionTemplate(txManager)
+        txTemplate.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+        txTemplate.execute(object : TransactionCallback<Any> {
+            override fun doInTransaction(status: TransactionStatus) {
+                metaEvent.users.forEach {
+                    it.saveParticipant(metaEvent.event, metaEvent.event.challenge)
+                    // Thread.sleep(10000)
+                    println("handleOrderCreatedEvent-end")}
+            }
+        })
+
+
+        eventPushDao.get().broadcastNewEvent(metaEvent.event.challenge.id)
+    }
+
+
+    private val firstReadId:AtomicLong by lazy {
+        var maxReadId: Long = anyDaoNew.getFirst(EventReadODB::class) {
+            it.select(it.max(+EventReadODB::id))
+        }?:0;
+        AtomicLong(maxReadId+1)
+    }
+
+    open fun getMaxEventReadId(callerId: Long): Long {
+        var maxId: Long = anyDaoNew.getFirst(EventReadODB::class) {
+            it get EventReadODB::user eqId callerId
+            it.select(it.max(+EventReadODB::id))
+        }?:-1;
+        return maxId;
+    }
+
+
+    private fun List<ChallengeParticipantODB>.saveParticipants(e: EventODB) {
+        forEach {
+            it.user.saveParticipant(e, it.challenge)
+        }
+    }
+
+    private fun UserODB.saveParticipant(e: EventODB, ch: ChallengeODB) {
+        //thread safe by user.id (not sure this id-Long is unique within system (single JVM), it should be)
+        //this is in order to keep always eventRead.id increasing for any user
+
+        synchronized(id) {
+            anyDaoNew.persist(EventReadODB( firstReadId.incrementAndGet(),this, ch, e))
+        }
+    }
+
+    private fun challengeParticipantsThatReveiveEvents(challenge: ChallengeODB) =
+            anyDaoNew.find(ChallengeODB::class, challenge.id).participants.filter { it.challengeStatus != REFUSED && it.challengeStatus != REMOVED }
+
+    open fun createGlobalEventAfterServerAction(callerId: Long, challengeODB: ChallengeODB, eventType: EventType, eventInfo: IEventInfo? = null, vararg recipients: UserODB) {
+        val user = anyDaoNew.find(UserODB::class, callerId)
+        val e = EventODB()
+        e.eventType = eventType
+        e.challenge = challengeODB
+        e.author = user
+        e.content = when (eventType) {
+            REMOVE_ME_FROM_CHALLENGE -> {
+                e.affectedUser = (eventInfo as ChallengeInviteRemoveUserEventInfo).user
+                user.getLoginOrEmail() + " removed you from challenge " + e.challenge.label
+            }
+            else -> throw IllegalArgumentException()
+        }
+        anyDaoNew.persist(e)
+
+
+        publish(MetaEventDTO(e, challengeParticipantsThatReveiveEvents(challengeODB).map{it.user}))
+
+        //recipients.forEach { it.saveParticipant(e, challengeODB) }
+
+       // eventPushDao.get().broadcastNewEvent(challengeODB.id)
+    }
 
     open fun createTaskEventAfterServerAction(user_: UserODB? = null, task: TaskODB, eventType: EventType, eventInfo: IEventInfo? = null) {
         val user = user_ ?: anyDaoNew.em.find(UserODB::class.java, task.createdByUser.id)
@@ -98,12 +211,13 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
         anyDaoNew.persist(e)
 
-        anyDaoNew.find(ChallengeODB::class, task.challenge.id).participants.forEach {
-            anyDaoNew.persist(EventReadODB(it.user, it.challenge, e))
-        }
 
-        eventPushDao.get().broadcastNewEvent(task.challenge.id)
+        publish(MetaEventDTO(e, challengeParticipantsThatReveiveEvents(e.challenge).map{it.user}))
+        //challengeParticipantsThatReveiveEvents(e.challenge).saveParticipants(e);
+
+        //eventPushDao.get().broadcastNewEvent(task.challenge.id)
     }
+
 
     open fun createEventFromClient(callerId: Long, challengeId: Long, p: EventODB): EventODB {
         if (!p.isNew())
@@ -119,12 +233,11 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
         anyDaoNew.persist(p)
 
-        anyDaoNew.find(ChallengeODB::class, challengeId).participants.forEach {
-            val er = EventReadODB(it.user, it.challenge, p)
-            anyDaoNew.persist(er)
-        }
+        publish(MetaEventDTO(p, challengeParticipantsThatReveiveEvents(anyDaoNew.find(ChallengeODB::class, challengeId)).map{it.user}))
+       // challengeParticipantsThatReveiveEvents(anyDaoNew.find(ChallengeODB::class, challengeId)).saveParticipants(p);
 
-        eventPushDao.get().broadcastNewEvent(challengeId)
+
+       // eventPushDao.get().broadcastNewEvent(challengeId)
         return p
     }
 
@@ -149,9 +262,8 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     }
 
 
-    open fun getUnreadEventsForChallenge(callerId: Long, challengeId: Long?, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
 
-
+    open fun getUnreadEventsForChallenge(callerId: Long, challengeId: Long?): List<Pair<EventReadODB, EventODB>> {
         return anyDaoNew.getAll(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
             if (challengeId != null)
@@ -163,22 +275,29 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     }
 
 
-    open fun getLaterEventsForChallenge(callerId: Long, challengeId: Long?, lastReadEventId: Long, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
+    open fun getLaterEventsForChallenge(callerId: Long, challengeId: Long?, lastReadEventId: Long): List<Pair<EventReadODB, EventODB>> {
         return anyDaoNew.getAll(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
             if (challengeId != null)
                 it get EventReadODB::challenge eqId challengeId
-            it get +EventReadODB::event get +EventODB::id gt lastReadEventId
+
+            it get +EventReadODB::id gt lastReadEventId
             it orderByAsc +EventReadODB::id
             it.select(it, it get EventReadODB::event)
         }.sortedWith(sortEventsReadAsc())
     }
 
 
+    /**
+     * this is sync call, to fetch history events (posts & actions) when challenge is loaded
+     * global events like REMOVE_ME_FROM_CHALLENGE or DELETE CHALLENGE are returned only from async call, cause removed user won't call method for challenge he/she was removed
+     */
     open fun getLastEventsForChallenge(callerId: Long, challengeId: Long, maxEvents: Int? = null): List<Pair<EventReadODB, EventODB>> {
         permissionDao.checkHasPermissionToChallenge(callerId, challengeId)
         val desiredMaxEvents = maxEvents ?: serverConfig.maxEventsSize
         // first try to fetch all unread
+
+
         val firstNotRead = anyDaoNew.getFirst(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
             it get EventReadODB::challenge eqId challengeId
@@ -220,6 +339,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
                     it
             }
         }
+
         return res.sortedWith(sortEventsReadAsc())
     }
 
@@ -268,6 +388,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
 
 
 }
+
 
 
 

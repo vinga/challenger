@@ -5,6 +5,7 @@ import {RegisterState, ConfirmationLinkState} from "../module_accounts/index";
 import {EventState} from "../module_events/index";
 import {AccountDTO} from "../module_accounts/AccountDTO";
 import {ReportState} from "../module_reports/ReportUserDTO";
+import _ = require("lodash");
 
 export interface WebCallData {
     startDate: Date
@@ -31,6 +32,7 @@ export interface CurrentSelection {
 }
 
 export interface ReduxState {
+
     challenges: VisibleChallengesDTO,
     registerState?: RegisterState,
     tasksState: TaskDTOState,
@@ -67,6 +69,8 @@ export class SameAs<a> {
 export function copy<a>(value: a): SameAs<a> {
     return new SameAs(steal({}, value));
 }
+
+
 export function copyAndReplace<T>(source: Array<T>, incoming: T, exists: (t: T)=>boolean): Array<T> {
     var res: Array<T> = [];
 

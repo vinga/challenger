@@ -14,7 +14,8 @@ export const EventType = {
     REMOVE_CHALLENGE: "REMOVE_CHALLENGE",
     UPDATE_CHALLENGE: "UPDATE_CHALLENGE",
     INVITE_USER_TO_CHALLENGE: "INVITE_USER_TO_CHALLENGE",
-    REMOVE_USER_FROM_CHALLENGE: "REMOVE_USER_FROM_CHALLENGE"
+    REMOVE_USER_FROM_CHALLENGE: "REMOVE_USER_FROM_CHALLENGE",
+    REMOVE_ME_FROM_CHALLENGE: "REMOVE_ME_FROM_CHALLENGE"
 
 };
 
@@ -22,29 +23,32 @@ export const EventType = {
 
 export interface EventDTO {
     id: number,
+    eventReadId: number,
     challengeId?: number,
-    taskId: number,
+    taskId?: number,
     content: string,
     sentDate: number,
     forDay: number,
     authorId: number,
     eventType: string,
-    readDate?: number; // if message has been read for that user
+    readDate?: number, // if message has been read for that user
+    affectedUserId?: number;
 }
 
 export interface EventGroupDTO {
     challengeId?: number
     taskId?: number
-    posts: Array<EventDTO>
-
+    events: Array<EventDTO>,
+    maxTotalEventReadId? : number
 }
 
 export interface EventState {
+    seed: number,
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
     eventGroups: Array<EventGroupDTO>,
 
-    maxEventId?: number,
+    maxTotalEventReadId?: number,
     selectedTask: TaskDTO,
     selectedNo: number,
     eventActionsVisible: boolean,

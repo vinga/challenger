@@ -1,6 +1,6 @@
 import * as React from "react";
 import TextField from "material-ui/TextField";
-import CSSProperties = __React.CSSProperties;
+import CSSProperties = React.CSSProperties;
 
 
 interface Props {
@@ -132,10 +132,12 @@ export default class TextFieldExt extends React.Component<Props,State> {
     }
 
     render() {
+
+       /* autoFocus={this.props.autoFocus}*/
         return (<TextField
 
             ref={(c)=>this.textField=c}
-            autoFocus={this.props.autoFocus}
+
             floatingLabelText={this.props.floatingLabelText}
             onChange={this.handleFieldChange}
             type={this.props.type}

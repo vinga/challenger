@@ -37,16 +37,20 @@ interface PropsFunc {
 }
 
 
-class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & PropsFunc, void> {
+interface DevState {
+    login: string
+}
+class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & PropsFunc, DevState> {
     private loginField: TextFieldExt;
     private passwordField: TextFieldExt;
     public static defaultProps: ReactProps = {
         registerButtonVisible: true
     };
-
+    state= {login: "kami"}
 
     onLogin = () => {
         var login = this.loginField.state.fieldValue;
+        this.setState({login})
         var pass = this.passwordField.state.fieldValue;
         this.props.onLoginFunc(login, pass);
     };
@@ -70,7 +74,6 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
         return (
             <div id="main" className="container ">
 
-
                 <Row horizontal="center" style={{minHeight: '130px', paddingTop:'30px'}}>
                     {this.props.loginFailed &&
                     <Col col="8">
@@ -93,7 +96,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                                 autoFocus={true}
                                 fullWidth={true}
                                 floatingLabelText="Login"
-                                fieldValue={this.props.currentLogin!=null? this.props.currentLogin: "kami"}
+                                fieldValue={this.props.currentLogin!=null? this.props.currentLogin: this.state.login}
                                 onEnterKeyDown={()=> {this.passwordField.focus(); } }
                                 ref={(c)=>{this.loginField=c}}/>
                         </RowCol>
@@ -102,7 +105,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
 
                                 fullWidth={true}
                                 floatingLabelText="Password"
-                                fieldValue={this.props.currentPass!=null? this.props.currentPass: "kamipass"}
+                                fieldValue={this.props.currentPass!=null? this.props.currentPass: "passpass"}
                                 onEnterKeyDown={this.onLogin}
                                 type="password"
                                 ref={(c)=>{this.passwordField=c}}/>

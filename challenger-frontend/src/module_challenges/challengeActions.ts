@@ -1,15 +1,16 @@
-import {CHANGE_CHALLENGE, WEB_CHALLENGES_REQUEST, WEB_CHALLENGES_RESPONSE} from "./challengeActionTypes";
+import {CHANGE_CHALLENGE, WEB_CHALLENGES_REQUEST, WEB_CHALLENGES_RESPONSE, SET_NO_CHALLENGES_LOADED_YET, ACCEPT_REJECT_CHALLENGE_OPTIMISTIC} from "./challengeActionTypes";
 import {ReduxState} from "../redux/ReduxState";
 import * as webCall from "./challengeWebCalls";
 import {fetchTasksProgressesWhenNeeded} from "../module_tasks/index";
 import {fetchInitialEvents} from "../module_events/index";
-import {loadEventsAsyncAllTheTime} from "../module_events/eventActions";
 import {ChallengeDTO, ChallengeStatus} from "./ChallengeDTO";
 import {downloadProgressiveReports} from "../module_reports/index";
 import {challengeStatusSelector} from "./challengeSelectors";
+import {loadEventsAsyncAllTheTimeSingleton} from "../module_events/eventActions";
+import {getAccountsSelector, loggedUserSelector} from "../module_accounts/accountSelectors";
 
 
-var loading: boolean=false;
+
 export function changeChallengeAction(challengeId: number) {
     return function (dispatch, getState) {
 
@@ -18,28 +19,33 @@ export function changeChallengeAction(challengeId: number) {
         if (challengeStatusSelector(getState()) == ChallengeStatus.ACTIVE) {
             dispatch(fetchTasksProgressesWhenNeeded(challengeId, getState().currentSelection.day));
             dispatch(fetchInitialEvents(challengeId));
-            if (!loading) {
-                loading=true;
-                dispatch(loadEventsAsyncAllTheTime());
-            }
             dispatch(downloadProgressiveReports(challengeId));
         }
     };
 }
 
 export function fetchWebChallenges() {
-    return function (dispatch, getState: ()=>ReduxState) {
+    return function (dispatch, getState: ()=>ReduxState):Promise<any> {
+
         dispatch(WEB_CHALLENGES_REQUEST.new({}));
-        webCall.loadVisibleChallenges(dispatch).then(
+        return webCall.loadVisibleChallenges(dispatch).then(
             visibleChallengesDTO=> {
+
+
                 var initialLoad = (getState().challenges.selectedChallengeId != visibleChallengesDTO.selectedChallengeId);
                 dispatch(WEB_CHALLENGES_RESPONSE.new(visibleChallengesDTO));
                 if (initialLoad && visibleChallengesDTO.selectedChallengeId != null)
+
+
                     dispatch(changeChallengeAction(visibleChallengesDTO.selectedChallengeId))
+                    dispatch(loadEventsAsyncAllTheTimeSingleton());
+
             }
         );
     }
 }
+
+
 
 // we want just refesh state, like sb who accepted or rejected
 export function fetchWebChallengesNoReload() {
@@ -61,6 +67,7 @@ export function createChallengeAction(challenge: ChallengeDTO) {
         challenge.userLabels = getState().challenges.editedChallenge.userLabels
         webCall.createChallenge(dispatch, challenge).then(
             ()=> {
+                dispatch(SET_NO_CHALLENGES_LOADED_YET.new({})); // if set, after fetching the selected challenge id will be updated to new one
                 dispatch(fetchWebChallenges());
             }
         );
@@ -95,7 +102,8 @@ export function acceptOrRejectChallenge(challengeId: number, accept: boolean) {
         /*var challenge = getState().challenges.visibleChallenges.find(ch => (ch.id == challengeId));
          if(!accept)
          challenge.challengeStatus = ChallengeStatus.REFUSED;*/
-
+        const loggedUserId = loggedUserSelector(getState()).id;
+        dispatch(ACCEPT_REJECT_CHALLENGE_OPTIMISTIC.new({challengeId,accept,loggedUserId}));
         webCall.acceptOrRejectChallenge(dispatch, challengeId, accept).then(
             ()=> {
                 dispatch(fetchWebChallenges());

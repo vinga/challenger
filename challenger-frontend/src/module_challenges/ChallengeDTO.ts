@@ -9,6 +9,7 @@ export interface ChallengeDTO {
 }
 
 export const NO_CHALLENGES_LOADED_YET=-1;
+export const NO_ACTIVE_CHALLENGES=-2;
 export interface VisibleChallengesDTO {
     selectedChallengeId?: number,
     visibleChallenges: Array<ChallengeDTO>

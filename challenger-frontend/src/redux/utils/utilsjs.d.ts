@@ -1,6 +1,6 @@
 
 
-export function hotReloadIfNeeded(store:any, reducerPath:string):any;
+export function hotReloadIfNeeded(store:any):any;
 
 declare global {
     interface Date {

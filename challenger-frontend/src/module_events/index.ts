@@ -1,11 +1,11 @@
 import {EventGroupPanel} from "./components/EventGroupPanel"
-import {fetchInitialEvents, showTaskEvents, loadEventsAsyncAllTheTime} from "./eventActions"
+import {fetchInitialEvents, showTaskEvents, loadEventsAsyncAllTheTimeSingleton} from "./eventActions"
 import {EventState} from "./EventDTO"
 
 
 export { EventGroupPanel,
 
-    fetchInitialEvents, showTaskEvents, loadEventsAsyncAllTheTime,
+    fetchInitialEvents, showTaskEvents, loadEventsAsyncAllTheTimeSingleton,
 
     EventState
 }

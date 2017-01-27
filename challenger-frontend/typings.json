@@ -4,10 +4,6 @@
     "jquery": "registry:dt/jquery#1.10.0+20160908203239",
     "jwt-decode": "registry:dt/jwt-decode#1.4.0+20160317120654",
     "lodash": "registry:npm/lodash#4.0.0+20161015015725",
-    "material-ui": "registry:dt/material-ui#0.15.1+20160914124448",
-    "react": "registry:dt/react#0.14.0+20160829191040",
-    "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
-    "react-redux": "registry:dt/react-redux#4.4.0+20160908183346",
     "redux": "registry:dt/redux#3.5.2+20160703092728",
     "redux-thunk": "registry:dt/redux-thunk#2.1.0+20160703120921"
   },
@@ -15,3 +11,6 @@
 
   }
 }
+/*
+npm install @types/react-addons-css-transition-group --save-dev
+*/

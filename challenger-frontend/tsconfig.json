@@ -15,10 +15,3 @@
     "public"
   ]
 }
-/*
-
-https://www.typescriptlang.org/docs/handbook/react-&-webpack.html
-
-to install new typings:
- typings install --global --save dt~jquery
-*/

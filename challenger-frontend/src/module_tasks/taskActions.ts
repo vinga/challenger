@@ -1,4 +1,4 @@
-import {TaskDTO, TaskProgressDTO, TaskApprovalDTO, createTaskDTOListKey, TaskDTOListForDay, TaskUserDTO} from "./TaskDTO";
+import {TaskDTO, TaskProgressDTO, TaskApprovalDTO, createTaskDTOListKey, TaskDTOListForDay, TaskUserDTO, TaskStatus} from "./TaskDTO";
 import {ReduxState} from "../redux/ReduxState";
 import {
     MODIFY_TASK_OPTIMISTIC,
@@ -9,7 +9,7 @@ import {
     LOAD_TASK_PROGRESSES_REQUEST,
     LOAD_TASK_PROGRESSES_RESPONSE,
     LOAD_TASKS_REQUEST_NEWWAY,
-    LOAD_TASKS_RESPONSE_NEWWAY
+    LOAD_TASKS_RESPONSE_NEWWAY, UPDATE_TASK_ACCEPTANCE_OPTIMISTIC
 } from "./taskActionTypes";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
 import {WebState} from "../logic/domain/Common";
@@ -157,6 +157,7 @@ export function fetchTasksProgressesWhenNeeded(challengeId: number, day: Date): 
 
 export function updateTaskStatus(challengeId: number, taskApproval: TaskApprovalDTO) {
     return function (dispatch, getState: ()=>ReduxState) {
+        dispatch(UPDATE_TASK_ACCEPTANCE_OPTIMISTIC.new({challengeId, taskId: taskApproval.taskId, taskStatus: taskApproval.taskStatus}));
 
         var state = getState();
         var jwtTokensOfApprovingUsers = jwtTokensOfChallengeParticipants(state);

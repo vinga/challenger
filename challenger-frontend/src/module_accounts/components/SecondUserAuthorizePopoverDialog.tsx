@@ -72,10 +72,10 @@ export class SecondUserAuthorizePopoverDialog extends React.Component<Props& Pro
                     <ChallengeIcon icon="fa-key" style={{marginRight: '5px'}}/>
                     Please authorize as <b>{this.props.user.label}</b>:
                 </div>
-
+                {/*autoFocus={true}*/}
                 <div style={{display: 'block'}} className="noShadow">
                     <TextField
-                        autoFocus={true}
+
                         ref={(c)=>{this.passwordField=c;}}
                         defaultValue="jackpass"
                         hintText="Password Field"

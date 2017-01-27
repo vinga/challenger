@@ -19,12 +19,16 @@ export const selectedChallengeSelector: Selector<ReduxState,ChallengeDTO> = crea
 export const waitingForMyAcceptanceChallengeSelector: Selector<ReduxState,ChallengeDTO[]> = createSelector(
     getChallenges, loggedUserSelector,
     (challenges: Array<ChallengeDTO>, mainLoggedUser: AccountDTO) =>
-        challenges.filter(challengeDTO => challengeDTO.userLabels.some(ul => ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE))
+        challenges
+            .filter(challengeDTO => challengeDTO.userLabels
+                .some(ul => ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE))
+            .sort((a, b) => a.id > b.id ? 1 : -1)
 );
 export const acceptedByMeChallengeSelector: Selector<ReduxState,ChallengeDTO[]> = createSelector(
     getChallenges, loggedUserSelector,
     (challenges: Array<ChallengeDTO>, mainLoggedUser: AccountDTO) =>
-        challenges.filter(challengeDTO => !challengeDTO.userLabels.some(ul => (ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)))
+        challenges.filter(challengeDTO => !challengeDTO.userLabels
+            .some(ul => (ul.id == mainLoggedUser.id && ul.challengeStatus == ChallengeStatus.WAITING_FOR_ACCEPTANCE)))
 );
 
 export const challengeStatusSelector: Selector<ReduxState,string> = createSelector(
@@ -95,7 +99,6 @@ export const challengeParticipantsAsAccountsSelector: Selector<ReduxState,Array<
         });
     }
 );
-
 
 
 const editedChallenge: Selector<ReduxState,ChallengeDTO> = (state: any): ChallengeDTO => state.challenges.editedChallenge
