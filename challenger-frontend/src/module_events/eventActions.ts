@@ -1,14 +1,14 @@
 import {ReduxState} from "../redux/ReduxState";
 import {
     ADD_NEW_EVENT_OPTIMISTIC,
-    WEB_EVENTS_RESPONSE,
-    WEB_ASYNC_EVENT_RESPONSE,
+    WEB_EVENTS_SYNC_RESPONSE,
+    WEB_EVENTS_ASYNC_RESPONSE,
     MARK_EVENT_AS_READ_OPTIMISTIC,
     CLEAR_UNREAD_NOTIFICATIONS,
-    NEW_EVENTS_SEED
+    NEW_EVENTS_SEED, WEB_EVENTS_SYNC_RESPONSE_PREVIOUS
 } from "./eventActionTypes";
 import * as webCall from "./eventWebCalls";
-import {EventDTO, EventType, EventGroupDTO} from "./EventDTO";
+import {EventDTO, EventType, EventGroupDTO, EventGroupSynchDTO} from "./EventDTO";
 import {WEB_STATUS_NOTHING_RETURNED_YET} from "../logic/domain/Common";
 import {loadTasksNewWay, fetchTasksWhenNeededAfterDelay, fetchTasksProgresses} from "../module_tasks/taskActions";
 import {downloadProgressiveReports} from "../module_reports/reportActions";
@@ -17,6 +17,7 @@ import {NO_CHALLENGES_LOADED_YET, NO_ACTIVE_CHALLENGES} from "../module_challeng
 import {fetchWebChallengesNoReload, fetchWebChallenges} from "../module_challenges/challengeActions";
 import {loggedUserSelector} from "../module_accounts/accountSelectors";
 import _ = require("lodash");
+import {displaySeletectedEventGroupSelector} from "./eventSelectors";
 
 
 export function sendEvent(authorId: number, content: string) {
@@ -96,7 +97,7 @@ function loadEventsAsyncAllTheTime(seed: number) {
                     if (events.length==0 && eventGroup.maxTotalEventReadId==null)
                         return Promise.resolve(true);
 
-                    dispatch(WEB_ASYNC_EVENT_RESPONSE.new({
+                    dispatch(WEB_EVENTS_ASYNC_RESPONSE.new({
                         events,
                         loggedUserId: loggedUserSelector(state).id,
                         selectedChallengeId: challengeId,
@@ -258,20 +259,39 @@ function markAsRead(challengeId, eventId) {
 }
 
 
-export function fetchInitialEvents(challengeId: number) {
-    return function (dispatch, getState: () => ReduxState) {
-        dispatch(CLEAR_UNREAD_NOTIFICATIONS.new({challengeId}));
-        webCall.loadEventsForChallenge(dispatch, challengeId).then(
-            (challengeConversation: EventGroupDTO) => dispatch(WEB_EVENTS_RESPONSE.new({eventGroup: challengeConversation, loggedUserId: loggedUserSelector(getState()).id}))
-        );
-    }
-}
+
 
 
 export function showTaskEvents(challengeId: number, taskId: number) {
     return function (dispatch, getState: () => ReduxState) {
         webCall.loadEventsForTask(dispatch, challengeId, taskId).then(
-            (eventGroup: EventGroupDTO) => dispatch(WEB_EVENTS_RESPONSE.new({eventGroup: eventGroup, loggedUserId: loggedUserSelector(getState()).id}))
+            (eventGroup: EventGroupSynchDTO) => dispatch(WEB_EVENTS_SYNC_RESPONSE.new({eventGroup: eventGroup, loggedUserId: loggedUserSelector(getState()).id}))
         );
+    }
+}
+
+export function fetchInitialEventsForChallenge(challengeId: number) {
+    return function (dispatch, getState: () => ReduxState) {
+        dispatch(CLEAR_UNREAD_NOTIFICATIONS.new({challengeId}));
+        webCall.loadEventsForChallenge(dispatch, challengeId).then(
+            (eventGroup: EventGroupSynchDTO) => dispatch(WEB_EVENTS_SYNC_RESPONSE.new({eventGroup, loggedUserId: loggedUserSelector(getState()).id}))
+        );
+    }
+}
+
+export function loadPreviousEventsAction() {
+    return function (dispatch, getState: () => ReduxState) {
+
+        const state = getState();
+        const eventGroupSynchDTO = displaySeletectedEventGroupSelector(state);
+
+
+
+        var beforeEventReadId=_.minBy( eventGroupSynchDTO.events,e=>e.eventReadId).eventReadId;
+
+        webCall.loadEventsForChallenge(dispatch, eventGroupSynchDTO.challengeId, beforeEventReadId).then(
+            (eventGroup: EventGroupSynchDTO) => dispatch(WEB_EVENTS_SYNC_RESPONSE_PREVIOUS.new({eventGroup, loggedUserId: loggedUserSelector(getState()).id}))
+        );
+
     }
 }

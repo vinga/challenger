@@ -179,26 +179,16 @@ public class FakeDataLogic implements CommandLineRunner {
         approveTaskForCreator(ac6);
 
 
-        EventODB p1=new EventODB();
-        p1.setChallenge(contract1);
-        p1.setCreateDate(new Date());
-        p1.setAuthor(data.userKami);
-        p1.setContent("It't time to finish this project, isn't it?");
-        p1.setEventType(EventType.POST);
-        em.persist(p1);
+    long id=1;
+        for (int i=0; i<10; i++) {
 
-        EventReadODB er=new EventReadODB(1);
+            id=makeEventKamiSays(em, contract1,"Test 0-9: current is "+i, id);
 
-        er.setChallenge(contract1);
-        er.setEvent(p1);
-        er.setUser(data.userJack);
-        em.persist(er);
-        er=new EventReadODB(2);
-        er.setChallenge(contract1);
-        er.setEvent(p1);
-        er.setUser(data.userKami);
-        er.setRead(DateUtil.addDays(new Date(),-3));
-        em.persist(er);
+        }
+        id=makeEventKamiSays(em, contract1,"It't time to finish this project, isn't it?",id);
+
+
+        EventReadODB er;
 
         EventODB p2=new EventODB();
         p2.setChallenge(contract1);
@@ -208,13 +198,13 @@ public class FakeDataLogic implements CommandLineRunner {
         p2.setEventType(EventType.POST);
         em.persist(p2);
 
-        er=new EventReadODB(3);
+        er=new EventReadODB(id++);
         er.setChallenge(contract1);
         er.setEvent(p2);
         er.setUser(data.userJack);
         er.setRead(new Date());
         em.persist(er);
-        er=new EventReadODB(4);
+        er=new EventReadODB(id++);
         er.setChallenge(contract1);
         er.setEvent(p2);
         er.setUser(data.userKami);
@@ -274,6 +264,28 @@ public class FakeDataLogic implements CommandLineRunner {
 
 
 
+    }
+
+    private Long makeEventKamiSays(EntityManager em, ChallengeODB contract1, String content, long id) {
+        EventODB p1=new EventODB();
+        p1.setChallenge(contract1);
+        p1.setCreateDate(new Date());
+        p1.setAuthor(data.userKami);
+        p1.setContent(content);
+        p1.setEventType(EventType.POST);
+        em.persist(p1);
+        EventReadODB er=new EventReadODB(id++);
+        er.setChallenge(contract1);
+        er.setEvent(p1);
+        er.setUser(data.userJack);
+        em.persist(er);
+        er=new EventReadODB(id++);
+        er.setChallenge(contract1);
+        er.setEvent(p1);
+        er.setUser(data.userKami);
+        er.setRead(DateUtil.addDays(new Date(),-3));
+        em.persist(er);
+        return id;
     }
 
     private void createUsers() {

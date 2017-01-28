@@ -50,6 +50,26 @@ const menuIconStyle = {fontSize: '15px', textAlign: 'center', lineHeight: '24px'
 const badgeCssStyle = {padding: "6px 12px 12px 24px"};
 
 
+class IconButtonElement extends React.Component<{totalNotifications: number, onTouchTap?: any},void> {
+
+    render() {
+
+        return <div style={{width:"48px"}}   onClick={this.props.onTouchTap}>
+            <IconButton onTouchTap={this.props.onTouchTap} style={{width:"48px"}}>
+                <FontIcon className="fa fa-reorder white-text"/>
+            </IconButton>
+            { this.props.totalNotifications > 0 &&
+            <Badge
+
+                badgeContent={this.props.totalNotifications}
+                secondary={true}
+                style={{padding:"0px",cursor: "pointer", position: "relative",  marginBottom:"30px",marginLeft:"0"}}
+            /> }
+        </div>;
+    }
+
+}
+
 class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {style: IconMenuProps},State> {
     constructor(props) {
         super(props);
@@ -142,17 +162,7 @@ class ChallengeMenuNaviBarInternal extends React.Component<Props & PropsFunc & {
 
             <IconMenu
                 maxHeight={Math.min($(window).height()-30,340)}
-                iconButtonElement={<div style={{width:"48px"}}>
-                                    <IconButton >
-                                        <FontIcon className="fa fa-reorder white-text"/>
-                                    </IconButton>
-                                    { this.props.totalNotifications > 0 &&
-                                    <Badge
-                                        badgeContent={this.props.totalNotifications}
-                                        secondary={true}
-                                        style={{padding:"0px",cursor: "pointer", position: "relative",  marginBottom:"30px",marginLeft:"0"}}
-                                    /> }
-                                    </div>}
+                iconButtonElement={<IconButtonElement totalNotifications={this.props.totalNotifications}/>}
                 anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
                 targetOrigin={{horizontal: 'left', vertical: 'top'}}
             >

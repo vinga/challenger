@@ -10,6 +10,12 @@ open class ComparablePathWrap<E : Comparable<E>, G>(pc: PathContext<G>,
         pc.add({ cb.lessThan(root as Expression<E>, f) })
         return this
     }
+    infix fun beforeNotNull(f: E?): PathWrap<E, G> {
+        if (f!=null)
+            pc.add({ cb.lessThan(root as Expression<E>, f) })
+        return this
+    }
+
    //TODO tu tez dodac comparables x Expression
 
     infix fun after(f: E): PathWrap<E, G> {

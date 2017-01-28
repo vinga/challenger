@@ -1,11 +1,12 @@
 import {ActionType} from "../redux/ReduxTask";
-import {EventGroupDTO, EventDTO} from "./EventDTO";
+import {EventGroupDTO, EventDTO, EventGroupSynchDTO} from "./EventDTO";
 import {TaskDTO} from "../module_tasks/TaskDTO";
 
 
 
-export const WEB_EVENTS_RESPONSE: ActionType<{eventGroup: EventGroupDTO, loggedUserId: number}> = new ActionType<any>('WEB_EVENTS_RESPONSE');
-export const WEB_ASYNC_EVENT_RESPONSE: ActionType<{events: EventDTO[], loggedUserId: number, selectedChallengeId: number, maxTotalEventReadId: number}> = new ActionType<any>('WEB_ASYNC_EVENT_RESPONSE');
+export const WEB_EVENTS_SYNC_RESPONSE: ActionType<{eventGroup: EventGroupSynchDTO, loggedUserId: number}> = new ActionType<any>('WEB_EVENTS_SYNC_RESPONSE');
+export const WEB_EVENTS_SYNC_RESPONSE_PREVIOUS: ActionType<{eventGroup: EventGroupSynchDTO, loggedUserId: number}> = new ActionType<any>('WEB_EVENTS_SYNC_RESPONSE_PREVIOUS');
+export const WEB_EVENTS_ASYNC_RESPONSE: ActionType<{events: EventDTO[], loggedUserId: number, selectedChallengeId: number, maxTotalEventReadId: number}> = new ActionType<any>('WEB_EVENTS_ASYNC_RESPONSE');
 
 
 export const ADD_NEW_EVENT_OPTIMISTIC: ActionType<EventDTO> = new ActionType<any>('ADD_NEW_EVENT_OPTIMISTIC');

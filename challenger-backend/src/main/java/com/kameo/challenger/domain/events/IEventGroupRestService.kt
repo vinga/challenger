@@ -9,11 +9,20 @@ import java.time.ZoneOffset
 interface IEventGroupRestService {
 
 
-    fun getEventsForChallenge(challengeId: Long): EventGroupDTO
+    fun getEventsForChallenge(challengeId: Long, beforeEventReadId: Long?, max: Int?): EventGroupSynchDTO
 
     fun createEvent(challengeId: Long, eventDTO: EventDTO): EventDTO
 
-    data class EventGroupDTO(val challengeId: Long?=null, val taskId: Long? = null, val events: Array<EventDTO> = emptyArray(), val maxTotalEventReadId: Long?=null)
+    data class EventGroupDTO(
+            val events: Array<EventDTO> = emptyArray(),
+            val maxTotalEventReadId: Long?=null
+    )
+    data class EventGroupSynchDTO(
+            val challengeId: Long,
+            val taskId: Long? = null,
+            val events: Array<EventDTO> = emptyArray(),
+            val canBeMore: Boolean?=null // used in sync fetching events, to indicate that there are previous posts
+    )
 
 
     data class EventDTO(val id: Long = 0,

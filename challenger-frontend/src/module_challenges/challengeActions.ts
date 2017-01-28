@@ -2,7 +2,7 @@ import {CHANGE_CHALLENGE, WEB_CHALLENGES_REQUEST, WEB_CHALLENGES_RESPONSE, SET_N
 import {ReduxState} from "../redux/ReduxState";
 import * as webCall from "./challengeWebCalls";
 import {fetchTasksProgressesWhenNeeded} from "../module_tasks/index";
-import {fetchInitialEvents} from "../module_events/index";
+import {fetchInitialEventsForChallenge} from "../module_events/index";
 import {ChallengeDTO, ChallengeStatus} from "./ChallengeDTO";
 import {downloadProgressiveReports} from "../module_reports/index";
 import {challengeStatusSelector} from "./challengeSelectors";
@@ -18,7 +18,7 @@ export function changeChallengeAction(challengeId: number) {
         dispatch(CHANGE_CHALLENGE.new({challengeId}));
         if (challengeStatusSelector(getState()) == ChallengeStatus.ACTIVE) {
             dispatch(fetchTasksProgressesWhenNeeded(challengeId, getState().currentSelection.day));
-            dispatch(fetchInitialEvents(challengeId));
+            dispatch(fetchInitialEventsForChallenge(challengeId));
             dispatch(downloadProgressiveReports(challengeId));
         }
     };

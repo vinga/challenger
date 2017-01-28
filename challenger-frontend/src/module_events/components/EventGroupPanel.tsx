@@ -3,10 +3,10 @@ import Paper from "material-ui/Paper";
 import TextFieldExt from "../../views/common-components/TextFieldExt";
 import {FlatButton, FontIcon} from "material-ui";
 import {copy, ReduxState} from "../../redux/ReduxState";
-import {eventsSelector} from "../eventSelectors";
+import {eventsSelector, displaySeletectedEventGroupSelector} from "../eventSelectors";
 import {EXPAND_EVENTS_WINDOW, SHOW_TASK_EVENTS, TOGGLE_EVENT_ACTIONS_VISIBILITY} from "../eventActionTypes";
 import {connect} from "react-redux";
-import {sendEvent} from "../eventActions";
+import {sendEvent, loadPreviousEventsAction} from "../eventActions";
 import {EventType, DateDiscrimUI, DisplayedEventUI} from "../EventDTO";
 import {TaskDTO} from "../../module_tasks/TaskDTO";
 import Chip from "material-ui/Chip";
@@ -22,7 +22,8 @@ interface ReduxProps {
     expandedEventWindow: boolean,
     task?: TaskDTO,
     no?: number,
-    eventActionsVisible: boolean
+    eventActionsVisible: boolean,
+    canBeMore: boolean
 
 }
 interface PropsFunc {
@@ -31,40 +32,9 @@ interface PropsFunc {
     onCompressFunc: () => void
     onTaskCloseFunc: () => void
     onToggleActionsVisibilityFunc: () =>void
+    onLoadPreviousEvents:()=>void
 }
 
-
-const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
-    return {
-        displayedEvents: eventsSelector(state),
-        eventWindowVisible: state.eventsState.eventWindowVisible,
-        expandedEventWindow: state.eventsState.expandedEventWindow,
-        task: state.eventsState.selectedTask,
-        no: state.eventsState.selectedNo,
-        eventActionsVisible: state.eventsState.eventActionsVisible
-    }
-};
-
-
-const mapDispatchToProps = (dispatch, ownProps: Props): PropsFunc => {
-    return {
-        onPostEventFunc: (authorId: number, content: string) => {
-            dispatch(sendEvent(authorId, content))
-        },
-        onCompressFunc: () => {
-            dispatch(EXPAND_EVENTS_WINDOW.new({expanded: false}))
-        },
-        onExpandFunc: () => {
-            dispatch(EXPAND_EVENTS_WINDOW.new({expanded: true}))
-        },
-        onTaskCloseFunc: () => {
-            dispatch(SHOW_TASK_EVENTS.new({task: null, no: null, toggle: false}))
-        },
-        onToggleActionsVisibilityFunc: () => {
-            dispatch(TOGGLE_EVENT_ACTIONS_VISIBILITY.new({}))
-        }
-    }
-};
 
 
 class EventGroupPanelInternal extends React.Component<Props & ReduxProps & PropsFunc, { justClicked: boolean}> {
@@ -122,6 +92,7 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
         var p=this.renderPostInternal(ev);
 
         return  <CSSTransitionGroup
+            key={ev.id}
             transitionName="universal"
             transitionAppear={true}
             transitionAppearTimeout={1000}
@@ -169,12 +140,12 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
         return <Paper style={st}>
             <div style={{display: "block", clear: "both"}}>
+
                 <div style={{position:"absolute",left:"4px",top:"4px", verticalAlign:"center", display:"flex"}}>
                     {this.props.task != null &&
                     <Chip className="clickableChip" style={{backgroundColor: getColorSuperlightenForUser(this.props.no), flexBasis: 'min-content', minWidth: '40px'}}>
                         <div style={{display:"block"}}>
                             {this.renderTaskName()}
-
                             {this.props.task != null &&
                             <span style={{float: "right", marginLeft: "10px"}}>
                                  <FontIcon className="fa fa-close" style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onTaskCloseFunc}/>
@@ -188,7 +159,6 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
                     <Chip className="clickableChip" style={{backgroundColor: "#eeeeee", flexBasis: 'min-content', minWidth: '40px'}}>
                         <div style={{display:"block"}}>
                             Actions
-
                             <span style={{float: "right", marginLeft: "10px"}}>
                                  <FontIcon className={this.props.eventActionsVisible?"fa fa-eye":"fa fa-eye-slash"}
                                            style={{ cursor: "pointer", marginRight:'2px', fontSize: "12px"}} onClick={this.props.onToggleActionsVisibilityFunc}/>
@@ -210,12 +180,20 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
 
             <div style={{display:"flex", flexDirection:"column", justifyContent: "space-between", height:"100%"}}>
                 <div id="eventGroupChatContent" style={{  overflowY:"auto", marginTop:'40px'}}>
-                    {
 
+                    {this.props.canBeMore &&
+                        <div
+                            className="cyan-text"
+                            style={{fontSize:'12px', cursor:"pointer" }}
+                            onClick={this.props.onLoadPreviousEvents}>
+                            Load previous posts...
+                        </div>}
+
+
+                    {
                         this.props.displayedEvents.map(p =>
-                            <div
-                                key={p.id}>{this.renderPost(p)}
-                            </div>)
+                            this.renderPost(p)
+                        )
                     }
                 </div>
                 <div style={{display:"flex", minHeight:'35px', marginTop:'5px'}}>
@@ -235,5 +213,42 @@ class EventGroupPanelInternal extends React.Component<Props & ReduxProps & Props
     }
 }
 
+
+const mapStateToProps = (state: ReduxState, ownProps: Props): ReduxProps => {
+
+    return {
+        canBeMore: displaySeletectedEventGroupSelector(state)!=null?  displaySeletectedEventGroupSelector(state).canBeMore : false,
+        displayedEvents: eventsSelector(state),
+        eventWindowVisible: state.eventsState.eventWindowVisible,
+        expandedEventWindow: state.eventsState.expandedEventWindow,
+        task: state.eventsState.selectedTask,
+        no: state.eventsState.selectedNo,
+        eventActionsVisible: state.eventsState.eventActionsVisible
+    }
+};
+
+
+const mapDispatchToProps = (dispatch, ownProps: Props): PropsFunc => {
+    return {
+        onPostEventFunc: (authorId: number, content: string) => {
+            dispatch(sendEvent(authorId, content))
+        },
+        onCompressFunc: () => {
+            dispatch(EXPAND_EVENTS_WINDOW.new({expanded: false}))
+        },
+        onExpandFunc: () => {
+            dispatch(EXPAND_EVENTS_WINDOW.new({expanded: true}))
+        },
+        onTaskCloseFunc: () => {
+            dispatch(SHOW_TASK_EVENTS.new({task: null, no: null, toggle: false}))
+        },
+        onToggleActionsVisibilityFunc: () => {
+            dispatch(TOGGLE_EVENT_ACTIONS_VISIBILITY.new({}))
+        },
+        onLoadPreviousEvents: () => {
+            dispatch(loadPreviousEventsAction());
+        }
+    }
+};
 
 export const EventGroupPanel = connect(mapStateToProps, mapDispatchToProps)(EventGroupPanelInternal);

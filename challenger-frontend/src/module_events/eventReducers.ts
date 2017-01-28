@@ -1,18 +1,18 @@
 import {
     EXPAND_EVENTS_WINDOW,
-    WEB_EVENTS_RESPONSE,
+    WEB_EVENTS_SYNC_RESPONSE,
     ADD_NEW_EVENT_OPTIMISTIC,
     SHOW_TASK_EVENTS,
-    WEB_ASYNC_EVENT_RESPONSE,
+    WEB_EVENTS_ASYNC_RESPONSE,
     MARK_EVENT_AS_READ_OPTIMISTIC,
     TOGGLE_EVENT_ACTIONS_VISIBILITY,
     CLEAR_UNREAD_NOTIFICATIONS,
     SHOW_GLOBAL_NOTIFICATIONS_DIALOG,
-    NEW_EVENTS_SEED
+    NEW_EVENTS_SEED, WEB_EVENTS_SYNC_RESPONSE_PREVIOUS
 } from "./eventActionTypes";
 import {copy, copyAndReplace} from "../redux/ReduxState";
 import {isAction} from "../redux/ReduxTask";
-import {EventState, EventDTO, EventGroupDTO, UnreadNotificationsList, EventType} from "./EventDTO";
+import {EventState, EventDTO, EventGroupDTO, UnreadNotificationsList, EventType, EventGroupSynchDTO} from "./EventDTO";
 import _ = require("lodash");
 import path = require("immutable-path");
 
@@ -21,7 +21,7 @@ const getInitialState = (): EventState => {
         seed: null,
         eventWindowVisible: true,
         expandedEventWindow: false,
-        eventGroups: new Array<EventGroupDTO>(),
+        eventGroups: new Array<EventGroupSynchDTO>(),
         globalUnreadEvents: [],
         selectedTask: null,
         selectedNo: null,
@@ -37,25 +37,36 @@ export function eventsState(state: EventState = getInitialState(), action): Even
     if (isAction(action, 'LOGOUT')) {
         return getInitialState();
     } else if (isAction(action, NEW_EVENTS_SEED)) {
-        return copy(state).and({
+        return {...state,
             seed: action.seed
-        });
+        };
     }
     if (isAction(action, EXPAND_EVENTS_WINDOW)) {
-        return copy(state).and({
+        return {...state,
             expandedEventWindow: action.expanded
-        })
-    } else if (isAction(action, WEB_EVENTS_RESPONSE)) {
+        }
+    } else if (isAction(action, WEB_EVENTS_SYNC_RESPONSE_PREVIOUS)) {
+
+       return {...state, eventGroups: state.eventGroups.map(e=>{
+            if (e.challengeId==action.eventGroup.challengeId) {
+                var events: Array<EventDTO> =  e.events.concat(action.eventGroup.events);
+                events.sort((p1, p2) => -(p2.sentDate - p1.sentDate))
+
+                return {...e, events, canBeMore: action.eventGroup.canBeMore}
+            } else return e;
+        })};
+    }
+    else if (isAction(action, WEB_EVENTS_SYNC_RESPONSE)) {
+
 
 
         var posts: Array<EventDTO> = action.eventGroup.events;
         posts.sort((p1, p2) => -(p2.sentDate - p1.sentDate))
 
 
+
         var eventGroups = copyAndReplace(state.eventGroups, action.eventGroup, eg => eg.challengeId == action.eventGroup.challengeId);
-
-
-        var newState = copy(state).and({eventGroups: eventGroups});
+        var newState = {...state, eventGroups: eventGroups};
 
 
         // this part is same as in async...
@@ -86,7 +97,7 @@ export function eventsState(state: EventState = getInitialState(), action): Even
 
     } else if (isAction(action, ADD_NEW_EVENT_OPTIMISTIC)) {
 
-        var eg: EventGroupDTO = state.eventGroups.find(eg => eg.challengeId == action.challengeId);
+        var eg: EventGroupSynchDTO = state.eventGroups.find(eg => eg.challengeId == action.challengeId);
         eg = eventGroup(eg, action);
         return copy(state).and({eventGroups: copyAndReplace(state.eventGroups, eg, eg => eg.challengeId == action.challengeId)});
 
@@ -105,7 +116,7 @@ export function eventsState(state: EventState = getInitialState(), action): Even
             selectedTask: action.task,
             selectedNo: action.no,
         })
-    } else if (isAction(action, WEB_ASYNC_EVENT_RESPONSE)) {
+    } else if (isAction(action, WEB_EVENTS_ASYNC_RESPONSE)) {
         var posts: Array<EventDTO> = action.events;
 
 
@@ -128,9 +139,9 @@ export function eventsState(state: EventState = getInitialState(), action): Even
             var incomingChallengeEvents = action.events.filter(e => e.eventType != EventType.REMOVE_CHALLENGE)
 
             incomingChallengeEvents.forEach(p => {
-                var eg: EventGroupDTO = newState.eventGroups.find(eg => eg.challengeId == p.challengeId);
+                var eg: EventGroupSynchDTO = newState.eventGroups.find(eg => eg.challengeId == p.challengeId);
                 if (eg == null) {
-                    eg = {challengeId: p.challengeId, events: []}
+                    eg = {challengeId: p.challengeId, events: [], canBeMore: true}
                 }
                 var newPosts = eg.events.filter(po => po.id > 0 && po.id != p.id).concat(p); // replace old ones with new
 
@@ -180,7 +191,7 @@ export function eventsState(state: EventState = getInitialState(), action): Even
 
     } else if (isAction(action, MARK_EVENT_AS_READ_OPTIMISTIC)) {
 
-        var eg: EventGroupDTO = state.eventGroups.find(eg => eg.challengeId == action.challengeId);
+        var eg: EventGroupSynchDTO = state.eventGroups.find(eg => eg.challengeId == action.challengeId);
         var newState: EventState;
         if (eg != null) {
             eg = Object.assign({}, eg, {
@@ -227,7 +238,7 @@ export function eventsState(state: EventState = getInitialState(), action): Even
     return state;
 }
 
-function eventGroup(state: EventGroupDTO = {events: []}, action): EventGroupDTO {
+function eventGroup(state: EventGroupSynchDTO = {canBeMore: true, challengeId: -1, events: []}, action): EventGroupSynchDTO {
 
     if (isAction(action, ADD_NEW_EVENT_OPTIMISTIC)) {
         var newPosts = state.events.concat(action);

@@ -3,8 +3,7 @@ package com.kameo.challenger.domain.events
 import com.kameo.challenger.config.ServerConfig
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
-import com.kameo.challenger.domain.events.IEventGroupRestService.EventDTO
-import com.kameo.challenger.domain.events.IEventGroupRestService.EventGroupDTO
+import com.kameo.challenger.domain.events.IEventGroupRestService.*
 import com.kameo.challenger.domain.events.db.EventODB
 import com.kameo.challenger.domain.events.db.EventType
 import com.kameo.challenger.utils.rest.annotations.WebResponseStatus
@@ -53,11 +52,12 @@ class EventGroupRestService : IEventGroupRestService {
 
     @GET
     @Path("/challenges/{challengeId}/events")
-    override fun getEventsForChallenge(@PathParam("challengeId") challengeId: Long): EventGroupDTO {
+    override fun getEventsForChallenge(@PathParam("challengeId") challengeId: Long, @QueryParam("beforeEventReadId") beforeEventReadId: Long?, @QueryParam("max") max: Int?): EventGroupSynchDTO {
         val callerId = session.userId
-        val postsForTask = eventGroupDAO.getLastEventsForChallenge(callerId, challengeId).map { EventDTO.fromODB(it) }
+
+        val postsForTask = eventGroupDAO.getLastEventsForChallenge(callerId, challengeId, beforeEventReadId, max).map { EventDTO.fromODB(it) }
                 .toTypedArray()
-        return EventGroupDTO(challengeId, null, postsForTask)
+        return EventGroupSynchDTO(challengeId, null, postsForTask,canBeMore = max!=null && postsForTask.size>=max)
     }
 
     @POST

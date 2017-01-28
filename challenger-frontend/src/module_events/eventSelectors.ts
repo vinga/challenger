@@ -1,12 +1,12 @@
 import {Selector, createSelector} from "reselect";
 import {ReduxState} from "../redux/ReduxState";
-import {EventGroupDTO, DateDiscrimUI, DisplayedEventUI, EventType, EventDTO} from "./EventDTO";
+import {EventGroupDTO, DateDiscrimUI, DisplayedEventUI, EventType, EventDTO, EventGroupSynchDTO} from "./EventDTO";
 import {selectedChallengeParticipantsSelector, ChallengeParticipantDTO} from "../module_challenges/index";
 import {TaskDTO, allTasksSelector} from "../module_tasks/index";
 import {loggedUserSelector} from "../module_accounts/accountSelectors";
 import {AccountDTO} from "../module_accounts/AccountDTO";
 
-const displaySeletectedEventGroupSelector: Selector<ReduxState,EventGroupDTO> = (state: ReduxState): EventGroupDTO =>
+export const displaySeletectedEventGroupSelector: Selector<ReduxState,EventGroupSynchDTO> = (state: ReduxState): EventGroupSynchDTO =>
     state.eventsState.eventGroups.find(eg=>eg.challengeId == state.challenges.selectedChallengeId)
 
 const displayTaskSelector: Selector<ReduxState,TaskDTO> = (state: ReduxState): TaskDTO => state.eventsState.selectedTask
@@ -24,7 +24,7 @@ export const eventsSelector: Selector<ReduxState,Array<DisplayedEventUI | DateDi
     allTasksSelector,
     displayTaskSelector,
 
-    (account: AccountDTO, challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupDTO, eventActionsVisible: boolean, allTasks: Array<TaskDTO>, filteredTask?: TaskDTO) => {
+    (account: AccountDTO, challengeParticipants: Array<ChallengeParticipantDTO>, eventGroups: EventGroupSynchDTO, eventActionsVisible: boolean, allTasks: Array<TaskDTO>, filteredTask?: TaskDTO) => {
 
         if (eventGroups == null || eventGroups.events == null)
             return [];

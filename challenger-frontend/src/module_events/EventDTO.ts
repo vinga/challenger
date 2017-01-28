@@ -36,17 +36,23 @@ export interface EventDTO {
 }
 
 export interface EventGroupDTO {
-    challengeId?: number
-    taskId?: number
     events: Array<EventDTO>,
-    maxTotalEventReadId? : number
+    maxTotalEventReadId? : number,
+
+}
+
+export interface EventGroupSynchDTO {
+    events: Array<EventDTO>,
+    challengeId: number,
+    taskId?: number,
+    canBeMore: boolean // used in sync
 }
 
 export interface EventState {
     seed: number,
     eventWindowVisible: boolean,
     expandedEventWindow: boolean,
-    eventGroups: Array<EventGroupDTO>,
+    eventGroups: Array<EventGroupSynchDTO>,
 
     maxTotalEventReadId?: number,
     selectedTask: TaskDTO,

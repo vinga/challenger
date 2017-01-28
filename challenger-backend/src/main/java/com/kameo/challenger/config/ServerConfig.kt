@@ -15,7 +15,7 @@ open class ServerConfig {
 
 
     var isCrossDomain = true
-    val maxEventsSize:Int=100
+    val maxEventsSize:Int=500
 
 
     fun getConfirmEmailInvitationPattern(uid: String): String {

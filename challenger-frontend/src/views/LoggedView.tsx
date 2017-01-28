@@ -60,7 +60,6 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
 
-                Ladować tylko ostatnie N taskow. Jesli sa wczesniejsze, to dodac przycisk doladowania wczesniejszych N taskow.<br/>
                 Jak brak polaczenia z internetem, to wyswietlic info i za pare sekund wymusic przeladowanie calego challenga<br/>
 
                 <NoChallengesPanel/>

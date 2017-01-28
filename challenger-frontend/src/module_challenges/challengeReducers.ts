@@ -10,12 +10,13 @@ import {
     CHECK_CHALLENGE_PARTICIPANTS_REQUEST,
     CHECK_CHALLENGE_PARTICIPANTS_RESPONSE,
     EDIT_CHALLENGE,
-    SET_NO_CHALLENGES_LOADED_YET, ACCEPT_REJECT_CHALLENGE_OPTIMISTIC
+    SET_NO_CHALLENGES_LOADED_YET,
+    ACCEPT_REJECT_CHALLENGE_OPTIMISTIC
 } from "./challengeActionTypes";
 import {isAction} from "../redux/ReduxTask";
-import {VisibleChallengesDTO, ChallengeStatus, NO_CHALLENGES_LOADED_YET} from "./ChallengeDTO";
-import {copy} from "../redux/ReduxState";
+import {VisibleChallengesDTO, ChallengeStatus, NO_CHALLENGES_LOADED_YET, ChallengeDTO, ChallengeParticipantDTO} from "./ChallengeDTO";
 import _ = require("lodash");
+import path = require("immutable-path");
 
 
 const initial = (): VisibleChallengesDTO => {
@@ -31,34 +32,37 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
     if (isAction(action, 'LOGOUT')) {
         return initial();
     } else if (isAction(action, ACCEPT_REJECT_CHALLENGE_OPTIMISTIC)) {
-        const challenge = state.visibleChallenges.find(ch => ch.id == action.challengeId );
 
-        const newUserLabels = challenge.userLabels.map(ul=>{
-            if(ul.id == action.loggedUserId) {
-                return { ... ul, challengeStatus: action.accept ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED}
-            } else {
-                return ul;
-            }
-        });
-
-        const visibleChallenges = state.visibleChallenges.map(
-            ch => {
-                if(ch.id == challenge.id) {
-                    return {... ch, userLabels: newUserLabels}
-                } else {
-                    return ch;
-                }
-            }
+        const challengeStatus = action.accept ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED;
+        return path.map(state, `visibleChallenges[id=${action.challengeId}].userLabels[id=${action.loggedUserId}]`, (userLabel) =>
+            <ChallengeParticipantDTO>{... userLabel, challengeStatus}
         );
-        return {... state, visibleChallenges}
+        /*
+         const challenge = state.visibleChallenges.find(ch => ch.id == action.challengeId);
+         const newUserLabels = challenge.userLabels.map(ul => {
+         if (ul.id == action.loggedUserId) {
+         return {... ul, challengeStatus: action.accept ? ChallengeStatus.ACTIVE : ChallengeStatus.REFUSED}
+         } else {
+         return ul;
+         }
+         });
 
+         const visibleChallenges = state.visibleChallenges.map(
+         ch => {
+         if (ch.id == challenge.id) {
+         return {... ch, userLabels: newUserLabels}
+         } else {
+         return ch;
+         }
+         }
+         );
+         return {... state, visibleChallenges}*/
     } else if (isAction(action, WEB_CHALLENGES_REQUEST)) {
         return state;
     } else if (isAction(action, CHANGE_CHALLENGE)) {
-        console.log("change challenge to " + action.challengeId);
-        return copy(state).and({selectedChallengeId: action.challengeId});
+        return {... state, selectedChallengeId: action.challengeId};
     } else if (isAction(action, SET_NO_CHALLENGES_LOADED_YET)) {
-        return copy(state).and({selectedChallengeId: NO_CHALLENGES_LOADED_YET});
+        return {...state, selectedChallengeId: NO_CHALLENGES_LOADED_YET};
     }
     else if (isAction(action, WEB_CHALLENGES_RESPONSE)) {
 
@@ -74,20 +78,20 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
         });
         return newState;
     } else if (isAction(action, CLOSE_EDIT_CHALLENGE)) {
-        return Object.assign({}, state, {
-            editedChallenge: null,
-        })
+        return {...state, editedChallenge: null}
     } else if (isAction(action, CREATE_NEW_CHALLENGE)) {
-        return Object.assign({}, state, {
+        return {
+            ...state,
             editedChallenge: {
                 id: 0,
                 label: "New challenge",
                 challengeStatus: ChallengeStatus.ACTIVE,
                 creatorId: 0,
                 myId: 0,
-                userLabels: [{id: 0, label: action.creatorLabel}]
-            }
-        })
+                userLabels: [{id: 0, label: action.creatorLabel, ordinal: 0, challengeStatus: ChallengeStatus.ACTIVE}]
+            } as ChallengeDTO
+        }
+
     } else if (isAction(action, UPDATE_CHALLENGE_PARTICIPANTS)) {
         if (state.editedChallenge.userLabels.some(chp => chp.label == action.loginOrEmail))
             return state;
@@ -99,42 +103,43 @@ export function challenges(state: VisibleChallengesDTO = initial(), action): Vis
             challengeStatus: ChallengeStatus.WAITING_FOR_ACCEPTANCE
         }
 
-        var editedChCopy = Object.assign({}, state.editedChallenge, {
-            userLabels: state.editedChallenge.userLabels.concat(participant)
-        })
-
-        return Object.assign({}, state, {
-            editedChallenge: editedChCopy
-        })
+        return {
+            ...state,
+            editedChallenge: {
+                ... state.editedChallenge,
+                userLabels: state.editedChallenge.userLabels.concat(participant)
+            }
+        }
     } else if (isAction(action, DELETE_CHALLENGE_PARTICIPANT)) {
-        var arr = state.editedChallenge.userLabels.filter(participant => participant.label != action.label)
-
-        var editedChCopy = Object.assign({}, state.editedChallenge, {
-            userLabels: arr
-        })
-
-        return Object.assign({}, state, {
-            editedChallenge: editedChCopy
-        })
+        return {
+            ...state,
+            editedChallenge: {
+                ...state.editedChallenge,
+                userLabels: state.editedChallenge.userLabels.filter(participant => participant.label != action.label)
+            }
+        };
     } else if (isAction(action, UPDATE_ERROR_TEXT_IN_USER_LOGIN_EMAIL_VALIDATION)) {
-        return Object.assign({}, state, {
+        return {
+            ...state,
             errorText: action.errorText
-        })
+        };
     } else if (isAction(action, CHECK_CHALLENGE_PARTICIPANTS_REQUEST)) {
-        return Object.assign({}, state, {
+        return {
+            ...state,
             challengeParticipantIsChecked: true
-        })
+        };
     } else if (isAction(action, CHECK_CHALLENGE_PARTICIPANTS_RESPONSE)) {
-        return Object.assign({}, state, {
+        return {
+            ...state,
             challengeParticipantIsChecked: false
-        })
+        };
     } else if (isAction(action, EDIT_CHALLENGE)) {
-        var selectedChallenge = state.visibleChallenges.find(
-            it => it.id == action.challengeId
-        )
-        return Object.assign({}, state, {
-            editedChallenge: selectedChallenge
-        })
+        return {
+            ...state,
+            editedChallenge: state.visibleChallenges.find(
+                it => it.id == action.challengeId
+            )
+        }
     }
     return state
 }
