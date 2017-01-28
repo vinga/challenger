@@ -1,3 +1,59 @@
 plugins {
     id "com.palantir.npm-run" version "0.3.0"
 }
+
+def localDist="dist"
+def backendDist='../challenger-backend/src/main/resources/static'
+
+
+//apply  plugin: "com.palantir.npm-run"
+task collectResources << {
+    def dest = localDist
+
+    copy {
+        from 'css'
+        into dest+'/css'
+    }
+    copy {
+        from 'fonts'
+        into dest+'/fonts'
+    }
+    copy {
+        from 'images'
+        into dest+'/images'
+    }
+    copy {
+        from 'index.html'
+        into dest
+    }
+}
+tasks.collectResources.description = "Collects resources to  challenge-frontend/dist folder"
+
+
+task copyToBackend(type: Copy, dependsOn: collectResources) {
+    from 'dist'
+    into backendDist
+}
+tasks.copyToBackend.description = "Copies resources to challenge-backend challenger-backend/src/main/resources/static"
+
+task cleanDist << {
+    println "delete "+localDist
+    new File(localDist).deleteDir()
+    println "delete "+backendDist
+    new File(backendDist).deleteDir()
+}
+
+//copyToBackend.dependsOn tasks.build
+
+// build task is dynamic
+tasks.whenTaskAdded { task ->
+    if (task.name == 'build') {
+        //task.finalizedBy 'copyToBackend'
+        copyToBackend.dependsOn task
+    }
+    if (task.name=='clean') {
+        task.finalizedBy cleanDist
+    }
+}
+
+

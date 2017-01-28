@@ -2,12 +2,12 @@ import {baseWebCall} from "../logic/WebCall";
 import {EventGroupDTO, EventDTO, EventGroupSynchDTO} from "./EventDTO";
 
 export function loadEventsForChallenge(dispatch, challengeId: number, beforeEventReadId?: number): Promise<EventGroupSynchDTO> {
-    if (beforeEventReadId!=null) {
-        const max=100;
-        return Promise.resolve(baseWebCall.get(dispatch, `/challenges/${challengeId}/events?max=${max}&beforeEventReadId=${beforeEventReadId}`));
-    }
     const max=100;
-    return Promise.resolve(baseWebCall.get(dispatch, `/challenges/${challengeId}/events?max=${max}`));
+    var url=`/challenges/${challengeId}/events?max=${max}`
+    if (beforeEventReadId!=null) {
+        url=`${url}&beforeEventReadId=${beforeEventReadId}`;
+    }
+    return Promise.resolve(baseWebCall.get(dispatch, url));
 }
 
 export function loadEventsForTask(dispatch, challengeId: number, taskId: number): Promise<EventGroupDTO> {

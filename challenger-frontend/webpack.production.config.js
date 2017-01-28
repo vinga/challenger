@@ -2,10 +2,8 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
-  devtool: 'eval',
+  devtool: 'cheap-module-source-map',
   entry: [
-    'webpack-dev-server/client?http://localhost:3000',
-    'webpack/hot/only-dev-server',
     './src/index'
   ],
   output: {
@@ -19,22 +17,37 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.ProvidePlugin({
-      "React": "react",
-    }),
-    new webpack.HotModuleReplacementPlugin()
+      // removes a lot of debugging code in React
+      new webpack.DefinePlugin({
+          'process.env': {
+              'NODE_ENV': JSON.stringify('production')
+          }
+      }),
+// keeps hashes consistent between compilations
+      new webpack.optimize.OccurenceOrderPlugin(),
+// minifies your code
+      new webpack.optimize.UglifyJsPlugin({
+          compressor: {
+              warnings: false
+          }
+      })
+    /*
+     new webpack.ProvidePlugin({
+     "React": "react",
+     }),
+     new webpack.HotModuleReplacementPlugin()*/
   ],
   module: {
     loaders: [{
         test: /\.js$/,
-        loaders: ['react-hot', 'babel'],
+        loaders: ['babel'],
         include: path.join(__dirname, 'src'),
         exclude: /(node_modules|bower_components)/,
       },
 
 
       { test: /\.tsx?$/,
-        loaders: ['react-hot', 'babel', 'ts-loader' ],
+        loaders: ['babel', 'ts-loader' ],
 
 
         include: path.join(__dirname, 'src'),
@@ -48,10 +61,3 @@ module.exports = {
   }
 };
 
-
-//npm install --save-dev html-loader
-//npm install material-ui
-//npm install @types/react-addons-css-transition-group --save-dev
-
-//react-hot-uploader stays 1.X.X because for 3.0.0-beta.6 there was problem
-// with reloading that I couldn't resolved (The following modules couldn't be hot updated: (They would need a full reload!))

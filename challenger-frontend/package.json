@@ -6,11 +6,13 @@
   "scripts": {
     "start": "node server.js",
     "lint": "eslint src",
-    "build": "webpack -p"
+    "buildDev": "webpack -p",
+    "build": "webpack -p --config ./webpack.production.config.js",
+    "clean": "echo 'clean - will be triggered from gradle'"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/vinga/challenger-to-be-fixed.git"
+    "url": "https://github.com/vinga/challenger.git"
   },
   "keywords": [
     "challenger"

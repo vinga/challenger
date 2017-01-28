@@ -66,6 +66,8 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
                 return;
             }
         }
+        System.out.println(((HttpServletRequest)req).getMethod()+" "+((HttpServletRequest)req).getRequestURI()+
+                ((((HttpServletRequest)req).getPathInfo()!=null)?" "+((HttpServletRequest)req).getPathInfo(): ""));
         super.doFilter(req, res, chain);
     }
 

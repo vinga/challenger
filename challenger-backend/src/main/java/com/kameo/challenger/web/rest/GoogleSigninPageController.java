@@ -34,6 +34,8 @@ public class GoogleSigninPageController {
     private final AccountDAO accountDAO;
     private final ConfirmationLinkDAO confirmationLinkDao;
 
+
+
     @Inject
     public GoogleSigninPageController(ServerConfig serverConfig, AccountDAO accountDAO, ConfirmationLinkDAO confirmationLinkDao) {
         this.serverConfig = serverConfig;
