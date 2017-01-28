@@ -59,8 +59,7 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-Docker<br/>
-                Skrypt do gradle!!<br/>
+                Docker<br/>
                 Jak brak polaczenia z internetem, to wyswietlic info i za pare sekund wymusic przeladowanie calego challenga<br/>
 
                 <NoChallengesPanel/>
