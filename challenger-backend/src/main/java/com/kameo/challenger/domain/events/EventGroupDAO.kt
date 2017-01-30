@@ -3,7 +3,6 @@ package com.kameo.challenger.domain.events
 import com.kameo.challenger.config.ServerConfig
 import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
-import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REFUSED
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus.REMOVED
 import com.kameo.challenger.domain.events.db.EventODB
@@ -24,6 +23,10 @@ import org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT
 import org.springframework.transaction.event.TransactionalEventListener
 import org.springframework.transaction.support.TransactionCallback
 import org.springframework.transaction.support.TransactionTemplate
+import rx.AsyncEmitter
+import rx.AsyncEmitter.Cancellable
+import rx.Observable
+import rx.Subscription
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -95,36 +98,36 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     @Inject
     lateinit var txManager: PlatformTransactionManager;
 
+    @Suppress("unused") // used, it's listener function
     @TransactionalEventListener(phase = AFTER_COMMIT)
     open fun handleOrderCreatedEvent(metaEvent: MetaEventDTO) {
-        println("handleOrderCreatedEvent-start")
 
 
-        val txTemplate = TransactionTemplate(txManager)
-        txTemplate.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
-        txTemplate.execute(object : TransactionCallback<Any> {
-            override fun doInTransaction(status: TransactionStatus) {
-                metaEvent.users.forEach {
-                    it.saveParticipantEventRead(metaEvent.event, metaEvent.event.challenge)
-                    // Thread.sleep(10000)
-                    println("handleOrderCreatedEvent-end")
-                }
+        //should ensure that for current user (user.id) all eventReads will have increased id in proper order
+        metaEvent.users.forEach {
+            synchronized(it.id) {
+                //thread safe by user.id (not sure this id-Long is unique within system (single JVM), it should be)
+                //this is in order to keep always eventRead.id increasing for any user
+                println("handleOrderCreatedEvent-start "+it.id)
+                val txTemplate = TransactionTemplate(txManager)
+                txTemplate.propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
+                txTemplate.execute(object : TransactionCallback<Any> {
+                    override fun doInTransaction(status: TransactionStatus) {
+
+                        anyDaoNew.persist(EventReadODB(firstReadId.incrementAndGet(), it, metaEvent.event.challenge, metaEvent.event))
+                        // Thread.sleep(10000)
+
+
+                    }
+                })
+                println("handleOrderCreatedEvent-end "+it.id)
             }
-        })
+        }
 
 
         eventPushDao.get().broadcastNewEvent(metaEvent.event.challenge.id)
     }
 
-
-    private fun UserODB.saveParticipantEventRead(e: EventODB, ch: ChallengeODB) {
-        //thread safe by user.id (not sure this id-Long is unique within system (single JVM), it should be)
-        //this is in order to keep always eventRead.id increasing for any user
-
-        synchronized(id) {
-            anyDaoNew.persist(EventReadODB(firstReadId.incrementAndGet(), this, ch, e))
-        }
-    }
 
 
     private val firstReadId: AtomicLong by lazy {
@@ -289,7 +292,7 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
         permissionDao.checkHasPermissionToChallenge(callerId, challengeId)
         val desiredMaxEvents = maxEvents ?: serverConfig.maxEventsSize
 
-        val res= anyDaoNew.getAll(EventReadODB::class) {
+        val res = anyDaoNew.getAll(EventReadODB::class) {
             it get EventReadODB::user eqId callerId
             it get EventReadODB::challenge eqId challengeId
             it get +EventReadODB::id beforeNotNull beforeEventReadId
@@ -302,58 +305,57 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
         }
 
 
+        /*
+        // first try to fetch all unread
 
-            /*
-            // first try to fetch all unread
-
-            val firstNotRead =
-                if (beforeEventId == null)
-                    anyDaoNew.getFirst(EventReadODB::class) {
-                        it get EventReadODB::user eqId callerId
-                        it get EventReadODB::challenge eqId challengeId
-                        it.get(EventReadODB::read).isNull()
-                        it.orderByAsc(+EventReadODB::id)
-                        it limit 1
-                    }
-                else null // ignore if read or urnead, just fetch all before beforeEventId
+        val firstNotRead =
+            if (beforeEventId == null)
+                anyDaoNew.getFirst(EventReadODB::class) {
+                    it get EventReadODB::user eqId callerId
+                    it get EventReadODB::challenge eqId challengeId
+                    it.get(EventReadODB::read).isNull()
+                    it.orderByAsc(+EventReadODB::id)
+                    it limit 1
+                }
+            else null // ignore if read or urnead, just fetch all before beforeEventId
 
 
-        val res = if (firstNotRead == null) {
-            // all are read, just return maxEvents of them
-            anyDaoNew.getAll(EventReadODB::class) {
-                it get EventReadODB::user eqId callerId
-                it get EventReadODB::challenge eqId challengeId
-                it get +EventReadODB::event get +EventODB::id beforeNotNull beforeEventId
+    val res = if (firstNotRead == null) {
+        // all are read, just return maxEvents of them
+        anyDaoNew.getAll(EventReadODB::class) {
+            it get EventReadODB::user eqId callerId
+            it get EventReadODB::challenge eqId challengeId
+            it get +EventReadODB::event get +EventODB::id beforeNotNull beforeEventId
 
-                it orderByDesc EventReadODB::read
-                it orderBy(Pair(it get +EventReadODB::event get +EventODB::id,false))
+            it orderByDesc EventReadODB::read
+            it orderBy(Pair(it get +EventReadODB::event get +EventODB::id,false))
 
-                it limit desiredMaxEvents
-                it.select(it, it get EventReadODB::event)
-            }
-        } else {
-            // at least one is unread, getch it and all later
-            anyDaoNew.getAll(EventReadODB::class) {
-                it get EventReadODB::user eqId callerId
-                it get EventReadODB::challenge eqId challengeId
-                it get +EventReadODB::id ge firstNotRead.id
-                it.select(it, it.get(EventReadODB::event))
-            }.let {
-                // in case if it is still too small add to it some previous read message
-                val notReadSize = it.size
-                if (it.size < desiredMaxEvents) {
-                    it + anyDaoNew.getAll(EventReadODB::class) {
-                        val er = this
-                        er get EventReadODB::user eqId callerId
-                        er get EventReadODB::challenge eqId challengeId
-                        er get +EventReadODB::id lt firstNotRead.id
-                        er limit desiredMaxEvents - notReadSize
-                        er.select(er, er get EventReadODB::event)
-                    }
-                } else
-                    it
-            }
-        }*/
+            it limit desiredMaxEvents
+            it.select(it, it get EventReadODB::event)
+        }
+    } else {
+        // at least one is unread, getch it and all later
+        anyDaoNew.getAll(EventReadODB::class) {
+            it get EventReadODB::user eqId callerId
+            it get EventReadODB::challenge eqId challengeId
+            it get +EventReadODB::id ge firstNotRead.id
+            it.select(it, it.get(EventReadODB::event))
+        }.let {
+            // in case if it is still too small add to it some previous read message
+            val notReadSize = it.size
+            if (it.size < desiredMaxEvents) {
+                it + anyDaoNew.getAll(EventReadODB::class) {
+                    val er = this
+                    er get EventReadODB::user eqId callerId
+                    er get EventReadODB::challenge eqId challengeId
+                    er get +EventReadODB::id lt firstNotRead.id
+                    er limit desiredMaxEvents - notReadSize
+                    er.select(er, er get EventReadODB::event)
+                }
+            } else
+                it
+        }
+    }*/
 
         return res.sortedWith(sortEventsReadAsc())
     }

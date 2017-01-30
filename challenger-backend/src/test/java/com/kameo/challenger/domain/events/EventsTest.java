@@ -1,10 +1,7 @@
 package com.kameo.challenger.domain.events;
 
-import com.google.common.collect.Lists;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
-import com.kameo.challenger.domain.accounts.ConfirmationLinkLogic;
-import com.kameo.challenger.domain.events.EventGroupDAO;
 import com.kameo.challenger.domain.accounts.db.UserODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.events.db.EventODB;
@@ -25,15 +22,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@TestPropertySource(locations="classpath:application-test.properties")
+@TestPropertySource(locations = "classpath:application-test.properties")
 @ContextConfiguration(classes = {DatabaseTestConfig.class, ServicesLayerConfig.class})
 public class EventsTest implements En {
     @Inject
     private AnyDAO anyDao;
     @Inject
     private TestHelper testHelper;
-    @Inject
-    private ConfirmationLinkLogic confirmationLinkLogic;
     @Inject
     private EventGroupDAO eventGroupDao;
 
@@ -42,58 +37,46 @@ public class EventsTest implements En {
         testHelper.clearSchema();
     }
 
-
     public EventsTest() {
-
         Given("^\"([^\"]*)\" commented action \"([^\"]*)\" with words \"([^\"]*)\"$", (String login, String task, String words) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            TaskODB t=testHelper.resolveTask(task);
-            EventODB p=new EventODB();
+            UserODB u = testHelper.resolveUserByLogin(login);
+            TaskODB t = testHelper.resolveTask(task);
+            EventODB p = new EventODB();
             p.setAuthor(u);
-
             p.setChallenge(t.getChallenge());
             p.setCreateDate(new Date());
             p.setContent(words);
             p.setEventType(EventType.POST);
-            eventGroupDao.createEventFromClient(u.getId(),t.getChallenge().getId(), p);
-
+            eventGroupDao.createEventFromClient(u.getId(), t.getChallenge().getId(), p);
         });
-
         When("^\"([^\"]*)\" fetch all posts for action \"([^\"]*)\"$", (String login, String task) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            TaskODB t=testHelper.resolveTask(task);
+            UserODB u = testHelper.resolveUserByLogin(login);
+            TaskODB t = testHelper.resolveTask(task);
             eventGroupDao.getEventsForTask(u.getId(), t.getChallenge().getId(), t.getId());
-
         });
-
-        Then("^\"([^\"]*)\" see that action \"([^\"]*)\" has (\\d+) post$", (String login,String task, Integer taskNo) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            TaskODB t=testHelper.resolveTask(task);
+        Then("^\"([^\"]*)\" see that action \"([^\"]*)\" has (\\d+) post$", (String login, String task, Integer taskNo) -> {
+            UserODB u = testHelper.resolveUserByLogin(login);
+            TaskODB t = testHelper.resolveTask(task);
             List<EventODB> res = eventGroupDao.getEventsForTask(u.getId(), t.getChallenge().getId(), t.getId());
-            Assert.assertEquals(taskNo.intValue(),res.size());
+            Assert.assertEquals(taskNo.intValue(), res.size());
         });
-
-
-
         Given("^\"([^\"]*)\" commented action \"([^\"]*)\" with words \"([^\"]*)\" (\\d+) times$", (String login, String action, String words, Integer times) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            TaskODB t=testHelper.resolveTask(action);
-            for (int i=0; i<times; i++) {
+            UserODB u = testHelper.resolveUserByLogin(login);
+            TaskODB t = testHelper.resolveTask(action);
+            for (int i = 0; i < times; i++) {
                 EventODB p = new EventODB();
                 p.setAuthor(u);
-
                 p.setChallenge(t.getChallenge());
                 p.setCreateDate(new Date());
                 p.setContent(words);
                 p.setEventType(EventType.POST);
-                eventGroupDao.createEventFromClient(u.getId(),  p.getChallenge().getId(), p);
+                eventGroupDao.createEventFromClient(u.getId(), p.getChallenge().getId(), p);
             }
         });
-
         Given("^\"([^\"]*)\" commented challenge \"([^\"]*)\" with words \"([^\"]*)\" (\\d+) times$", (String login, String challenge, String words, Integer times) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            ChallengeODB c=testHelper.resolveChallenge(challenge);
-            for (int i=0; i<times; i++) {
+            UserODB u = testHelper.resolveUserByLogin(login);
+            ChallengeODB c = testHelper.resolveChallenge(challenge);
+            for (int i = 0; i < times; i++) {
                 EventODB p = new EventODB();
                 p.setAuthor(u);
                 p.setChallenge(c);
@@ -104,39 +87,32 @@ public class EventsTest implements En {
             }
         });
         Given("^\"([^\"]*)\" read all events in challenge \"([^\"]*)\"$", (String login, String challenge) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            ChallengeODB c=testHelper.resolveChallenge(challenge);
-            long challengeId=c.getId();
+            UserODB u = testHelper.resolveUserByLogin(login);
+            ChallengeODB c = testHelper.resolveChallenge(challenge);
+            long challengeId = c.getId();
             List<EventODB> events = anyDao.streamAll(EventODB.class).where(e -> e.getChallenge().getId() == challengeId)
                                           .sortedBy(EventODB::getId).collect(Collectors.toList());
-            for (EventODB e: events) {
+            for (EventODB e : events) {
                 eventGroupDao.markEventAsRead(u.getId(), challengeId, e.getId(), new Date());
             }
         });
-
-
         When("^\"([^\"]*)\" fetch (\\d+) total posts for challenge \"([^\"]*)\"$", (String login, Integer postsCount, String challenge) -> {
-            UserODB u=testHelper.resolveUserByLogin(login);
-            ChallengeODB c=testHelper.resolveChallenge(challenge);
-            eventGroupDao.getLastEventsForChallenge(u.getId(),c.getId(), postsCount);
+            UserODB u = testHelper.resolveUserByLogin(login);
+            ChallengeODB c = testHelper.resolveChallenge(challenge);
+            eventGroupDao.getLastEventsForChallenge(u.getId(), c.getId(), null, postsCount);
         });
-
         Then("^\"([^\"]*)\" see that last (\\d+) comments of challenge \"([^\"]*)\" contains (\\d+) (?:post|posts) with \"([^\"]*)\"$",
                 (String login, Integer commentsCount, String challenge, Integer commentsOfTypeCount, String words) -> {
-                    UserODB u=testHelper.resolveUserByLogin(login);
-                    ChallengeODB c=testHelper.resolveChallenge(challenge);
-                    List<Pair<EventReadODB, EventODB>> pairs = eventGroupDao.getLastEventsForChallenge(u.getId(), c.getId(), commentsCount);
-                    List<EventODB> posts=pairs.stream().map(Pair<EventReadODB, EventODB>::getSecond).collect(Collectors.toList());
-
-                    int count=0;
-                    for (EventODB p: posts) {
+                    UserODB u = testHelper.resolveUserByLogin(login);
+                    ChallengeODB c = testHelper.resolveChallenge(challenge);
+                    List<Pair<EventReadODB, EventODB>> pairs = eventGroupDao.getLastEventsForChallenge(u.getId(), c.getId(),null,  commentsCount);
+                    List<EventODB> posts = pairs.stream().map(Pair<EventReadODB, EventODB>::getSecond).collect(Collectors.toList());
+                    int count = 0;
+                    for (EventODB p : posts) {
                         if (p.getContent().equals(words))
                             count++;
                     }
-                    Assert.assertEquals("Should be "+commentsOfTypeCount+" for words '"+words+"'",(long)commentsOfTypeCount,(long)count);
+                    Assert.assertEquals("Should be " + commentsOfTypeCount + " for words '" + words + "'", (long) commentsOfTypeCount, (long) count);
                 });
-
-
     }
-
 }

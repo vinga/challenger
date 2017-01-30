@@ -10,6 +10,9 @@ import {GlobalPopover} from "./views/common-components/GlobalPopover";
 import {ConfirmationPanel} from "./module_accounts/components/ConfirmationPanel";
 import {GlobalWebCallProgress} from "./views/GlobalWebCallProgress";
 import {CustomNotificationPanel} from "./views/CustomNotificationPanel";
+import {Dialog, FlatButton} from "material-ui";
+import {refetchChallengeData} from "./module_challenges/challengeActions";
+import {CLOSE_TRY_AGAIN_WINDOW} from "./redux/actions/actions";
 
 
 //2.0.3
@@ -19,14 +22,19 @@ interface Props {
     logged: boolean,
     registering: boolean,
     confirmationLink: boolean,
+    noInternetConnection?: boolean
 }
 interface PropsFunc {
-    onLogout: ()=>void
+    onLogout: () => void,
+    onTryAgainWhenCommunicationProblem: () => void
 }
 
 
-const App = (props: Props & PropsFunc)=> {
+const App = (props: Props & PropsFunc) => {
 
+    const onTryAgain = () => {
+        props.onTryAgainWhenCommunicationProblem();
+    }
     return <MuiThemeProvider>
         <div>
             <GlobalWebCallProgress/>
@@ -42,6 +50,19 @@ const App = (props: Props & PropsFunc)=> {
                             <LoginPanel/> )) }
             <GlobalPopover/>
 
+            {props.noInternetConnection &&
+            <Dialog open={true}
+                    title="Warning"
+                    actions={ [<FlatButton
+                                label="Try again"
+                                primary={true}
+                                onTouchTap={onTryAgain}
+                            />]}
+            >
+                No internet connection. Something went wrong
+            </Dialog>
+
+            }
             {/* <Snackbar
              open={props.snackbarString!=null && props.snackbarString!=""}
              message={props.snackbarString !=null ?props.snackbarString: "nothing"}
@@ -60,6 +81,7 @@ const mapStateToProps = (state: ReduxState): Props => {
         confirmationLink: (window.location.hash.substr(1) || "").startsWith(c) || (state.confirmationLinkState != null && state.confirmationLinkState.uid != null),
         logged: loggedUserSelector(state) != null,
         registering: state.registerState != null,
+        noInternetConnection: state.currentSelection.noInternetConnection
         //snackbarString: null//state.currentSelection.snackbarInfo
     }
 };
@@ -67,6 +89,10 @@ const mapStateToProps = (state: ReduxState): Props => {
 const mapDispatchToProps = (dispatch): PropsFunc => {
     return {
         onLogout: () => dispatch(LOGOUT.new({})),
+        onTryAgainWhenCommunicationProblem: () => {
+            dispatch(refetchChallengeData());
+            dispatch(CLOSE_TRY_AGAIN_WINDOW.new({}))
+        }
     }
 };
 

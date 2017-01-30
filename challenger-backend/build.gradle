@@ -1,11 +1,8 @@
-
-
-
 buildscript {
     ext.kotlin_version = '1.0.4'
 
     configurations {
-     //   compile.exclude module: "spring-boot-starter-tomcat"
+        //   compile.exclude module: "spring-boot-starter-tomcat"
     }
 
     repositories {
@@ -32,7 +29,7 @@ version = '1.0-SNAPSHOT'
 description = """challenger-backend"""
 
 tasks.withType(JavaCompile) {
-	options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
 }
 
 configurations {
@@ -40,53 +37,59 @@ configurations {
 }
 
 repositories {
-        
-     maven { url "http://repo.maven.apache.org/maven2" }
+
+    maven { url "http://repo.maven.apache.org/maven2" }
 }
 dependencies {
 
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '1.4.0.RELEASE'
 
-  //  compile("org.springframework.boot:spring-boot-starter-undertow:1.2.0.RELEASE")
+    //  compile("org.springframework.boot:spring-boot-starter-undertow:1.2.0.RELEASE")
     // caused problem, kotlin classes were not unmarshalled from rest response despite all default fields set constructor compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
-   // compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-hystrix', version:'1.1.5.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version:'1.4.0.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-jersey', version:'1.4.0.RELEASE'
- //   compile group: 'org.glassfish.jersey.media', name: 'jersey-media-sse', version: '2.23.2'
+    // compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-hystrix', version:'1.1.5.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '1.4.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-jersey', version: '1.4.0.RELEASE'
+    //   compile group: 'org.glassfish.jersey.media', name: 'jersey-media-sse', version: '2.23.2'
     compile("io.springfox:springfox-swagger-ui:2.4.0")
     compile("io.springfox:springfox-swagger2:2.4.0")
     compile("io.swagger:swagger-jersey2-jaxrs:1.5.8")
 
 
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version:'1.4.0.RELEASE'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-remote-shell', version:'1.4.0.RELEASE'
-   compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '1.4.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '1.4.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-remote-shell', version: '1.4.0.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '1.4.0.RELEASE'
     compile group: 'com.google.guava', name: 'guava', version: '19.0'
-  //  compile group: 'com.vaadin', name: 'vaadin-spring-boot-starter', version:'1.0.0'
-    compile group: 'org.projectlombok', name: 'lombok', version:'1.16.10'
-    compile group: 'com.google.code.gson', name: 'gson', version:'2.7'
-    compile group: 'com.googlecode.jsontoken', name: 'jsontoken', version:'1.0'
-    compile group: 'org.jinq', name: 'jinq-jpa', version:'1.8.11'
-   // compile group: 'org.hibernate', name: 'hibernate-jpamodelgen', version:'5.2.3.Final'
-    compile group: 'org.hibernate', name: 'hibernate-java8', version:'5.0.9.Final'  //5.1.0 or later doesn't use FieldInterceptionHelper
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version:'1.0.4'
+    compile group: 'org.projectlombok', name: 'lombok', version: '1.16.10'
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
+    compile group: 'com.googlecode.jsontoken', name: 'jsontoken', version: '1.0'
+    compile group: 'org.jinq', name: 'jinq-jpa', version: '1.8.11'
+    // compile group: 'org.hibernate', name: 'hibernate-jpamodelgen', version:'5.2.3.Final'
+    compile group: 'org.hibernate', name: 'hibernate-java8', version: '5.0.9.Final'  //5.1.0 or later doesn't use FieldInterceptionHelper
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: '1.0.4'
 
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
 
-    runtime group: 'org.hsqldb', name: 'hsqldb', version:'2.3.3'
-    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version:'1.4.0.RELEASE') {
+
+    compile 'io.reactivex:rxjava:1.1.10'
+
+
+    runtime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.3'
+    testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.4.0.RELEASE') {
         exclude(module: 'commons-logging')
     }
-    testCompile group: 'info.cukes', name: 'cucumber-java8', version:'1.2.5'
-    testCompile group: 'info.cukes', name: 'cucumber-junit', version:'1.2.5'
-    testCompile group: 'info.cukes', name: 'cucumber-spring', version:'1.2.5'
+    testCompile group: 'info.cukes', name: 'cucumber-java8', version: '1.2.5'
+    testCompile group: 'info.cukes', name: 'cucumber-junit', version: '1.2.5'
+    testCompile group: 'info.cukes', name: 'cucumber-spring', version: '1.2.5'
 
     //compile group: 'org.apache.kafka', name: 'kafka_2.10', version: '0.10.1.0'
-   // compile group: 'org.apache.kafka', name: 'kafka-clients', version: '0.10.1.0'
-   // compile group: 'org.apache.kafka', name: 'kafka-streams', version: '0.10.1.0'
+    // compile group: 'org.apache.kafka', name: 'kafka-clients', version: '0.10.1.0'
+    // compile group: 'org.apache.kafka', name: 'kafka-streams', version: '0.10.1.0'
     //compile group: 'org.springframework.boot', name: 'spring-boot-starter-websocket', version: '1.4.1.RELEASE'
 
+}
+task printDeps(dependsOn: build) << {
+    configurations*.dependencies.each { println it }
 }
 
 //task buildFrontend(type: Copy) << {

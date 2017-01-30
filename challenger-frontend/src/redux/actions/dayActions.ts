@@ -23,7 +23,7 @@ export function checkForTooLongWebCallsOneTime() {
         //getState().webCallsState.forEach(e=>console.log(d.getTime() - e.startDate.getTime()));
 
 
-
+        //console.log("check for too long web calls "+getState().webCallsState.length);
         if (getState().webCallsState.some(e=>(d.getTime() - e.startDate.getTime()) > SECONDS_10)) {
             dispatch(DISPLAY_LONG_CALL.new({longCallVisible: LongCallVisible.VERY_LONG}));
         } else if (getState().webCallsState.some(e=>(d.getTime() - e.startDate.getTime()) > SECONDS_2)) {
@@ -41,7 +41,7 @@ export function checkForTooLongWebCalls() {
         dispatch(checkForTooLongWebCallsOneTime());
         setTimeout(() => {
             dispatch(checkForTooLongWebCalls())
-        }, 500) // everySec
+        }, 1000) // everySec
 
     }
 }

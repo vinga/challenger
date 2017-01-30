@@ -90,7 +90,7 @@ public class TasksTest implements En {
             ca.setLabel(actionName);
             ca.setChallenge(cc);
             ca.setUser(u2);
-            taskDao.createTask(u1.getId(), ca);
+            taskDao.createTask(Sets.newHashSet(u1.getId()), ca);
         });
         Given("^\"([^\"]*)\" created in challenge \"([^\"]*)\" new difficult task \"([^\"]*)\" for \"([^\"]*)\" (\\d+) days ago$",
                 (String person1, String challengeContractName, String actionName, String person2, Integer daysAgo) -> {
@@ -105,7 +105,7 @@ public class TasksTest implements En {
                     ca.setLabel(actionName);
                     ca.setChallenge(cc);
                     ca.setUser(u2);
-                    taskDao.createTask(u1.getId(), ca);
+                    taskDao.createTask(Sets.newHashSet(u1.getId()), ca);
                 });
 
         Given("^\"([^\"]*)\" accepted task \"([^\"]*)\" in challenge \"([^\"]*)\"$",
@@ -125,7 +125,7 @@ public class TasksTest implements En {
             ca.setUser(testHelper.myself());
             ca.setChallenge(cc);
             ca.setTaskType(TaskType.valueOf(arg1));
-            taskDao.createTask(testHelper.myFriend().getId(), ca);
+            taskDao.createTask(Sets.newHashSet(testHelper.myFriend().getId()), ca);
         });
 
         Given("^my friend created new onetime action for me with due date in the past$", () -> {
@@ -137,7 +137,7 @@ public class TasksTest implements En {
             ca.setChallenge(cc);
             ca.setDueDate(LocalDateTime.now().minusDays(1));
             ca.setTaskType(TaskType.onetime);
-            taskDao.createTask(testHelper.myFriend().getId(), ca);
+            taskDao.createTask(Sets.newHashSet(testHelper.myFriend().getId()), ca);
         });
 
         When("^I get list of waiting for acceptance actions$", () -> {
@@ -186,7 +186,7 @@ public class TasksTest implements En {
             ca.setLabel(actionName);
             ca.setChallenge(cc);
             ca.setUser(u2);
-            taskDao.createTask(u1.getId(), ca);
+            taskDao.createTask(Sets.newHashSet(u1.getId()), ca);
         });
 
         Then("^\"([^\"]*)\" can modify action \"([^\"]*)\"$", (String person, String arg1) -> {
@@ -221,7 +221,7 @@ public class TasksTest implements En {
             ca.setTaskStatus(TaskStatus.accepted);
             ca.setChallenge(cc);
             ca.setUser(myself);
-            taskDao.createTask(myFriend.getId(), ca);
+            taskDao.createTask(Sets.newHashSet(myFriend.getId()), ca);
         });
 
 
@@ -257,7 +257,7 @@ public class TasksTest implements En {
             ca.setTaskStatus(TaskStatus.accepted);
             ca.setChallenge(cc);
             ca.setUser(myFriend);
-            taskDao.createTask(myFriend.getId(), ca);
+            taskDao.createTask(Sets.newHashSet(myFriend.getId()), ca);
         });
 
 

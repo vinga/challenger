@@ -27,4 +27,9 @@ export const CREATE_AND_OPEN_EDIT_TASK: ActionType<{creatorId: number, forUserId
 export const MODIFY_TASK_REQUEST: ActionType<TaskDTO> = new ActionType<any>('MODIFY_TASK_REQUEST');
 export const TASK_PROGRESS_REQUEST: ActionType<{challengeId: number, taskProgress:TaskProgressDTO}> = new ActionType<any>('TASKPROGRESS_REQUEST');
 export const CLOSE_EDIT_TASK: ActionType<{}> = new ActionType<any>('CLOSE_EDIT_TASK');
+
 export const MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID: ActionType<{challengeId: number}> = new ActionType<any>('MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID');
+
+
+// for eg. if not internet connection
+export const PREPARE_FOR_FULL_TASKS_REFETCH: ActionType<{}> = new ActionType<any>('PREPARE_FOR_FULL_TASKS_REFETCH');

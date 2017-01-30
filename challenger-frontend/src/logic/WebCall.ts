@@ -1,7 +1,6 @@
 //export const baseApiUrl = "http://localhost:9080/api";
-
 import {WebCallData} from "../redux/ReduxState";
-import {WEB_CALL_START, WEB_CALL_END, WEB_CALL_END_ERROR, INTERNAL_ERROR_WEB_RESPONSE} from "../redux/actions/actions";
+import {WEB_CALL_START, WEB_CALL_END, WEB_CALL_END_ERROR, INTERNAL_ERROR_WEB_RESPONSE, WEB_CALL_END_NO_INTERNET_CONNECTION} from "../redux/actions/actions";
 import {WEB_STATUS_INTERNAL_ERROR, WEB_STATUS_UNAUTHORIZED} from "./domain/Common";
 import {LOGOUT, UNAUTHORIZED_WEB_RESPONSE} from "../module_accounts/accountActionTypes";
 import _ = require("lodash");
@@ -11,6 +10,7 @@ export const baseApiUrl = "/api";
 export interface CallMeta {
     alwaysDisplayProgress?: boolean // default true
     async?: boolean //default false
+
 }
 function registerStartWebCall(meta: CallMeta, dispatch) {
     let callUid = Math.random();
@@ -19,8 +19,9 @@ function registerStartWebCall(meta: CallMeta, dispatch) {
         startDate: new Date(),
         fromStart: meta == null || meta.alwaysDisplayProgress
     };
-    if (meta == null || meta.async == false)
+    if (meta == null || meta.async == false) {
         dispatch(WEB_CALL_START.new({webCallData}));
+    }
     return callUid;
 }
 
@@ -43,12 +44,19 @@ function anyAjaxJson(dispatch, path, payload: any = null, type: string, webToken
 
 
     var callUid = registerStartWebCall(meta, dispatch);
-    return Promise.resolve($.ajax(data)).then(e=> {
+    return Promise.resolve($.ajax(data)).then(e => {
         dispatch(WEB_CALL_END.new({callUid}));
         return e;
     }).catch((reason: XMLHttpRequest) => {
-        dispatch(WEB_CALL_END_ERROR.new({callUid}));
 
+        dispatch(WEB_CALL_END_ERROR.new({callUid}));
+        if (reason.readyState == 0) {
+            // Network error (i.e. connection refused, access denied due to CORS, etc.)
+            dispatch(WEB_CALL_END_NO_INTERNET_CONNECTION.new({}));
+            throw reason;
+        } else {
+            // something weird is happening
+        }
 
         if (reason.status == WEB_STATUS_INTERNAL_ERROR) {
             dispatch(LOGOUT.new({}));
@@ -57,6 +65,13 @@ function anyAjaxJson(dispatch, path, payload: any = null, type: string, webToken
             console.log("FOUND UNAUTHORIZED");
             dispatch(UNAUTHORIZED_WEB_RESPONSE.new({jwtToken: webTokens}));
         }
+
+
+        /*if (reason.readyState == 4) {
+         // HTTP error (can be checked by XMLHttpRequest.status and XMLHttpRequest.statusText)
+         }
+         else */
+
 
         throw reason;
         // throw Object.assign({}, reason,  {jwtToken: webTokens})
@@ -116,7 +131,7 @@ class BaseWebCall {
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             data: payload
-        })).then(e=> {
+        })).then(e => {
             dispatch(WEB_CALL_END.new({callUid}));
             return e;
         }).catch((reason: XMLHttpRequest) => {
@@ -136,7 +151,7 @@ class BaseWebCall {
         if (payload != null) {
             data.data = payload;
         }
-        return Promise.resolve($.ajax(data)).then(e=> {
+        return Promise.resolve($.ajax(data)).then(e => {
             dispatch(WEB_CALL_END.new({callUid}));
             return e;
         }).catch((reason: XMLHttpRequest) => {
@@ -156,7 +171,7 @@ class BaseWebCall {
                 "Authorization": "Bearer " + customJWT
             },
         }))
-            .then(e=> {
+            .then(e => {
                 dispatch(WEB_CALL_END.new({callUid}));
                 return e;
             }).catch((reason: XMLHttpRequest) => {

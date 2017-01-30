@@ -39,8 +39,10 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
     private ServerConfig serverConfig;
     private JWTService<ChallengerSess> jwtService;
 
+    public static final String ROLE_USER="USER";
+
     @Override
-    protected JWTService<ChallengerSess> createJWTService(FilterConfig arg0) {
+    protected JWTService<ChallengerSess> getJWTService() {
         return jwtService;
     }
 
@@ -130,7 +132,7 @@ public class AuthFilter extends AbstractAuthFilter<ChallengerSess> {
         final Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null && !ti.isEmpty()) {
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    ti.get(0), null, Lists.newArrayList(new SimpleGrantedAuthority("ROLE_USER")));
+                    ti.get(0), null, Lists.newArrayList(new SimpleGrantedAuthority("ROLE_"+ROLE_USER)));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         if (ti.size() == 1)

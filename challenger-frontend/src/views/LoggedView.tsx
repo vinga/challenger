@@ -11,7 +11,7 @@ import {challengeStatusSelector, challengeParticipantsAsAccountsSelector} from "
 import {ChallengeStatus} from "../module_challenges/ChallengeDTO";
 import {GlobalNotificationsPanel} from "../module_events/components/GlobalNotificationsPanel";
 import {AccountDTO} from "../module_accounts/AccountDTO";
-
+import {CircularProgress} from "material-ui";
 
 interface ReduxProps {
     challengeId?: number,
@@ -60,8 +60,6 @@ class LoggedView extends React.Component<ReduxProps,void> {
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
                 Docker<br/>
-                Jak brak polaczenia z internetem, to wyswietlic info i za pare sekund wymusic przeladowanie calego challenga<br/>
-
                 <NoChallengesPanel/>
                 <div>{rows}</div>
 

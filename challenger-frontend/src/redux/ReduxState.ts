@@ -27,7 +27,8 @@ export interface CurrentSelection {
     forgotPasswordMode?: boolean,
     loginInfoDescription?: string,
     longCallVisible?: LongCallVisible
-    closableText?: string
+    closableText?: string,
+    noInternetConnection?: boolean
 
 }
 

@@ -18,14 +18,14 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter {
-    private JWTService<E> jwtService;
+   // private JWTService<E> jwtService;
 
     @Override
     public void init(FilterConfig arg0) throws ServletException {
-        jwtService = createJWTService(arg0);
+     //   jwtService = createJWTService(arg0);
     }
 
-    protected abstract JWTService<E> createJWTService(FilterConfig arg0);
+    protected abstract JWTService<E> getJWTService();
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
@@ -57,7 +57,7 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 List<String> tokensStringList = Lists.newArrayList(Splitter.on(" ").omitEmptyStrings().trimResults().split(tokens));
                 List<E> tokensList = Lists.newArrayList();
                 for (String token : tokensStringList) {
-                    E tokenInfo = jwtService.verifyToken(token);
+                    E tokenInfo = getJWTService().verifyToken(token);
                     if (tokenInfo.getExpires().isBeforeNow()) {
                         onTokenExpired(httpReq, httpRes, chain);
                     } else tokensList.add(tokenInfo);
@@ -91,7 +91,7 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
     }
 
     public String tokenToString(E tokenInfo) {
-        return jwtService.tokenToString(tokenInfo);
+        return getJWTService().tokenToString(tokenInfo);
     }
 
     /**

@@ -7,7 +7,7 @@ import {
     WEB_CALL_END_ERROR,
     DISPLAY_LONG_CALL,
     HIDE_LONG_CALL,
-    SHOW_CUSTOM_NOTIFICATION
+    SHOW_CUSTOM_NOTIFICATION, WEB_CALL_END_NO_INTERNET_CONNECTION, CLOSE_TRY_AGAIN_WINDOW
 } from "../actions/actions";
 import {CurrentSelection, copy, WebCallData} from "../ReduxState";
 import {LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_RESPONSE_SUCCESS, START_FORGOT_PASSWORD_MODE, FINISH_FORGOT_PASSWORD_MODE} from "../../module_accounts/accountActionTypes";
@@ -74,6 +74,10 @@ export function currentSelection(state: CurrentSelection = getInitialState(), ac
         return copy(state).and({
             closableText: action.textClosable
         });
+    } else if (isAction(action, WEB_CALL_END_NO_INTERNET_CONNECTION)) {
+        return {...state, noInternetConnection: true };
+    } else if (isAction(action, CLOSE_TRY_AGAIN_WINDOW)) {
+        return {...state, noInternetConnection: false };
     }
 
     return state;

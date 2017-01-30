@@ -16,6 +16,8 @@ export const HIDE_LONG_CALL: ActionType<{}> = new ActionType<any>('HIDE_LONG_CAL
 export const WEB_CALL_START: ActionType<{webCallData: WebCallData}> = new ActionType<any>('WEB_CALL_START');
 export const WEB_CALL_END: ActionType<{callUid: number}> = new ActionType<any>('WEB_CALL_END');
 export const WEB_CALL_END_ERROR: ActionType<{callUid: number}> = new ActionType<any>('WEB_CALL_END_ERROR');
+export const WEB_CALL_END_NO_INTERNET_CONNECTION: ActionType<{}> = new ActionType<any>('WEB_CALL_END_NO_INTERNET_CONNECTION');
+export const CLOSE_TRY_AGAIN_WINDOW: ActionType<{}> = new ActionType<any>('CLOSE_TRY_AGAIN_WINDOW');
 
 
 export const SHOW_CUSTOM_NOTIFICATION: ActionType<{textClosable: string}> = new ActionType<any>('SHOW_CUSTOM_NOTIFICATION');

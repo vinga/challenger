@@ -27,7 +27,7 @@ import {
     LOAD_TASKS_RESPONSE_NEWWAY,
     DELETE_TASKS_REMOTE,
     MARK_TASK_DONE_UNDONE_REMOTE,
-    UPDATE_TASK_ACCEPTANCE_OPTIMISTIC
+    UPDATE_TASK_ACCEPTANCE_OPTIMISTIC, PREPARE_FOR_FULL_TASKS_REFETCH
 } from "./taskActionTypes";
 import {isAction} from "../redux/ReduxTask";
 import {DISPLAY_REQUEST_IN_PROGRESS} from "../redux/actions/actions";
@@ -98,7 +98,9 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
 
     } else if (isAction(action, LOAD_TASKS_RESPONSE_NEWWAY)) {
 
-        var allTasks: any = Object.assign({}, state.allTasks, _.keyBy(action.tasks, 'id'));
+
+        var allTasks: any ={ ...state.allTasks,  ..._.keyBy(action.tasks, 'id')};
+
         return Object.assign({}, state, {allTasks})
 
     } else if (isAction(action, LOAD_TASK_PROGRESSES_RESPONSE)) {
@@ -114,7 +116,8 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
             tl.taskProgresses.map(tp => tp.task = undefined);
 
         }
-        return path.map(newState, `taskProgressesForDays.${key}`, () => tl);
+        return {...newState, taskProgressesForDays: {...newState.taskProgressesForDays, [key]:tl} }
+       // return path.map(newState, `taskProgressesForDays.${key}`, () => tl);
 
     } else if (isAction(action, MARK_TASK_DONE_OPTIMISTIC)) {
 
@@ -174,6 +177,8 @@ export function tasksState(state: TaskDTOState = getInitialState(), action) {
         });
         console.log(res);
         return res;
+    } else if (isAction(action, PREPARE_FOR_FULL_TASKS_REFETCH)) {
+        return {...state, taskProgressesForDays: [], allTasks: [] }
     } else {
 
 

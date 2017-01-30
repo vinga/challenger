@@ -3,9 +3,9 @@ package com.kameo.challenger;
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
 import com.kameo.challenger.domain.accounts.db.UserODB;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
-import com.kameo.challenger.logic.ChallengerLogic;
 import com.kameo.challenger.logic.FakeDataLogic;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.odb.AnyDAO;
@@ -24,7 +24,7 @@ public class Commons implements En {
     @Inject
     private AnyDAO anyDao;
     @Inject
-    private ChallengerLogic challengerService;
+    private ChallengeDAO challengeDAO;
     @Inject
     private FakeDataLogic cmd;
     @Inject
@@ -47,7 +47,7 @@ public class Commons implements En {
         When("^\"([^\"]*)\" accepted challenge \"([^\"]*)\"$", (String person1, String challengeName) -> {
             List<UserODB> users = testHelper.createUsers(testHelper.resolveLogins(person1));
             ChallengeODB challenge = testHelper.resolveChallenge(challengeName);
-            challengerService.updateChallengeState(users.get(0).getId(), challenge.getId(), ChallengeStatus.ACTIVE);
+            challengeDAO.updateChallengeState(users.get(0).getId(), challenge.getId(), ChallengeStatus.ACTIVE);
 
         });
 

@@ -3,14 +3,17 @@ package com.kameo.challenger.domain.accounts;
 
 import com.kameo.challenger.config.DatabaseTestConfig;
 import com.kameo.challenger.config.ServicesLayerConfig;
+import com.kameo.challenger.domain.accounts.IAccountRestService.ConfirmationLinkRequestDTO;
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkODB;
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkType;
 import com.kameo.challenger.domain.accounts.db.UserStatus;
+import com.kameo.challenger.domain.challenges.ChallengeDAO;
 import com.kameo.challenger.domain.challenges.db.ChallengeODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB;
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus;
 import com.kameo.challenger.util.TestHelper;
 import com.kameo.challenger.utils.auth.jwt.AbstractAuthFilter;
+import com.kameo.challenger.utils.auth.jwt.JWTService.AuthException;
 import com.kameo.challenger.utils.odb.AnyDAO;
 import cucumber.api.java.Before;
 import cucumber.api.java8.En;
@@ -31,9 +34,11 @@ public class AccountsTest implements En {
     @Inject
     private TestHelper testHelper;
     @Inject
-    private ConfirmationLinkLogic confirmationLinkLogic;
+    private ConfirmationLinkDAO confirmationLinkLogic;
     @Inject
     private AccountDAO accountDao;
+    @Inject
+    private ChallengeDAO challengerDao;
 
     @Before
     public void recreateSchema() {
@@ -53,7 +58,7 @@ public class AccountsTest implements En {
                 accountDao.login(testHelper.myself().getLogin(), "otherpass");
                 invalidCredentials = false;
                 Assert.fail("Cannot login with wrong password");
-            } catch (AbstractAuthFilter.AuthException ex) {
+            } catch (AuthException ex) {
                 Assert.assertEquals("Wrong credentials", ex.getMessage());
                 invalidCredentials = true;
             }
@@ -71,7 +76,7 @@ public class AccountsTest implements En {
                 try {
                     accountDao.login(testHelper.myself().getLogin(), "otherpass");
                     Assert.fail("Cannot login with wrong password");
-                } catch (AbstractAuthFilter.AuthException ex) {
+                } catch (AuthException ex) {
                     invalidCredentials = true;
                 }
             }
@@ -105,7 +110,7 @@ public class AccountsTest implements En {
         });
 
         When("^I register with that email$", () ->
-                registerResult = accountDao.registerUser("myself", "myselfpass", "myself@email.em").getError() == null
+                registerResult = accountDao.registerUser("myself", "myselfpass", "myself@email.em", null).getError() == null
         );
 
         Then("^I don't have to confirm my email before I can login succesfully$", () -> {
@@ -122,7 +127,7 @@ public class AccountsTest implements En {
 
         Then("^I have to confirm my email before I can login succesfully$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                  .where(c -> "myself@email.em".equals(c.getUser().getEmail()) && c
                                                           .getConfirmationLinkType() == ConfirmationLinkType.EMAIL_CONFIRMATION)
                                                   .getOnlyValue();
             Assert.assertTrue(!testHelper.getSentMessagesList().isEmpty());
@@ -131,15 +136,16 @@ public class AccountsTest implements En {
             try {
                 accountDao.login("myself", "myselfpass");
                 Assert.fail();
-            } catch (AbstractAuthFilter.AuthException e) {
+            } catch (AuthException e) {
                 //ignore
             }
-            confirmationLinkLogic.confirmLinkByUid(onlyValue.getUid());
+            ConfirmationLinkRequestDTO req=new ConfirmationLinkRequestDTO();
+            confirmationLinkLogic.confirmLink(onlyValue.getUid(), req, accountDao, challengerDao);
 
             try {
                 accountDao.login("myself", "myselfpass");
 
-            } catch (AbstractAuthFilter.AuthException e) {
+            } catch (AuthException e) {
                 Assert.fail();
             }
 
@@ -150,7 +156,7 @@ public class AccountsTest implements En {
 
         Then("^I received email with password reset link$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                  .where(c -> "myself@email.em".equals(c.getUser().getEmail()) && c
                                                           .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
                                                   .getOnlyValue();
             Assert.assertTrue(!testHelper.getSentMessagesList().isEmpty());
@@ -159,14 +165,14 @@ public class AccountsTest implements En {
 
         Then("^I click on password reset link$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                  .where(c -> "myself@email.em".equals(c.getUser().getEmail()) && c
                                                           .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
                                                   .getOnlyValue();
 
 
             try {
                 accountDao.login("myself", "myselfpass");
-            } catch (AbstractAuthFilter.AuthException e) {
+            } catch (AuthException e) {
                 Assert.fail();
             }
 
@@ -174,20 +180,24 @@ public class AccountsTest implements En {
 
         Then("^I can set my new password$", () -> {
             ConfirmationLinkODB onlyValue = anyDao.streamAll(ConfirmationLinkODB.class)
-                                                  .where(c -> "myself@email.em".equals(c.getEmail()) && c
+                                                  .where(c -> "myself@email.em".equals(c.getUser().getEmail()) && c
                                                           .getConfirmationLinkType() == ConfirmationLinkType.PASSWORD_RESET)
                                                   .getOnlyValue();
-            confirmationLinkLogic.resetPassword(onlyValue.getUid(), "newPass");
+
+            ConfirmationLinkRequestDTO req=new ConfirmationLinkRequestDTO(null, "newPass");
+            confirmationLinkLogic.confirmLink(onlyValue.getUid(), req, accountDao, challengerDao);
+
+
             try {
                 accountDao.login("myself", "myselfpass");
                 Assert.fail();
-            } catch (AbstractAuthFilter.AuthException e) {
+            } catch (AuthException e) {
                 //its OK
             }
             try {
                 accountDao.login("myself", "newPass");
 
-            } catch (AbstractAuthFilter.AuthException e) {
+            } catch (AuthException e) {
                 Assert.fail();
             }
 

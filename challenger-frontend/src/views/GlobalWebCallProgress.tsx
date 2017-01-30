@@ -25,10 +25,9 @@ const GlobalWebCallProgressInternal = (props: Props)=> {
                 return "red"; // cyan
         }
     }
-
     return props.longCallVisible != null ?
         <CircularProgress color={getColor(props.longCallVisible)}
-                          size={0.5}
+                          size={30}
                           style={{right: '10px',top: '60px',position:"fixed"}}/>
         : null
 }

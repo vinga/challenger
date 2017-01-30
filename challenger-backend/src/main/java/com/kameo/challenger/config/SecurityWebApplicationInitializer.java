@@ -16,8 +16,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 
+import static com.kameo.challenger.web.rest.AuthFilter.ROLE_USER;
+
 @EnableWebSecurity
 public class SecurityWebApplicationInitializer extends WebSecurityConfigurerAdapter {
+
     @Inject
     AuthFilter authFilter;
 
@@ -46,21 +49,14 @@ public class SecurityWebApplicationInitializer extends WebSecurityConfigurerAdap
                 //.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // allow anonymous resource requests
 
-                //Spring Boot will, by default, permit access to /css/**, /js/**, /images/**, and /**/favicon.ico.
+
                 .antMatchers(
                         HttpMethod.GET,
                         "/",
                         "/static/**.*",
-                        "/*.html",
-                        "/favicon.ico",
-                        "/images/**",
-                        "/css/**",
-                        "/fonts/**",
-                        "/js/**",
-                        "/**/*.js"
-
-
+                        "/favicon.ico"
                 ).permitAll()
+
                 .antMatchers(
                         "/api/accounts/newToken",
                         "/api/accounts/passwordReset",
@@ -69,7 +65,11 @@ public class SecurityWebApplicationInitializer extends WebSecurityConfigurerAdap
                         "/oauth2/*"
                         //TODO swagger
                 ).permitAll()
-                .antMatchers("/api/**").hasRole("USER")
+
+                .antMatchers("/api/**")
+                .hasRole(ROLE_USER)
+
+
                 .anyRequest().authenticated();
         // Custom JWT based security filter
         httpSecurity

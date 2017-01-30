@@ -21,9 +21,18 @@ import com.kameo.challenger.utils.odb.AnyDAO;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import rx.AsyncEmitter;
+import rx.AsyncEmitter.BackpressureMode;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
+import sun.management.Sensor;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import java.io.Console;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,6 +40,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("CanBeFinal")
 @Component
@@ -42,6 +53,7 @@ public class FakeDataLogic implements CommandLineRunner {
     private AnyDAO anyDao;
 
     private void approveTaskForCreator(TaskODB task) {
+
         TaskApprovalODB ta = new TaskApprovalODB();
         ta.setTask(task);
         ta.setUser(task.getCreatedByUser());
@@ -404,5 +416,103 @@ public class FakeDataLogic implements CommandLineRunner {
         UserODB userJack, userKami, userMilena, userKiwi;
     }
 
+    public static String pollValue() {
+        return new Date().toString();
+    }
+    public static void main(String[] args) {
+
+        if (true) {
+            PublishSubject<String> subject = PublishSubject.create();
+
+            Observable<List<String>> burstyBuffered = subject.buffer(10, TimeUnit.SECONDS, 2);
+            burstyBuffered.subscribe(new Action1<List<String>>() {
+                @Override
+                public void call(List<String> s) {
+                    System.out.println("group "+s.size()+" "+s);
+                }
+            });
+            Scanner sc = new Scanner(System.in);
+            while(sc.hasNext()){
+                subject.onNext(sc.nextLine());
+            }
+
+            return;
+        }
+      /*  final Observable<String> obs = Observable.fromCallable(() -> pollValue())
+                                                              .repeatWhen(o -> o.concatMap(v -> Observable.timer(2, TimeUnit.SECONDS)));
+
+
+        obs.subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                System.out.println("SSS1 "+s);
+            }
+        });
+
+
+        obs.subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                System.out.println("SSS2 "+s);
+            }
+        });
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+        final Observable<String> observable = Observable.fromEmitter(new Action1<AsyncEmitter<String>>() {
+            @Override
+            public void call(final AsyncEmitter<String> emitter) {
+
+                Scanner sc = new Scanner(System.in);
+                while(sc.hasNext()){
+                    emitter.onNext(sc.nextLine());
+                }
+
+
+
+                /*sensorEventAsyncEmitter.onNext(sensorEvent);
+                sensorEventAsyncEmitter.setCancellation(new AsyncEmitter.Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        sensorManager.unregisterListener(sensorListener, sensor);
+                    }
+                });
+                final SensorEventListener sensorListener = new SensorEventListener() {
+                    @Override
+                    public void onSensorChanged(String sensorEvent) {
+                        sensorEventAsyncEmitter.onNext(sensorEvent);
+                    }
+
+                    @Override
+                    public void onAccuracyChanged(Sensor originSensor, int i) {
+                        // ignored for this example
+                    }
+                };
+                // (1) - unregistering listener when unsubscribed
+                sensorEventAsyncEmitter.setCancellation(new AsyncEmitter.Cancellable() {
+                    @Override
+                    public void cancel() throws Exception {
+                        sensorManager.unregisterListener(sensorListener, sensor);
+                    }
+                });
+                sensorManager.registerListener(sensorListener, sensor, samplingPeriodUs);*/
+            }
+        }, BackpressureMode.BUFFER);
+
+
+      //  Observable<String> burstyMulticast = observable.publish().refCount();
+// burstyDebounced will be our buffer closing selector:
+      //  Observable<String> burstyDebounced = observable.debounce(5, TimeUnit.SECONDS);
+// and this, finally, is the Observable of buffers we're interested in:
+        Observable<List<String>> burstyBuffered = observable.buffer(10, TimeUnit.SECONDS, 2);
+        burstyBuffered.subscribe(new Action1<List<String>>() {
+            @Override
+            public void call(List<String> s) {
+                System.out.println("group "+s.size()+" "+s);
+            }
+        });
+    }
 
 }
