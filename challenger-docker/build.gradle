@@ -1,0 +1,68 @@
+group 'com.kameo'
+version '1.0.0'
+
+
+
+task dockerBuild << {
+    exec {
+        workingDir './project/web'
+        executable "docker"
+        args "build", "-t", "chall", "."
+    }
+    println "dockerBuild FINIESHED"
+}
+
+
+task dockerRun << {
+    println "dockerRun STARTED"
+    exec {
+        commandLine "docker run --name chall_container -d -p 9080:9080 -v /media/sf_challengerworkspace/application.properties:/application.properties chall &".split()
+    }
+}
+
+task dockerStop << {
+    println "docker stop chall_container"
+    exec {
+        commandLine "docker stop chall_container".split()
+    }
+}
+
+task dockerStart << {
+    println "docker start chall_container"
+    exec {
+        commandLine "docker start chall_container".split()
+    }
+}
+
+task dockerPrintExec << {
+    println "exec -it chall_container /bin/sh"
+}
+
+task dockerLogs << {
+    println "docker logs -f chall_container"
+}
+
+task dockerRemoveNoneImages << {
+
+    def stdout = new ByteArrayOutputStream()
+    exec {
+            commandLine "bash", "-c", "docker rmi \$(docker images | grep \"^<none>\" | awk \"{print \\\$3}\")"
+            standardOutput = stdout
+    }
+    println "Output:\n$stdout";
+
+
+
+
+}
+
+//docker rmi $(docker images | grep "^<none>" | awk "{print $3}")
+
+
+//docker dump database
+// docker exec -t challenger_app-db_1 pg_dumpall -c -U postgres > dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
+// cat dump_09-02-2017_11_38_32.sql | docker exec -i challenger_app-db_1 psql -U postgres
+//UWAGA WYWALA WSZYSTKO (przygotowuje pod dumpa):
+// echo "DROP SCHEMA public CASCADE;CREATE SCHEMA public;GRANT ALL ON SCHEMA public TO postgres;GRANT ALL ON SCHEMA public TO public;" | docker exec -i challenger_app-db_1 psql -d challengerdb -U postgres
+//echo "GRANT ALL ON SCHEMA public TO challengeru;GRANT ALL ON SCHEMA public TO challengeru;" | docker exec -i challenger_app-db_1 psql -d challengerdb -U postgres
+

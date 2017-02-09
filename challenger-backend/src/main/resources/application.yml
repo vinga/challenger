@@ -1,0 +1,39 @@
+server:
+  port: ${port:9080}
+  url: http://localhost:3000/
+
+logging:
+  level.: ERROR
+  level.org.springframework: ERROR
+  level.org.hibernate: ERROR
+
+
+spring.mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${mailUsername}
+    password: ${mailPassword}
+    mailSenderFrom: ${mailUsername}
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
+      starttls.required: true
+
+oauth2:
+  google:
+    clientId: ${oauth2googleClientId}
+    clientSecret: ${oauth2googleClientSecret}
+  facebook:
+    clientId: ${oauth2facebookClientId}
+    clientSecret: ${oauth2facebookClientSecret}
+
+jwt:
+  signingKey: blablablablahehehe
+  isuer: Kameo
+  audience: ChallengeUsers
+
+#spring.jpa.properties.hibernate.show_sql=true
+#spring.jpa.properties.hibernate.use_sql_comments=true
+#spring.jpa.properties.hibernate.format_sql=true
+
+

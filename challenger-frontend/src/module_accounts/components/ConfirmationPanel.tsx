@@ -138,7 +138,7 @@ class ConfirmationPanelInternal extends React.Component<ReactProps &  PropsFunc 
                                 fullWidth={true}
                                 floatingLabelText="Login:"
                                 validateOnChange={true}
-                                minLengthNumber={6}
+                                minLengthNumber={5}
                                 maxLengthNumber={30}
                                 useRequiredValidator={true}
                             />

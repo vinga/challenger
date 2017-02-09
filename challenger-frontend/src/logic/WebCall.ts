@@ -10,6 +10,8 @@ export const baseApiUrl = "/api";
 export interface CallMeta {
     alwaysDisplayProgress?: boolean // default true
     async?: boolean //default false
+    backgroundAction?: boolean //default false
+
 
 }
 function registerStartWebCall(meta: CallMeta, dispatch) {
@@ -50,7 +52,7 @@ function anyAjaxJson(dispatch, path, payload: any = null, type: string, webToken
     }).catch((reason: XMLHttpRequest) => {
 
         dispatch(WEB_CALL_END_ERROR.new({callUid}));
-        if (reason.readyState == 0) {
+        if (reason.readyState == 0 && (meta==null || meta.backgroundAction!=true)) {
             // Network error (i.e. connection refused, access denied due to CORS, etc.)
             dispatch(WEB_CALL_END_NO_INTERNET_CONNECTION.new({}));
             throw reason;

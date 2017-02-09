@@ -1,7 +1,7 @@
 import * as React from "react";
 import {ReduxState, connect} from "../../redux/ReduxState";
 import RaisedButton from "material-ui/RaisedButton";
-import TextFieldExt from "../../views/common-components/TextFieldExt.tsx";
+import TextFieldExt from "../../views/common-components/TextFieldExt";
 import LinearProgress from "material-ui/LinearProgress";
 import {registerUserAction} from "../accountActions";
 import {Col, Row, RowCol} from "../../views/common-components/Flexboxgrid";
@@ -102,7 +102,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                                 minLengthNumber={4}
                                 maxLengthNumber={100}
                                 checkEmailPattern={true}
-                                fieldValue={this.props.requiredEmail!=null? this.props.requiredEmail: "kamila.myczkowska@gmail.com"}
+                                fieldValue={this.props.requiredEmail!=null? this.props.requiredEmail: ""}
                                 onEnterKeyDown={()=> { this.loginField.focus(); } }
                                 ref={(c)=>{this.emailField=c}}/>
                         </RowCol>
@@ -115,7 +115,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                                 minLengthNumber={6}
                                 maxLengthNumber={30}
                                 floatingLabelText="Login"
-                                fieldValue={this.props.proposedLogin!=null? this.props.proposedLogin: "kamilka"}
+                                fieldValue={this.props.proposedLogin!=null? this.props.proposedLogin: ""}
                                 onEnterKeyDown={()=> { this.passwordField.focus(); } }
                                 ref={(c)=>{this.loginField=c}}/>
                         </RowCol>
@@ -124,7 +124,7 @@ class RegisterPanelInternal extends React.Component<Props & PropsFunc, State> {
                                 fullWidth={true}
                                 floatingLabelText="Password"
                                 validateOnChange={true}
-                                fieldValue="kamilka"
+                                fieldValue=""
                                 type="password"
                                 minLengthNumber={6}
                                 maxLengthNumber={30}

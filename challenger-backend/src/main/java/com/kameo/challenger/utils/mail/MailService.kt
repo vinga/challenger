@@ -21,7 +21,7 @@ open class MailService {
     @Inject
     private val javaMailSender: JavaMailSender? = null
 
-    @Value("\${mailSenderFrom}")
+    @Value("\${spring.mail.mailSenderFrom}")
     private lateinit var mailSenderFrom:String
 
     data class Message(val toEmail: String, val subject: String, val content: String, val replyTo: String?=null, val from: String?=null)

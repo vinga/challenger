@@ -22,7 +22,10 @@ module.exports = {
     new webpack.ProvidePlugin({
       "React": "react",
     }),
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.DefinePlugin({
+         DEVELOPMENT_MODE2: JSON.stringify(true)
+    })
   ],
   module: {
     loaders: [{

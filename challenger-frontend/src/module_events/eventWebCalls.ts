@@ -23,9 +23,9 @@ export function sendEventWithAuthFailure(dispatch, event: EventDTO, failure: boo
 }
 export function loadEventsForChallengeAsync(dispatch, lastEventReadId?: number): Promise<EventGroupDTO> {
     if (lastEventReadId != null) {
-        return Promise.resolve(baseWebCall.post(dispatch, `/async/events?lastEventReadId=${lastEventReadId}`, null, {async: true}));
+        return Promise.resolve(baseWebCall.post(dispatch, `/async/events?lastEventReadId=${lastEventReadId}`, null, {async: true, backgroundAction: true}));
     }
-    return Promise.resolve(baseWebCall.post(dispatch, `/async/events`, null, {async: true}));
+    return Promise.resolve(baseWebCall.post(dispatch, `/async/events`, null, {async: true, backgroundAction: true}));
 }
 
 

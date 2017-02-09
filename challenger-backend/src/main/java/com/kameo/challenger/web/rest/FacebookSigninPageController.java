@@ -28,7 +28,7 @@ public class FacebookSigninPageController {
     private String oauth2facebookClientId;
     @Value("${oauth2.facebook.clientSecret}")
     private String oauth2facebookClientSecret;
-    @Value("${serverUrl}")
+    @Value("${server.url}")
     private String serverUrl;
     private final ServerConfig serverConfig;
     private final AccountDAO accountDAO;

@@ -27,7 +27,6 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
-import sun.management.Sensor;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;

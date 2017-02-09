@@ -53,7 +53,14 @@ public class SecurityWebApplicationInitializer extends WebSecurityConfigurerAdap
                 .antMatchers(
                         HttpMethod.GET,
                         "/",
-                        "/static/**.*",
+                       // "/static/**.*",
+                        "/*.html",
+                        "/favicon.ico",
+                        "/images/**",
+                        "/css/**",
+                        "/fonts/**",
+                        "/js/**",
+                        "/**/*.js",
                         "/favicon.ico"
                 ).permitAll()
 

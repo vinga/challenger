@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 
 //http://highaltitudedev.blogspot.com/2013/10/google-oauth2-with-jettyservlets.html
+//https://console.cloud.google.com/
 //http://localhost:9080/oauth2/googleSignIn
 @Controller
 public class GoogleSigninPageController {
@@ -27,7 +28,7 @@ public class GoogleSigninPageController {
     private String oauth2googleClientId;
     @Value("${oauth2.google.clientSecret}")
     private String oauth2googleClientSecret;
-    @Value("${serverUrl}")
+    @Value("${server.url}")
     private String serverUrl;
 
     private final ServerConfig serverConfig;

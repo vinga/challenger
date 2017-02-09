@@ -46,7 +46,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
     public static defaultProps: ReactProps = {
         registerButtonVisible: true
     };
-    state= {login: "kami"}
+    state= {login: typeof DEVELOPMENT_MODE !== "undefined"? "kami": ""}
 
     onLogin = () => {
         var login = this.loginField.state.fieldValue;
@@ -96,17 +96,20 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                                 autoFocus={true}
                                 fullWidth={true}
                                 floatingLabelText="Login"
+                                minLengthNumber={5}
+                                maxLengthNumber={30}
                                 fieldValue={this.props.currentLogin!=null? this.props.currentLogin: this.state.login}
                                 onEnterKeyDown={()=> {this.passwordField.focus(); } }
                                 ref={(c)=>{this.loginField=c}}/>
                         </RowCol>
                         <RowCol>
                             <TextFieldExt
-
                                 fullWidth={true}
                                 floatingLabelText="Password"
-                                fieldValue={this.props.currentPass!=null? this.props.currentPass: "passpass"}
+                                fieldValue={(this.props.currentPass!=null || typeof DEVELOPMENT_MODE === "undefined")? this.props.currentPass: "passpass"}
                                 onEnterKeyDown={this.onLogin}
+                                minLengthNumber={6}
+                                maxLengthNumber={30}
                                 type="password"
                                 ref={(c)=>{this.passwordField=c}}/>
                         </RowCol>

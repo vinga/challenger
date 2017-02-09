@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 open class ServerConfig {
 
-    @Value("\${serverUrl}")
+    @Value("\${server.url}")
     lateinit var serverUrl: String
 
 

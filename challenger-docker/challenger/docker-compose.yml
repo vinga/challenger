@@ -1,0 +1,27 @@
+
+  web:
+    build: ./web
+    ports:
+      - "9080:9080"
+    links:
+      - app-db
+    volumes:
+      - /media/sf_challengerworkspace/application-prod.yml:/application-prod.yml
+
+  app-db:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=challengeru
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB=challengerdb
+    expose:
+      - 5432
+#    ports:
+#      - "5433:5432"
+    volumes_from:
+      - app-db-data
+
+  app-db-data:
+    image: tianon/true
+    volumes:
+      - /opt/postgresdata/:/var/lib/postgresql/data

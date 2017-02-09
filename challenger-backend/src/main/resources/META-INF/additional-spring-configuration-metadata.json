@@ -1,14 +1,39 @@
 {
   "properties": [
     {
-      "name": "mailSenderFrom",
+      "name": "spring.mail.mailSenderFrom",
       "type": "java.lang.String",
       "description": "Description for mailSenderFrom."
     },
     {
-      "name": "serverUrl",
+      "name": "server.url",
       "type": "java.lang.String",
       "description": "Description for serverUrl."
+    },
+    {
+      "name": "oauth2.google.clientId",
+      "type": "java.lang.String",
+      "description": "Description for oauth2.google.clientId."
+    },
+    {
+      "name": "oauth2.google.clientSecret",
+      "type": "java.lang.String",
+      "description": "Description for oauth2.google.clientSecret."
+    },
+    {
+      "name": "oauth2.facebook.clientId",
+      "type": "java.lang.String",
+      "description": "Description for oauth2.facebook.clientId."
+    },
+    {
+      "name": "oauth2.facebook.clientSecret",
+      "type": "java.lang.String",
+      "description": "Description for oauth2.facebook.clientSecret."
+    },
+    {
+      "name": "jwt.signingKey",
+      "type": "java.lang.String",
+      "description": "Key used for creating jwt tokens"
     }
   ]
 }

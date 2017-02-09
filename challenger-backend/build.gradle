@@ -16,7 +16,9 @@ buildscript {
 
 
 
-
+plugins {
+    id 'org.springframework.boot' version '1.5.1.RELEASE'
+}
 
 
 apply plugin: 'java'
@@ -40,6 +42,8 @@ repositories {
 
     maven { url "http://repo.maven.apache.org/maven2" }
 }
+
+
 dependencies {
 
 
@@ -74,7 +78,14 @@ dependencies {
     compile 'io.reactivex:rxjava:1.1.10'
 
 
-    runtime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.3'
+
+   if (project.hasProperty('prod')) {
+       runtime "org.postgresql:postgresql:9.4-1206-jdbc42"
+    } else {
+       runtime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.3'
+   }
+
+
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.4.0.RELEASE') {
         exclude(module: 'commons-logging')
     }

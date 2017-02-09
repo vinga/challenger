@@ -59,7 +59,6 @@ class LoggedView extends React.Component<ReduxProps,void> {
 
         return (
             <div id="main" className="container" style={{minHeight: '300px'}}>
-                Docker<br/>
                 <NoChallengesPanel/>
                 <div>{rows}</div>
 

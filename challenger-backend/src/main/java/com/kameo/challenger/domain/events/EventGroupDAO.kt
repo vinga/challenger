@@ -102,6 +102,16 @@ open class EventGroupDAO(@Inject val anyDaoNew: AnyDAONew,
     @TransactionalEventListener(phase = AFTER_COMMIT)
     open fun handleOrderCreatedEvent(metaEvent: MetaEventDTO) {
 
+        /*
+        Ladniejsze rozwiazanie - byc moze?
+        Kazdy client ma swoje uClientId, nawet jak nic wlasnie nie ma polaczanie, to zapisujemy eventy do sessionId. Dzieki temu ZADEN event nie znika.
+        Jesli sessionId nie istnieje, wymuszamy odswiezenie wszystkiego
+
+
+        Jesli cos przychodzi - pushujemy do klienta i tyle. Nigdy ni esprawdzamy czy cos oczekuje.
+        Czy mozemy pushnac dwa razy? Byc moze... Ale to nie szkodzi, tylko sie wiecej razy odswiezy.
+
+         */
 
         //should ensure that for current user (user.id) all eventReads will have increased id in proper order
         metaEvent.users.forEach {

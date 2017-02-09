@@ -13,5 +13,7 @@ declare global {
     }
 
 
+    const DEVELOPMENT_MODE:any;
+
 
 }
