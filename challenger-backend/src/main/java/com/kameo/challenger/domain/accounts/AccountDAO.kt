@@ -26,8 +26,8 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
 
     @Throws(AuthException::class)
     open fun login(login: String, pass: String): Long {
-        if (Strings.isNullOrEmpty(pass)) {
-            throw AuthException("No password")
+        if (login.isNullOrBlank() || pass.isNullOrBlank()) {
+            throw AuthException("No login or password")
         }
 
         val u = anyDaoNew.getFirst(UserODB::class, { it get UserODB::login eq login })
