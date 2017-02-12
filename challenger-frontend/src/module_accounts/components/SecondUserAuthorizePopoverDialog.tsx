@@ -77,7 +77,7 @@ export class SecondUserAuthorizePopoverDialog extends React.Component<Props& Pro
                     <TextField
 
                         ref={(c)=>{this.passwordField=c;}}
-                        defaultValue="jackpass"
+                        defaultValue={typeof DEVELOPMENT_MODE !== "undefined"? "passpass": ""}
                         hintText="Password Field"
                         floatingLabelText="Password"
                         type="password"

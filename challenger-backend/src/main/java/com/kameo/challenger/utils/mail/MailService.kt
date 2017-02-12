@@ -31,8 +31,8 @@ open class MailService {
 
         println(m.toEmail)
         println(m.content)
-        if (true)
-            return
+        //if (true)
+        //    return
         val mail = javaMailSender!!.createMimeMessage()
         try {
             val helper = MimeMessageHelper(mail, true)

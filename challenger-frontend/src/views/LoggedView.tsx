@@ -42,7 +42,7 @@ class LoggedView extends React.Component<ReduxProps,void> {
         var rows = [];
         if (this.props.challengeIsActive) {
             var comps = this.props.challengeParticipants.map((u, iter) =>
-                <Col col="12-5">
+                <Col col="12-12-6-5">
                     <UserSlot user={u}
                               challengeId={this.props.challengeId}
                               ordinal={iter}

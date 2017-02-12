@@ -24,7 +24,7 @@ module.exports = {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
-         DEVELOPMENT_MODE2: JSON.stringify(true)
+         DEVELOPMENT_MODE: JSON.stringify(true)
     })
   ],
   module: {

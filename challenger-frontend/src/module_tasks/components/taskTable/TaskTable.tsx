@@ -2,8 +2,8 @@ import * as React from "react";
 import {ReduxState, connect} from "../../../redux/ReduxState";
 import {Table, TableBody, TableRow, TableRowColumn} from "material-ui/Table";
 import Paper from "material-ui/Paper";
-import DifficultyIconButton from "./DifficultyIconButton.tsx";
-import TaskCheckbox from "./ChallengeTableCheckbox.tsx";
+import DifficultyIconButton from "./DifficultyIconButton";
+import TaskCheckbox from "./ChallengeTableCheckbox";
 import {TaskDTO, TaskProgressDTO, TaskUserDTO, TaskType} from "../../TaskDTO";
 import {markTaskDoneOrUndone, onCloseTask} from "../../taskActions";
 import {OPEN_EDIT_TASK} from "../../taskActionTypes";
@@ -25,7 +25,8 @@ const styles = {
         width: '40px',
         padding: '0px',
         color: 'grey',
-        fontSize: '11px'
+        fontSize: '11px',
+        borderLeft:'5px solid white'
     },
 
 };

@@ -35,7 +35,7 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
 
 
     render() {
-        return <h2 style={{display: "flex",flexFlow: "row nowrap", justifyContent:"space-between"}}>
+        return <h2 style={{display: "flex",flexFlow: "row nowrap", justifyContent:"space-between", overflow: "hidden"}}>
 
             <div style={{display:"flex",flexFlow: "row nowrap"}}>
             <TaskTableUserIcon

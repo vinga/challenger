@@ -330,10 +330,16 @@ body {
 
 /*@media only screen and (min-width: 600px)*/
     .container {
-        width: 70%;
+        width: 80%;
         margin: 0 auto;
         max-width: 1280px;
     }
+
+@media only screen and (max-width: 1100px) {
+    .container {
+        width: 100%;
+    }
+}
 
     #eventGroupChatContent {
     /*    width:100%;*/

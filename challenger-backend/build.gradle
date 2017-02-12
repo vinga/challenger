@@ -1,3 +1,4 @@
+
 buildscript {
     ext.kotlin_version = '1.0.4'
 
@@ -27,22 +28,49 @@ apply plugin: "kotlin"
 
 group = 'com.kameo.challenger'
 version = '1.0-SNAPSHOT'
-
 description = """challenger-backend"""
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
+def prod = project.hasProperty("prod");
+
 configurations {
     provided.all*.exclude group: 'javax.servlet'
 }
 
 repositories {
-
     maven { url "http://repo.maven.apache.org/maven2" }
 }
 
+
+
+task printDeps(dependsOn: build) << {
+    configurations*.dependencies.each { println it }
+}
+
+
+task buildFrontend(type: GradleBuild) {
+    buildFile = '../challenger-frontend/build.gradle'
+    tasks = ['copyToBackend']
+}
+
+
+task buildProductionToDocker(dependsOn: [ buildFrontend, bootRepackage]) {
+    println "set production mode"
+    prod = true
+    doLast {
+        println "copy jar to docker"
+        println jar.archivePath
+        copy {
+            from "" + jar.archivePath
+            into "../challenger-docker/challenger/web"
+
+        }
+    }
+}
+bootRepackage.shouldRunAfter buildFrontend
 
 dependencies {
 
@@ -79,11 +107,11 @@ dependencies {
 
 
 
-   if (project.hasProperty('prod')) {
-       runtime "org.postgresql:postgresql:9.4-1206-jdbc42"
+    if (prod) {
+        runtime "org.postgresql:postgresql:9.4-1206-jdbc42"
     } else {
-       runtime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.3'
-   }
+        runtime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.3'
+    }
 
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.4.0.RELEASE') {
@@ -99,12 +127,3 @@ dependencies {
     //compile group: 'org.springframework.boot', name: 'spring-boot-starter-websocket', version: '1.4.1.RELEASE'
 
 }
-task printDeps(dependsOn: build) << {
-    configurations*.dependencies.each { println it }
-}
-
-//task buildFrontend(type: Copy) << {
-//    from 'resources'
-//    into 'build/resources'
-//    include '**/*.xml', '**/*.txt', '**/*.properties'
-//}
