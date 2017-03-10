@@ -86,13 +86,13 @@ export function markTaskDoneOrUndone(caller: TaskUserDTO, challengeId: number, t
     }
 }
 
-export function fetchTasksProgresses(challengeId: number, day: Date): any {
-    return function (dispatch) {
+export function fetchTasksProgresses(challengeId: number, day: Date): Promise<TaskProgressDTO[]> {
+    const func:any= function (dispatch) {
         console.log("fetch task progresses-start " + day.yyyy_mm_dd());
         dispatch(LOAD_TASK_PROGRESSES_REQUEST.new({challengeId, day}));
         var key: string = createTaskDTOListKey(challengeId, day);
 
-        webCall.loadTaskProgresses(dispatch, challengeId, day, false).then(
+        var p: Promise<TaskProgressDTO[]>= webCall.loadTaskProgresses(dispatch, challengeId, day, false).then(
             (taskProgresses: Array<TaskProgressDTO>)=> {
 
 
@@ -102,9 +102,12 @@ export function fetchTasksProgresses(challengeId: number, day: Date): any {
                 dispatch(LOAD_TASK_PROGRESSES_RESPONSE.new({payload}));
 
                 dispatch(checkTasksNeedLoaading(challengeId, taskProgresses.map(tp=>tp.taskId)));
+                return Promise.resolve(taskProgresses);
             }
         );
+        return p;
     }
+    return func;
 }
 function checkTasksNeedLoaading(challengeId: number, taskIds: number[]): any {
     return function (dispatch, getState) {

@@ -5,8 +5,10 @@ import com.kameo.challenger.domain.accounts.db.UserODB
 import com.kameo.challenger.domain.challenges.db.ChallengeODB
 import com.kameo.challenger.domain.challenges.db.ChallengeParticipantODB
 import com.kameo.challenger.domain.challenges.db.ChallengeStatus
+import com.kameo.challenger.domain.challenges.db.ChallengeStatus.ACTIVE
 import com.kameo.challenger.domain.tasks.db.*
 import com.kameo.challenger.domain.tasks.db.TaskStatus.accepted
+import com.kameo.challenger.domain.tasks.db.TaskStatus.waiting_for_acceptance
 import com.kameo.challenger.domain.tasks.db.TaskType.*
 import com.kameo.challenger.logic.PermissionDAO
 import com.kameo.challenger.utils.odb.AnyDAONew
@@ -48,7 +50,7 @@ open class TaskDAO {
                 else UserODB(callerIds.first())
 
         taskODB.taskStatus =
-                if (callerIds.size == cc.participants.size)
+                if (callerIds.size == cc.participants.filter { it.challengeStatus == ACTIVE }.size)
                     TaskStatus.accepted
                 else
                     TaskStatus.waiting_for_acceptance
@@ -82,6 +84,19 @@ open class TaskDAO {
             it get ChallengeParticipantODB::user eqId callerId
             it get ChallengeParticipantODB::challengeStatus eq ChallengeStatus.ACTIVE
         }
+        anyDaoNew.getAll(TaskODB::class) {
+            it get TaskODB::challenge eqId challengeId
+            it inIds ids
+        }.forEach { println("GETTASKSBYID " + it.label + " " + it.taskStatus)
+                println(it.label + " " + it.taskStatus.name);
+                if (it.taskStatus == waiting_for_acceptance && it.label == "Witamina C") {
+                    println("set to accepted");
+                    it.taskStatus = accepted;
+                    anyDaoNew.merge(it);
+                }
+
+
+        }
         return anyDaoNew.getAll(TaskODB::class) {
             it get TaskODB::challenge eqId challengeId
             it inIds ids
@@ -105,37 +120,6 @@ open class TaskDAO {
         }
         updateSendDateOfChallengeContract(callerPermission0)
 
-        if (false) {
-            val tasksTests = anyDaoNew.getAll(TaskODB::class) {
-                it get TaskODB::challenge eqId challengeId
-
-                val tit = it
-                // val subq = it.subquery(UserODB::class);
-                // val sit = subq.from(UserODB::class);
-                it.get(TaskODB::label).isInSubquery(UserODB::class) {
-                    it.get(+UserODB::login) like "kami"
-                    it.select(+UserODB::login)
-                }
-
-                it.get(TaskODB::label) isIn it.subqueryFrom(UserODB::class) {
-                    it.get(+UserODB::login) like "kami"
-                    it.select(+UserODB::login)
-                }
-                it.get(TaskODB::label) exists it.subqueryFrom(UserODB::class) {
-                    it.get(+UserODB::login) like "kami"
-                    it.get(+UserODB::id) eq tit.get(TaskODB::id)
-                }
-
-                /*  it.get(TaskODB::createdByUser) isIn it.subqueryFrom(UserODB::class) {
-                      it.get(+UserODB::login) like "kami"
-                  }*/
-                /*   it.get(TaskODB:label) like it.subqueryFrom(UserODB.class) {
-            it.get(UserODB::email) like 'kami'
-            it.select(UserODB::email)
-        } */
-                it
-            }
-        }
 
         val tasks = anyDaoNew.getAll(TaskODB::class) {
             it get TaskODB::challenge eqId challengeId
@@ -188,6 +172,7 @@ open class TaskDAO {
         getTaskProgress(tasks, dayMidnight).forEach {
             it.task.done = it.done
         }
+
 
         val tasksIdDoneInPeriod = getTaskProgressDoneInPeriod(tasks, dayMidnight)
         return tasks.filter {
@@ -259,7 +244,7 @@ open class TaskDAO {
             throw IllegalArgumentException("Cannot mark task after close date")
 
         if (task.taskType == onetime) {
-            anyDaoNew.remove(TaskProgressODB::class) {it get TaskProgressODB::task eqId taskId}
+            anyDaoNew.remove(TaskProgressODB::class) { it get TaskProgressODB::task eqId taskId }
 
             task.closeDate = if (done) dayMidnight else null
             anyDaoNew.merge(task)
@@ -330,7 +315,7 @@ open class TaskDAO {
             task.taskStatus = TaskStatus.rejected
             anyDaoNew.merge(task)
         }
-        val allParticipantsAccepted = existingApprovals.filter { it.taskStatus == TaskStatus.accepted }.count() == challenge.participants.size
+        val allParticipantsAccepted = existingApprovals.filter { it.taskStatus == TaskStatus.accepted }.count() == challenge.participants.filter { it.challengeStatus == ChallengeStatus.ACTIVE }.size
         if (allParticipantsAccepted) {
             task.taskStatus = TaskStatus.accepted
             anyDaoNew.merge(task)
@@ -357,15 +342,16 @@ open class TaskDAO {
         val pendingApprovals = approvals.groupBy({ it.task.id }, { it.user.id }).flatMap {
             val (taskId, approvedUserIds) = it
             participants.filter { it.user.id !in approvedUserIds }.map {
-                TaskApprovalODB(it.user, TaskODB(taskId), TaskStatus.waiting_for_acceptance)
+                TaskApprovalODB(it.user, anyDaoNew.find(TaskODB::class, taskId), TaskStatus.waiting_for_acceptance)
             }
         }
+
         return approvals + pendingApprovals
     }
 
     open fun closeTask(callerId: Long, taskId: Long): TaskODB {
         val t = anyDaoNew.find(TaskODB::class, taskId)
-        if (callerId!=t.user.id)
+        if (callerId != t.user.id)
             throw IllegalArgumentException("User can close only his own tasks")
         t.closeDate = LocalDate.now()
         anyDaoNew.merge(t)

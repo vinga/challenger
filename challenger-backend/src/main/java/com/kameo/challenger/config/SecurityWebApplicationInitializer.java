@@ -39,6 +39,7 @@ public class SecurityWebApplicationInitializer extends WebSecurityConfigurerAdap
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.headers().cacheControl();
         httpSecurity
                 // we don't need CSRF because our token is invulnerable
                 .csrf().disable()

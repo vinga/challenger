@@ -40,6 +40,7 @@ interface Props {
 
 interface ReduxProps {
     currentDate: Date,
+    today: Date,
     tasksList: Array<TaskDTO>,
     busy: boolean,
     userIsLogged: boolean
@@ -166,6 +167,7 @@ const mapStateToProps = () => {
         return {
             userIsLogged: userIsLogged,
             currentDate: state.currentSelection.day,
+            today: state.currentSelection.today, // in order to force refresh on invisible checkboxes
             tasksList: tasksLists,
             busy: busyTasksSelectorForUserAndDay(state, tasksLists)
         }

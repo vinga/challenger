@@ -56,10 +56,25 @@ task buildFrontend(type: GradleBuild) {
     tasks = ['copyToBackend']
 }
 
+def onlyFor(task, config) {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(task)) {
+            project.configure(project, config)
+        }
+    }
+}
 
 task buildProductionToDocker(dependsOn: [ buildFrontend, bootRepackage]) {
+
     println "set production mode"
     prod = true
+
+    onlyFor(buildProductionToDocker) {
+        println "set production mode"
+        prod = true
+    }
+
+
     doLast {
         println "copy jar to docker"
         println jar.archivePath
@@ -112,6 +127,8 @@ dependencies {
     } else {
         runtime group: 'org.hsqldb', name: 'hsqldb', version: '2.3.3'
     }
+
+
 
 
     testCompile(group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.4.0.RELEASE') {

@@ -5,7 +5,8 @@ import {
     WEB_EVENTS_ASYNC_RESPONSE,
     MARK_EVENT_AS_READ_OPTIMISTIC,
     CLEAR_UNREAD_NOTIFICATIONS,
-    NEW_EVENTS_SEED, WEB_EVENTS_SYNC_RESPONSE_PREVIOUS
+    NEW_EVENTS_SEED,
+    WEB_EVENTS_SYNC_RESPONSE_PREVIOUS
 } from "./eventActionTypes";
 import * as webCall from "./eventWebCalls";
 import {EventDTO, EventType, EventGroupDTO, EventGroupSynchDTO} from "./EventDTO";
@@ -16,8 +17,10 @@ import {MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID, DELETE_TASKS_REMOTE, MAR
 import {NO_CHALLENGES_LOADED_YET, NO_ACTIVE_CHALLENGES} from "../module_challenges/ChallengeDTO";
 import {fetchWebChallengesNoReload, fetchWebChallenges} from "../module_challenges/challengeActions";
 import {loggedUserSelector} from "../module_accounts/accountSelectors";
-import _ = require("lodash");
 import {displaySeletectedEventGroupSelector} from "./eventSelectors";
+import _ = require("lodash");
+import {INCREMENT_DAY, UPDATE_TODAY, UPDATE_SNACKBAR} from "../redux/actions/actions";
+import {TaskProgressDTO} from "../module_tasks/TaskDTO";
 
 
 export function sendEvent(authorId: number, content: string) {
@@ -66,13 +69,31 @@ export function loadEventsAsyncAllTheTimeSingleton() {
 
     }
 }
+export function fetchInitialEventsForChallenge(challengeId: number) {
+    return function (dispatch, getState: () => ReduxState) {
+        dispatch(CLEAR_UNREAD_NOTIFICATIONS.new({challengeId}));
+        webCall.loadEventsForChallenge(dispatch, challengeId).then(
+            (eventGroup: EventGroupSynchDTO) => {
+                eventGroup.events.forEach(e => {
+                    if (e.readDate == null) {
+                        console.log("this event is not read, we will mark as read it " + e.content);
+                        dispatch(markAsRead(e.challengeId, e.id))
+                    }
+
+                })
+                dispatch(WEB_EVENTS_SYNC_RESPONSE.new({eventGroup, loggedUserId: loggedUserSelector(getState()).id}))
+            }
+        );
+    }
+}
+
 
 function loadEventsAsyncAllTheTime(seed: number) {
 
     return function (dispatch, getState: () => ReduxState) {
         var state = getState();
 
-
+        dispatch(UPDATE_TODAY.new({}));
         if (state.eventsState.seed != seed) // this version of function is outdated, user logged out in the meantime
             return;
 
@@ -86,15 +107,14 @@ function loadEventsAsyncAllTheTime(seed: number) {
 
             webCall.loadEventsForChallengeAsync(dispatch, maxTotalEventReadId).then(
                 (eventGroup: EventGroupDTO) => {
-                    var events=eventGroup.events!=null ? eventGroup.events: [];
+                    var events = eventGroup.events != null ? eventGroup.events : [];
 
-                    console.log("maxTotal: "+eventGroup.maxTotalEventReadId);
-                    events.map(e => console.log(events.length+" @@@received event " + e.eventType + ", " + e.id + " new: " +
+                    //console.log("maxTotal: " + eventGroup.maxTotalEventReadId);
+                    events.map(e => console.log(events.length + " @@@received event " + e.eventType + ", " + e.id + " new: " +
                         (e.readDate == null)));
 
 
-
-                    if (events.length==0 && eventGroup.maxTotalEventReadId==null)
+                    if (events.length == 0 && eventGroup.maxTotalEventReadId == null)
                         return Promise.resolve(true);
 
                     dispatch(WEB_EVENTS_ASYNC_RESPONSE.new({
@@ -121,7 +141,6 @@ function loadEventsAsyncAllTheTime(seed: number) {
                             }
                         )
 
-
                     var selectedChallengeEvents = events.filter(e => e.challengeId == challengeId);
 
                     // refresh who accepted & who rejected
@@ -143,13 +162,13 @@ function loadEventsAsyncAllTheTime(seed: number) {
                     var loggedUserCreatedThisEvent = events.filter(e => e.readDate == null && e.authorId == loggedUserSelector(state).id);
 
                     selectedChallengeEvents.concat(loggedUserCreatedThisEvent).filter(e => e.readDate == null).map(e =>
-                      console.log(e.eventType+" mark as read")
+                        console.log(e.eventType + " mark as read")
                     );
 
                     var promises = selectedChallengeEvents.concat(loggedUserCreatedThisEvent).filter(e => e.readDate == null).map(e =>
                         dispatch(markAsRead(e.challengeId, e.id))
                     )
-                   return Promise.all(promises) as any ;
+                    return Promise.all(promises) as any;
                 }
             ).then(() => {
                 dispatch(loadEventsAsyncAllTheTime(seed));
@@ -177,6 +196,20 @@ function loadEventsAsyncAllTheTime(seed: number) {
 }
 
 
+function displaySnackbarForCreatedTasks(selectedChallengeEvents: EventDTO[], getState: () => ReduxState, dispatch) {
+    return (taskProgress: TaskProgressDTO[]) =>
+        selectedChallengeEvents
+            .filter(e => e.eventType == EventType.CREATE_TASK && e.authorId == loggedUserSelector(getState()).id)
+            .forEach(taskCreatedEvent => {
+
+                if (taskProgress.map(tp => tp.taskId).contains(taskCreatedEvent.taskId)) {
+                    dispatch(UPDATE_SNACKBAR.new({snackbarInfo: "Task has been created."}));
+                } else {
+                    dispatch(UPDATE_SNACKBAR.new({snackbarInfo: "Task has been created but is invisible now."}));
+                }
+
+            });
+}
 function processInvomingSelectedChallengeEvents(selectedChallengeEvents: EventDTO[], challengeId: number, dispatch, getState: () => ReduxState) {
     selectedChallengeEvents.filter(e => [
         EventType.CHECKED_TASK,
@@ -228,8 +261,8 @@ function processInvomingSelectedChallengeEvents(selectedChallengeEvents: EventDT
 
 
         dispatch(MARK_ALL_CHALLENGE_TASKS_PROGRESSES_AS_INVALID.new({challengeId: challengeId}));
-        console.log("FETCH TASKS WHEN NEEDED");
-        dispatch(fetchTasksProgresses(challengeId, getState().currentSelection.day));
+        dispatch(fetchTasksProgresses(challengeId, getState().currentSelection.day))
+            .then(displaySnackbarForCreatedTasks(selectedChallengeEvents, getState, dispatch));
 
 
         var uniqueTaskIds = _.without<number>(_.uniq(selectedChallengeEvents.filter(e => e.taskId != null).map(e => e.taskId)), ...taskIdsToUpdate);
@@ -259,9 +292,6 @@ function markAsRead(challengeId, eventId) {
 }
 
 
-
-
-
 export function showTaskEvents(challengeId: number, taskId: number) {
     return function (dispatch, getState: () => ReduxState) {
         webCall.loadEventsForTask(dispatch, challengeId, taskId).then(
@@ -270,14 +300,6 @@ export function showTaskEvents(challengeId: number, taskId: number) {
     }
 }
 
-export function fetchInitialEventsForChallenge(challengeId: number) {
-    return function (dispatch, getState: () => ReduxState) {
-        dispatch(CLEAR_UNREAD_NOTIFICATIONS.new({challengeId}));
-        webCall.loadEventsForChallenge(dispatch, challengeId).then(
-            (eventGroup: EventGroupSynchDTO) => dispatch(WEB_EVENTS_SYNC_RESPONSE.new({eventGroup, loggedUserId: loggedUserSelector(getState()).id}))
-        );
-    }
-}
 
 export function loadPreviousEventsAction() {
     return function (dispatch, getState: () => ReduxState) {
@@ -286,8 +308,7 @@ export function loadPreviousEventsAction() {
         const eventGroupSynchDTO = displaySeletectedEventGroupSelector(state);
 
 
-
-        var beforeEventReadId=_.minBy( eventGroupSynchDTO.events,e=>e.eventReadId).eventReadId;
+        var beforeEventReadId = _.minBy(eventGroupSynchDTO.events, e => e.eventReadId).eventReadId;
 
         webCall.loadEventsForChallenge(dispatch, eventGroupSynchDTO.challengeId, beforeEventReadId).then(
             (eventGroup: EventGroupSynchDTO) => dispatch(WEB_EVENTS_SYNC_RESPONSE_PREVIOUS.new({eventGroup, loggedUserId: loggedUserSelector(getState()).id}))

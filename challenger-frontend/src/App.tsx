@@ -12,21 +12,20 @@ import {GlobalWebCallProgress} from "./views/GlobalWebCallProgress";
 import {CustomNotificationPanel} from "./views/CustomNotificationPanel";
 import {Dialog, FlatButton} from "material-ui";
 import {refetchChallengeData} from "./module_challenges/challengeActions";
-import {CLOSE_TRY_AGAIN_WINDOW} from "./redux/actions/actions";
-
-
-//2.0.3
-//2.1.0-dev.20161023 try newer for object spread operator support
+import {CLOSE_TRY_AGAIN_WINDOW, UPDATE_SNACKBAR} from "./redux/actions/actions";
+import Snackbar from 'material-ui/Snackbar';
 
 interface Props {
     logged: boolean,
     registering: boolean,
     confirmationLink: boolean,
     noInternetConnection?: boolean
+    snackbarString: string
 }
 interface PropsFunc {
     onLogout: () => void,
     onTryAgainWhenCommunicationProblem: () => void
+    hideSnackbar: () => void
 }
 
 
@@ -63,12 +62,12 @@ const App = (props: Props & PropsFunc) => {
             </Dialog>
 
             }
-            {/* <Snackbar
+            { <Snackbar
              open={props.snackbarString!=null && props.snackbarString!=""}
              message={props.snackbarString !=null ?props.snackbarString: "nothing"}
              autoHideDuration={4000}
-             onRequestClose={()=>{}}
-             />*/}
+             onRequestClose={props.hideSnackbar}
+             /> }
         </div>
     </MuiThemeProvider >
 };
@@ -77,12 +76,13 @@ const App = (props: Props & PropsFunc) => {
 const mapStateToProps = (state: ReduxState): Props => {
     var c = "action=";
     var cl = window.location.hash;
+
     return {
         confirmationLink: (window.location.hash.substr(1) || "").startsWith(c) || (state.confirmationLinkState != null && state.confirmationLinkState.uid != null),
         logged: loggedUserSelector(state) != null,
         registering: state.registerState != null,
-        noInternetConnection: state.currentSelection.noInternetConnection
-        //snackbarString: null//state.currentSelection.snackbarInfo
+        noInternetConnection: state.currentSelection.noInternetConnection,
+        snackbarString: state.currentSelection.snackbarInfo
     }
 };
 
@@ -92,7 +92,8 @@ const mapDispatchToProps = (dispatch): PropsFunc => {
         onTryAgainWhenCommunicationProblem: () => {
             dispatch(refetchChallengeData());
             dispatch(CLOSE_TRY_AGAIN_WINDOW.new({}))
-        }
+        },
+        hideSnackbar: () => dispatch(UPDATE_SNACKBAR.new({snackbarInfo: undefined}))
     }
 };
 

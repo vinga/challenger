@@ -4,7 +4,8 @@ import Checkbox from "material-ui/Checkbox";
 interface Props {
     days: string
     onDaysChanged: (monthdays: string)=>void;
-    disabled?: boolean
+    disabled?: boolean,
+    mode: 'TOGGLE_ON_ONE' | 'ALL_WHEN_NONE'
 }
 interface State {
     weekdays: boolean[]
@@ -37,21 +38,31 @@ export class WeekdaysGroup extends React.Component<Props, State> {
     }
 
     handleOnCheckWeekday = (index: number, isInputChecked: boolean) => {
-        // all are checked, uncheking first one
-        if (isInputChecked == false && this.state.weekdays.filter(e=>e == true).length == ALL_DAYS_IN_WEEK) {
-            for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
-                this.state.weekdays[i] = false;
+
+        if (this.props.mode=="TOGGLE_ON_ONE") {
+            // all are checked, uncheking first one
+            if (isInputChecked == false && this.state.weekdays.filter(e => e == true).length == ALL_DAYS_IN_WEEK) {
+                for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
+                    this.state.weekdays[i] = false;
+                }
+                this.state.weekdays[index] = true;
             }
-            this.state.weekdays[index] = true;
-        }
-        // only one checked, uncheking it
-        else if (isInputChecked == false && this.state.weekdays.filter(e=>e == true).length == 1 && this.state.weekdays[index] == true) {
-            for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
-                this.state.weekdays[i] = true;
+            // only one checked, uncheking it
+            else if (isInputChecked == false && this.state.weekdays.filter(e => e == true).length == 1 && this.state.weekdays[index] == true) {
+                for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
+                    this.state.weekdays[i] = true;
+                }
             }
+            else
+                this.state.weekdays[index] = isInputChecked;
+        } else {
+            if (isInputChecked == false && this.state.weekdays.filter(e => e == true).length == 1 && this.state.weekdays[index] == true) {
+                for (var i = 0; i < ALL_DAYS_IN_WEEK; i++) {
+                    this.state.weekdays[i] = true;
+                }
+            } else this.state.weekdays[index] = isInputChecked;
         }
-        else
-            this.state.weekdays[index] = isInputChecked;
+
 
         this.setState(this.state);
 

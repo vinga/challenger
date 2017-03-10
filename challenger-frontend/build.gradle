@@ -1,3 +1,5 @@
+
+
 plugins {
     id "com.palantir.npm-run" version "0.3.0"
 }
@@ -6,7 +8,6 @@ def localDist="dist"
 def backendDist='../challenger-backend/src/main/resources/static'
 
 
-//apply  plugin: "com.palantir.npm-run"
 task collectResources << {
     def dest = localDist
 
@@ -43,12 +44,10 @@ task cleanDist << {
     new File(backendDist).deleteDir()
 }
 
-//copyToBackend.dependsOn tasks.build
 
 // build task is dynamic
 tasks.whenTaskAdded { task ->
     if (task.name == 'build') {
-        //task.finalizedBy 'copyToBackend'
         copyToBackend.dependsOn task
     }
     if (task.name=='clean') {

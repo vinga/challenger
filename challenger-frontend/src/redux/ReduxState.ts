@@ -21,6 +21,7 @@ export enum LongCallVisible {
 }
 
 export interface CurrentSelection {
+    today: Date,
     day: Date,
     loginErrorDescription?: string,
     internalErrorsCount: number,
@@ -28,7 +29,8 @@ export interface CurrentSelection {
     loginInfoDescription?: string,
     longCallVisible?: LongCallVisible
     closableText?: string,
-    noInternetConnection?: boolean
+    noInternetConnection?: boolean,
+    snackbarInfo?: string
 
 }
 

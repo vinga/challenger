@@ -20,7 +20,7 @@ const getInitialState = (): EventState => {
     return {
         seed: null,
         eventWindowVisible: true,
-        expandedEventWindow: false,
+        expandedEventWindow: true,
         eventGroups: new Array<EventGroupSynchDTO>(),
         globalUnreadEvents: [],
         selectedTask: null,

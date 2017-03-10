@@ -64,6 +64,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
 
 
     render() {
+
         if (this.props.forgotPasswordMode) {
             return <ForgotPasswordPanel
                 onForgotPassword={this.props.onForgotPasswordSendConfirmationLink}
@@ -96,7 +97,7 @@ class LoginPanelInternal extends React.Component<ReduxProps & ReactProps & Props
                                 autoFocus={true}
                                 fullWidth={true}
                                 floatingLabelText="Login"
-                                minLengthNumber={5}
+                                minLengthNumber={4}
                                 maxLengthNumber={30}
                                 fieldValue={this.props.currentLogin!=null? this.props.currentLogin: this.state.login}
                                 onEnterKeyDown={()=> {this.passwordField.focus(); } }

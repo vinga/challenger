@@ -36,7 +36,8 @@ interface State {
     task: TaskDTO,
     submitDisabled: boolean,
     taskDeleteConfirmation: boolean,
-    visibilityType: string
+    visibilityType: string,
+    difficulty: number
 }
 
 class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsFunc, State> {
@@ -52,8 +53,12 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
             task: this.props.task,
             submitDisabled: false,
             taskDeleteConfirmation: false,
-            visibilityType: vType
+            visibilityType: vType,
+            difficulty: this.props.task.difficulty
         };
+    }
+    onChangeDifficulty = (event, value: string) => {
+        this.setState({...this.state, difficulty: +value });
     }
 
     componentDidMount = () => {
@@ -77,6 +82,9 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                 this.state.task.monthDays = null;
             else
                 this.state.task.weekDays = null;
+        }
+        if (this.state.difficulty!=null) {
+            this.state.task.difficulty=this.state.difficulty
         }
 
 
@@ -214,7 +222,8 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         <Col>
                             <Subheader>Difficulty</Subheader>
                             <RadioButtonGroup name="difficulty"
-                                              defaultSelected={"" + this.state.task.difficulty}>
+                                              defaultSelected={"" + this.state.task.difficulty}
+                                                onChange={this.onChangeDifficulty}>
 
                                 <RadioButton
                                     value="0"
@@ -298,7 +307,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
                         { this.props.task.taskType == TaskType.weekly &&
                         <Col col="6">
                             <Subheader>Visibility</Subheader>
-                            <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged} disabled={this.isDisabled()}/>
+                            <WeekdaysGroup mode="ALL_WHEN_NONE" days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged} disabled={this.isDisabled()}/>
 
                         </Col> }
 
@@ -335,7 +344,7 @@ class EditTaskDialogInternal extends React.Component<Props & ReduxProps & PropsF
 
                                 {this.state.visibilityType == "weekday" &&
                                 <Col col="4">
-                                    <WeekdaysGroup days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged} disabled={this.isDisabled()}/>
+                                    <WeekdaysGroup mode="ALL_WHEN_NONE" days={this.state.task.weekDays} onDaysChanged={this.handleWeekDaysChanged} disabled={this.isDisabled()}/>
                                 </Col>
                                 }
 

@@ -7,14 +7,14 @@ import {
     WEB_CALL_END_ERROR,
     DISPLAY_LONG_CALL,
     HIDE_LONG_CALL,
-    SHOW_CUSTOM_NOTIFICATION, WEB_CALL_END_NO_INTERNET_CONNECTION, CLOSE_TRY_AGAIN_WINDOW
+    SHOW_CUSTOM_NOTIFICATION, WEB_CALL_END_NO_INTERNET_CONNECTION, CLOSE_TRY_AGAIN_WINDOW, UPDATE_TODAY, UPDATE_SNACKBAR
 } from "../actions/actions";
 import {CurrentSelection, copy, WebCallData} from "../ReduxState";
 import {LOGIN_USER_RESPONSE_FAILURE, LOGIN_USER_RESPONSE_SUCCESS, START_FORGOT_PASSWORD_MODE, FINISH_FORGOT_PASSWORD_MODE} from "../../module_accounts/accountActionTypes";
 
 
 const getInitialState = () => {
-    return {day: new Date(), internalErrorsCount: 0, currentWebCalls: []};
+    return {day: new Date(), today: new Date(), internalErrorsCount: 0, currentWebCalls: []};
 }
 export function currentSelection(state: CurrentSelection = getInitialState(), action): CurrentSelection {
     if (isAction(action, 'LOGOUT')) {
@@ -23,6 +23,10 @@ export function currentSelection(state: CurrentSelection = getInitialState(), ac
         return copy(state).and({
             day: state.day.addDays(action.amount)
         })
+    } else if (isAction(action, UPDATE_TODAY)) {
+        if (new Date().getDate()==state.day.getDate())
+            return state;
+        else return {...state, today: new Date() }
     }
     else if (isAction(action, LOGIN_USER_RESPONSE_FAILURE)) {
         return copy(state).and({
@@ -78,6 +82,8 @@ export function currentSelection(state: CurrentSelection = getInitialState(), ac
         return {...state, noInternetConnection: true };
     } else if (isAction(action, CLOSE_TRY_AGAIN_WINDOW)) {
         return {...state, noInternetConnection: false };
+    } else if (isAction(action, UPDATE_SNACKBAR)) {
+        return {...state, snackbarInfo: action.snackbarInfo };
     }
 
     return state;

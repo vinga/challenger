@@ -43,7 +43,7 @@ class TaskTableHeaderAccountPanelInternal extends React.Component<Props & ReduxP
                 challengeStatus={this.props.challengeStatus}
             />
 
-            <span style={{}}><span style={{lineHeight: '65px'}}>{this.props.user.label}</span>
+            <span style={{}}><span style={{whiteSpace: "nowrap",lineHeight: '65px'}}>{this.props.user.label}</span>
                 {this.props.no != 0 && /*this.props.canLogin &&*/ this.props.challengeStatus == ChallengeStatus.ACTIVE && (this.props.user.jwtToken != null ?
 
                         <IconButton

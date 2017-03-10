@@ -3,6 +3,8 @@ import {LongCallVisible, WebCallData} from "../ReduxState";
 
 
 export const INCREMENT_DAY: ActionType<{amount: number}> = new ActionType<any>('INCREMENT_DAY');
+export const UPDATE_TODAY: ActionType<{}> = new ActionType<any>('UPDATE_TODAY');
+export const UPDATE_SNACKBAR: ActionType<{snackbarInfo: string}> = new ActionType<any>('UPDATE_SNACKBAR');
 
 
 export const DISPLAY_REQUEST_IN_PROGRESS: ActionType<{}> = new ActionType<any>('DISPLAY_REQUEST_IN_PROGRESS');

@@ -70,9 +70,9 @@ class TaskRestService : ITaskRestService {
 
 
     //deprecated
-    @GET
-    @Path("challenges/{challengeId}/tasksForDay/")
-    fun getTasksForDay(@PathParam("challengeId") contractId: Long, @QueryParam("day") /*"date_yy-MM-dd"*/ dateString: String): List<TaskDTO> {
+    //@GET
+    //@Path("challenges/{challengeId}/tasksForDay/")
+    private fun getTasksForDay(@PathParam("challengeId") contractId: Long, @QueryParam("day") /*"date_yy-MM-dd"*/ dateString: String): List<TaskDTO> {
         val callerId = session.userId
         // val date = DateTimeFormat.forPattern("yy-MM-dd").parseDateTime(dateString).toDate()
         val date = LocalDate.parse(dateString, DateTimeFormatter.ofPattern("yy-MM-dd"))

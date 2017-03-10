@@ -1,5 +1,5 @@
 import * as React from "react";
-import TextFieldExt from "../../views/common-components/TextFieldExt.tsx";
+import TextFieldExt from "../../views/common-components/TextFieldExt";
 import {Col, Row, RowCol} from "../../views/common-components/Flexboxgrid";
 import {RaisedButton} from "material-ui";
 import {FlatButton} from "material-ui";
@@ -22,12 +22,9 @@ export class ForgotPasswordPanel extends React.Component<Props, void> {
     }
 
     render() {
-
         return (
             <div id="main" className="container ">
-
                 <Row horizontal="center">
-
                     <Col col="3" style={{marginTop:"100px"}}>
                         <RowCol horizontal="start">
                         <h5>Reset password</h5>
@@ -35,7 +32,6 @@ export class ForgotPasswordPanel extends React.Component<Props, void> {
                         <RowCol horizontal="start">
                             Please provide your email:
                             <TextFieldExt
-
                                 fullWidth={true}
                                 floatingLabelText="Email:"
                                 checkEmailPattern={true}
@@ -47,12 +43,13 @@ export class ForgotPasswordPanel extends React.Component<Props, void> {
 
                         </RowCol>
                         < RowCol horizontal="end">
-                            <RaisedButton label="Send reset link" onClick={this.handleSetResetLink}/>
+                            <RaisedButton label="Send reset link"
+                                          onClick={this.handleSetResetLink}/>
                         </RowCol>
                         <RowCol horizontal="end">
-
-                            <FlatButton labelStyle={{textTransform:"none", color:"#888888"}} label="Back" onClick={this.props.onExitToLoginFunc}/>
-
+                            <FlatButton labelStyle={{textTransform:"none", color:"#888888"}}
+                                        label="Back"
+                                        onClick={this.props.onExitToLoginFunc}/>
                         </RowCol>
                     </Col>
                 </Row >

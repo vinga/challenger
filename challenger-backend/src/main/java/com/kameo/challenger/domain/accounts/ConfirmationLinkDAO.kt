@@ -225,7 +225,7 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
 
         val loginOrEmpty = if (u.login != null) "Your current login is <b>${u.login}</b>.<br/>" else ""
         mailService.send(MailService.Message(u.email,
-                "Reset your ChallengerWebMvcConfigurerAdapter Password",
+                "Reset your Challenger Password",
                 "<html>Hi,\n" +
                         "To change your password please use the link below within 24 hours.<br/>" +
                         "<b><a href='$link'>$link</a></b><br/><br/>" +
@@ -237,7 +237,7 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
     }
 
     private fun challengerFooterMail(): String = "<br/>Thank you,<br/>" +
-            "The ChallengerWebMvcConfigurerAdapter Team"
+            "The Challenger Team"
 
     open fun createAndSendChallengeConfirmationLink(cb: ChallengeODB, cp: ChallengeParticipantODB) {
 
@@ -256,13 +256,18 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
         anyDaoNew.persist(cclReject)
 
 
+        val loginWithSpace=if (cp.user.login!=null)
+           " "+cp.user.login
+         else
+           ""
+
         val content =
                 if (cp.user.userStatus != UserStatus.WAITING_FOR_EMAIL_CONFIRMATION) {
-                    "<html>Hi ${cp.user.login}. <br/>\n" +
-                            cb.createdBy.login + " challenged you: " + cb.label + "<br/>\n" +
+                    "<html>Hi${loginWithSpace}.<br/>\n" +
+                            cb.createdBy.login + " has challenged you.<br/>\n" +
                             "Follow the link below to accept or reject challenge.<br/>\n" +
 
-                            "To accept challenge:<br/>\n" +
+                            "To accept challenge <b>${cb.label}</b>:<br/>\n" +
                             "<a href='${toActionLink(cclAccept)}'>${toActionLink(cclAccept)}</a><br/>\n" +
 
                             "To reject challenge:<br/>\n" +
@@ -271,9 +276,9 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                             "</html>"
                 } else {
                     "<html>Hi. <br/>\n" +
-                            cb.createdBy.login + " challenged you: " + cb.label + "<br/>\n" +
+                            "Somebody called "+cb.createdBy.login + " has challenged you.<br/>\n" +
                             "Follow the link below to accept or reject challenge.<br/>\n" +
-                            "To accept challenge:<br/>\n" +
+                            "To accept challenge <b>${cb.label}</b>:<br/>\n" +
                             "<a href='${toActionLink(cclAccept)}'>${toActionLink(cclAccept)}</a><br/>\n" +
 
                             "To reject challenge:<br/>\n" +
@@ -281,7 +286,7 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
                             challengerFooterMail() +
                             "</html>"
                 }
-        mailService.send(MailService.Message(cp.user.email, "ChallengerWebMvcConfigurerAdapter - Invitation to Challenge",
+        mailService.send(MailService.Message(cp.user.email, "Challenger - Invitation to Challenge",
                 content, null, null))
     }
 
@@ -305,7 +310,7 @@ open class ConfirmationLinkDAO(@Inject val anyDaoNew: AnyDAONew,
         val link = toActionLink(cl)
 
         mailService.send(MailService.Message(u.email,
-                "Welcome to ChallengerWebMvcConfigurerAdapter - confirm your email",
+                "Welcome to Challenger - confirm your email",
                 "<html>Hi,\n" +
                         "To confirm you email address please use the link below within 24 hours.<br/>" +
                         "<b><a href='$link'>$link</a></b><br/><br/>" +

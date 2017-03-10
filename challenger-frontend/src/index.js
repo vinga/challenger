@@ -15,3 +15,8 @@ ReactDOM.render(<App />, document.getElementById('root'));
 
 
 ReactDOM.render(<Footer/>,document.getElementById('footer'));
+
+// facebook facebook-callback-appends-to-return-url fix
+if (window.location.hash && window.location.hash == '#_=_') {
+    window.location.hash = '';
+}
