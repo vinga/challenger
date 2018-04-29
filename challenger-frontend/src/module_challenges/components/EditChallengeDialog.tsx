@@ -188,11 +188,11 @@ class EditChallengeDialogInternal extends React.Component<Props & ReduxProps & P
 
                     {  this.props.challenge.id > 0 && this.props.challenge.creatorId == this.props.currentUserId &&
                     <div style={{float: "right"}}>
-                        <IconButton style={{width: 60, height: 60}}
+                        <IconButton style={{width: 60, height: 60, fontSize: '20px' ,color: "grey"}}
                                     tooltip="Delete"
                                     onClick={()=>{this.state.showConfirmDeleteDialog=true; this.setState(this.state); }}>
                             &nbsp;<i className={'fa fa-trash' }
-                                     style={{fontSize: '20px', color: "grey", textAlign: 'center'}}></i>
+                                     style={{textAlign: 'center'}}></i>
                         </IconButton>
                     </div>
                     }

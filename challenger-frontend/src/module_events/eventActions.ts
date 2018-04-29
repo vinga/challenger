@@ -21,6 +21,7 @@ import {displaySeletectedEventGroupSelector} from "./eventSelectors";
 import _ = require("lodash");
 import {INCREMENT_DAY, UPDATE_TODAY, UPDATE_SNACKBAR} from "../redux/actions/actions";
 import {TaskProgressDTO} from "../module_tasks/TaskDTO";
+import {LOGOUT} from "../module_accounts/accountActionTypes";
 
 
 export function sendEvent(authorId: number, content: string) {
@@ -174,13 +175,15 @@ function loadEventsAsyncAllTheTime(seed: number) {
                 dispatch(loadEventsAsyncAllTheTime(seed));
             })
                 .catch((reason: any) => {
-                    console.log(reason);
+
                     if (reason.status == WEB_STATUS_NOTHING_RETURNED_YET) {
                         // this means no message arrived so far, but it is not an error, we need to retry call
                         dispatch(loadEventsAsyncAllTheTime(seed));
                     } else {
-                        console.log("PERHAPS WE WANT TO LOGOUT HERE", reason);
+                        console.log("SOME PROBLEM WITH EVENTS, MAYBE NOT AUTHORIZED? LOGOUT HERE", reason);
+                        dispatch(LOGOUT.new({}));
                         setTimeout(() => {
+
                             dispatch(loadEventsAsyncAllTheTime(seed));
                             // other problem, wait 10 seconds and retry
                         }, 10000)

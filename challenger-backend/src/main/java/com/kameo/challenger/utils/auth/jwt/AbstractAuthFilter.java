@@ -71,8 +71,11 @@ public abstract class AbstractAuthFilter<E extends TokenInfo> implements Filter 
                 //Authorization:Bearer eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q eyJhbjoxNNeu6vks-xXrAN9RJ77GnbzeC5Q
                 onTokenValidated(tokensList, httpReq, httpRes, chain);
             } catch (TokenExpiredException ex) {
+                System.out.println("TOKEN expired for call "+((HttpServletRequest)req).getMethod()+" "+((HttpServletRequest)req).getRequestURI()+
+                        ((((HttpServletRequest)req).getPathInfo()!=null)?" "+((HttpServletRequest)req).getPathInfo(): ""));
+
                 System.out.println("TOKEN expired...."+ex.getMessage());
-                //ex.printStackTrace();
+                ex.printStackTrace();
                 unauthorized(httpRes, true);
             } catch (Exception ex) {
                 ex.printStackTrace();
