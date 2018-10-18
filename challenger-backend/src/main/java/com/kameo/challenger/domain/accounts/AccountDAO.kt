@@ -1,6 +1,5 @@
 package com.kameo.challenger.domain.accounts
 
-import com.google.common.base.Strings
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkODB
 import com.kameo.challenger.domain.accounts.db.ConfirmationLinkType
 import com.kameo.challenger.domain.accounts.db.UserODB
@@ -68,15 +67,16 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
     open fun getOrCreateUserForEmail(email: String?): UserODB {
         if (email == null)
             throw IllegalArgumentException("Either second user id or second  user email must be provided")
-        val u = anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, email) }
-        return u ?: createPendingUserWithEmailOnly(email)
+        val normalizedEmail = email.trim().toLowerCase()
+        return anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, normalizedEmail) }
+                ?: createPendingUserWithEmailOnly(normalizedEmail)
     }
 
     open fun getOrCreateOauth2GoogleUser(oauth2GoogleId: String, email: String, emailIsVerified: Boolean): UserODB {
         val u = anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::oauth2GoogleId, oauth2GoogleId) }
                 ?: anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, email) }
                 ?: createPendingUserWithEmailOnly(email)
-        if (u.oauth2GoogleId!=oauth2GoogleId) {
+        if (u.oauth2GoogleId != oauth2GoogleId) {
             u.oauth2GoogleId = oauth2GoogleId
             anyDaoNew.merge(u)
         }
@@ -86,11 +86,12 @@ open class AccountDAO(@Inject val anyDaoNew: AnyDAONew,
         }
         return u;
     }
+
     open fun getOrCreateOauth2FacebookUser(oauth2FacebookId: String, email: String, emailIsVerified: Boolean): UserODB {
         val u = anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::oauth2FacebookId, oauth2FacebookId) }
                 ?: anyDaoNew.getFirst(UserODB::class) { it.eq(UserODB::email, email) }
                 ?: createPendingUserWithEmailOnly(email)
-        if (u.oauth2FacebookId!=oauth2FacebookId) {
+        if (u.oauth2FacebookId != oauth2FacebookId) {
             u.oauth2FacebookId = oauth2FacebookId
             anyDaoNew.merge(u)
         }

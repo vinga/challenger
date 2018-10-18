@@ -7,7 +7,6 @@ logging:
   level.org.springframework: ERROR
   level.org.hibernate: ERROR
 
-
 spring.mail:
     host: smtp.gmail.com
     port: 587

@@ -20,6 +20,7 @@ data class UserODB(@Id
 
     @Size(min=5,max=100)
     lateinit var email: String
+
     lateinit var salt: String
     lateinit var passwordHash: String
     lateinit var userStatus: UserStatus
